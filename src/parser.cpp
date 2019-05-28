@@ -50,11 +50,11 @@ inline bool operator<(const row& a, const row& b) {
 
 void circuit::print_usage() {
   cout << "Incorrect arguments. exiting .." << endl;
-  cout << "Usage1 : cada045 -tech_lef tech.lef -cell_lef cell.lef -input_def "
+  cout << "Usage1 : opendp -tech_lef tech.lef -cell_lef cell.lef -input_def "
           "placed.def -cpu 4 -placement_constraints placement.constraints "
           "-output_def lg.def"
        << endl;
-  cout << "Usage2 : cada045 -lef design.lef -input_def placed.def -cpu 4 "
+  cout << "Usage2 : opendp -lef design.lef -input_def placed.def -cpu 4 "
           "-placement_constraints placement.constraints -output_def lg.def"
        << endl;
 
