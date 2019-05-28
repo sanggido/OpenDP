@@ -41,36 +41,42 @@
 
 using namespace std;
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
+  cout << "===================================================================="
+          "======="
+       << endl;
+  cout << "   Open Source Mixed-Height Standard Cell Detail Placer < "
+          "OpenDP_v1.0 >    "
+       << endl;
+  cout << "   Developers : SangGi Do, Mingyu Woo                               "
+          "       "
+       << endl;
+  cout << "===================================================================="
+          "======="
+       << endl;
 
-	cout << "===========================================================================" <<endl;
-	cout << "   Open Source Mixed-Height Standard Cell Detail Placer < OpenDP_v1.0 >    " <<endl;
-	cout << "   Developers : SangGi Do, Mingyu Woo                                      " <<endl;
-	cout << "===========================================================================" <<endl;
+  CMeasure measure;
+  measure.start_clock();
 
-	CMeasure measure;
-	measure.start_clock();
+  circuit ckt;
 
-    circuit ckt;
+  // READ input files - parser.cpp
+  ckt.read_files(argc, argv);
+  measure.stop_clock("Parser");
 
-    // READ input files - parser.cpp
-    ckt.read_files(argc,argv);
-    measure.stop_clock("Parser");
+  ckt.simple_placement(measure);
+  ckt.calc_density_factor(4);
 
-	ckt.simple_placement(measure);
-    ckt.calc_density_factor(4);
+  measure.stop_clock("All");
+  ckt.write_def(ckt.out_def_name);
 
-	measure.stop_clock("All");
-	ckt.write_def(ckt.out_def_name);
+  measure.print_clock();
 
-	measure.print_clock();
+  // EVALUATION - utility.cpp
+  ckt.evaluation();
 
-    // EVALUATION - utility.cpp
-	ckt.evaluation();
-
-    // CHECK LEGAL - check_legal.cpp
-	ckt.check_legality();
-    cout << " - - - - - < Program END > - - - - - " << endl;
-	return 0;
+  // CHECK LEGAL - check_legal.cpp
+  ckt.check_legality();
+  cout << " - - - - - < Program END > - - - - - " << endl;
+  return 0;
 }
