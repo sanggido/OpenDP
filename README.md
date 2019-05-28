@@ -9,8 +9,7 @@
 * Recommended OS: Centos6 or Centos7 or Ubuntu 16.04
 
 ### How To Compile
-$ git clone --recursive https://github.com/sanggido/OpenDP.git
-
+    $ git clone --recursive https://github.com/sanggido/OpenDP.git
     $ cd OpenDP
     $ mkdir build
     $ cd build 
