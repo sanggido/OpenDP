@@ -51,12 +51,19 @@
 #include <limits>
 #include <assert.h>
 #include <queue>
-#include <sparsehash/dense_hash_map>
 #include <omp.h>
 #include "mymeasure.h"
 
+#ifdef USE_GOOGLE_HASH
+#include <sparsehash/OPENDP_HASH_MAP>
 #define INITSTR "SANGGIDO!@#!@#"
-using google::dense_hash_map;
+using google::OPENDP_HASH_MAP;
+#define OPENDP_HASH_MAP OPENDP_HASH_MAP
+#else
+#include <unordered_map>
+using std::unordered_map;
+#define OPENDP_HASH_MAP unordered_map
+#endif
 
 #define INIT false
 #define FINAL true
@@ -192,7 +199,7 @@ struct macro {
   int edgetypeRight;  // 1 or 2
   vector< unsigned > sites;
 
-  dense_hash_map< string, macro_pin > pins;
+  OPENDP_HASH_MAP< string, macro_pin > pins;
 
   vector< rect > obses; /* keyword OBS for non-rectangular shapes in micros */
   power top_power;      // VDD = 0  VSS = 1 enum
@@ -208,7 +215,9 @@ struct macro {
         height(0.0),
         edgetypeLeft(0),
         edgetypeRight(0) {
+#ifdef USE_GOOGLE_HASH
     pins.set_empty_key(INITSTR);
+#endif
   }
   void print();
 };
@@ -258,7 +267,7 @@ struct cell {
   bool inGroup;
   bool hold;
   unsigned region;
-  dense_hash_map< string, unsigned > ports; /* <port name, index to the pin> */
+  OPENDP_HASH_MAP< string, unsigned > ports; /* <port name, index to the pin> */
   string cellorient;
   string group;
 
@@ -290,7 +299,9 @@ struct cell {
         dense_factor_count(0),
         binId(UINT_MAX),
         disp(0.0) {
+#ifdef USE_GOOGLE_HASH
     ports.set_empty_key(INITSTR);
+#endif
   }
   void print();
 };
@@ -402,26 +413,26 @@ class circuit {
   bool GROUP_IGNORE;
 
   void init_large_cell_stor();
-  dense_hash_map< string, unsigned >
-      macro2id; /* dense_hash_map between macro name and ID */
-  dense_hash_map< string, unsigned >
-      cell2id; /* dense_hash_map between cell  name and ID */
-  dense_hash_map< string, unsigned >
-      pin2id; /* dense_hash_map between pin   name and ID */
-  dense_hash_map< string, unsigned >
-      net2id; /* dense_hash_map between net   name and ID */
-  dense_hash_map< string, unsigned >
-      row2id; /* dense_hash_map between row   name and ID */
-  dense_hash_map< string, unsigned >
-      site2id; /* dense_hash_map between site  name and ID */
-  dense_hash_map< string, unsigned >
-      layer2id; /* dense_hash_map between layer name and ID */
+  OPENDP_HASH_MAP< string, unsigned >
+      macro2id; /* OPENDP_HASH_MAP between macro name and ID */
+  OPENDP_HASH_MAP< string, unsigned >
+      cell2id; /* OPENDP_HASH_MAP between cell  name and ID */
+  OPENDP_HASH_MAP< string, unsigned >
+      pin2id; /* OPENDP_HASH_MAP between pin   name and ID */
+  OPENDP_HASH_MAP< string, unsigned >
+      net2id; /* OPENDP_HASH_MAP between net   name and ID */
+  OPENDP_HASH_MAP< string, unsigned >
+      row2id; /* OPENDP_HASH_MAP between row   name and ID */
+  OPENDP_HASH_MAP< string, unsigned >
+      site2id; /* OPENDP_HASH_MAP between site  name and ID */
+  OPENDP_HASH_MAP< string, unsigned >
+      layer2id; /* OPENDP_HASH_MAP between layer name and ID */
 
-  dense_hash_map< string, unsigned > via2id;
-  map< pair< int, int >, double > edge_spacing; /* spacing dense_hash_map
+  OPENDP_HASH_MAP< string, unsigned > via2id;
+  map< pair< int, int >, double > edge_spacing; /* spacing OPENDP_HASH_MAP
                                                    between edges  1 to 1 , 1 to
                                                    2, 2 to 2 */
-  dense_hash_map< string, unsigned > group2id; /* group between name -> index */
+  OPENDP_HASH_MAP< string, unsigned > group2id; /* group between name -> index */
 
   double design_util;
   double sum_displacement;
@@ -540,22 +551,24 @@ class circuit {
     layers.reserve(32);
     rows.reserve(4096);
     sub_regions.reserve(100);
+#ifdef USE_GOOGLE_HASH
     macro2id.set_empty_key(
-        INITSTR); /* dense_hash_map between macro name and ID */
+        INITSTR); /* OPENDP_HASH_MAP between macro name and ID */
     cell2id.set_empty_key(
-        INITSTR); /* dense_hash_map between cell  name and ID */
+        INITSTR); /* OPENDP_HASH_MAP between cell  name and ID */
     pin2id.set_empty_key(
-        INITSTR); /* dense_hash_map between pin   name and ID */
+        INITSTR); /* OPENDP_HASH_MAP between pin   name and ID */
     net2id.set_empty_key(
-        INITSTR); /* dense_hash_map between net   name and ID */
+        INITSTR); /* OPENDP_HASH_MAP between net   name and ID */
     row2id.set_empty_key(
-        INITSTR); /* dense_hash_map between row   name and ID */
+        INITSTR); /* OPENDP_HASH_MAP between row   name and ID */
     site2id.set_empty_key(
-        INITSTR); /* dense_hash_map between site  name and ID */
+        INITSTR); /* OPENDP_HASH_MAP between site  name and ID */
     layer2id.set_empty_key(
-        INITSTR); /* dense_hash_map between layer name and ID */
+        INITSTR); /* OPENDP_HASH_MAP between layer name and ID */
     via2id.set_empty_key(INITSTR);
     group2id.set_empty_key(INITSTR); /* group between name -> index */
+#endif
   };
 
   /* read files for legalizer - parser.cpp */

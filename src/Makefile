@@ -2,14 +2,12 @@ EXE = OpenDP
 CXX = g++
 
 OPTFLAG = -m64 -O3
-LIBINCLUDE =  -I$(HASHROOT)
+LIBINCLUDE =  
 
-CFLAGS = -std=c++11 $(OPTFLAG) $(LIBINCLUDE)
+CFLAGS = -std=c++0x -DNDEBUG $(OPTFLAG) $(LIBINCLUDE)
 
 # linking flag settings
 LINKCFLAGS = $(CFLAGS) -static-libstdc++ -static-libgcc
-
-HASHROOT = ../module/sparsehash/install-sp/include
 
 # source settings.
 $(EXE): check_legal.o parser.o parser_helper.o utility.o place.o assign.o mymeasure.o main.o

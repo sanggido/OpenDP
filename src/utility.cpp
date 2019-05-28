@@ -906,8 +906,10 @@ vector< cell* > circuit::overlap_cells(cell* theCell) {
   int step_x = (int)ceil(theCell->width / wsite);
   int step_y = (int)ceil(theCell->height / rowHeight);
 
-  dense_hash_map< unsigned, cell* > cell_list;
+  OPENDP_HASH_MAP< unsigned, cell* > cell_list;
+#ifdef USE_GOOGLE_HASH
   cell_list.set_empty_key(UINT_MAX);
+#endif
 
   for(int i = theCell->y_pos; i < theCell->y_pos + step_y; i++) {
     for(int j = theCell->x_pos; j < theCell->y_pos + step_x; j++) {
@@ -938,8 +940,10 @@ vector< cell* > circuit::get_cells_from_boundary(rect* theRect) {
 
   vector< cell* > list;
 
-  dense_hash_map< unsigned, cell* > cell_list;
+  OPENDP_HASH_MAP< unsigned, cell* > cell_list;
+#ifdef USE_GOOGLE_HASH
   cell_list.set_empty_key(UINT_MAX);
+#endif
 
   for(int i = y_start; i < y_end; i++) {
     for(int j = x_start; j < x_end; j++) {

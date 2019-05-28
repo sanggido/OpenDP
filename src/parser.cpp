@@ -1596,7 +1596,7 @@ void circuit::read_def_vias(ifstream& is) {
     if(tokens[0] == "-") {
       pass = false;
       get_next_token(is, tokens[0], DEFCommentChar);
-      dense_hash_map< string, unsigned >::iterator it =
+      OPENDP_HASH_MAP< string, unsigned >::iterator it =
           via2id.find(tokens[0].c_str());
       if(it == via2id.end()) {
         myVia = locateOrCreateVia(tokens[0]);
@@ -1837,14 +1837,14 @@ void circuit::read_lef_macro(ifstream& is) {
   bool power_found = false;
   string vdd_str, vss_str;
 
-  dense_hash_map< string, macro_pin >::iterator it = myMacro->pins.find("vdd");
+  OPENDP_HASH_MAP< string, macro_pin >::iterator it = myMacro->pins.find("vdd");
   if(it == myMacro->pins.end()) {
     vdd_str = "vdd";
     vss_str = "vss";
     power_found = true;
   }
   else {
-    dense_hash_map< string, macro_pin >::iterator it =
+    OPENDP_HASH_MAP< string, macro_pin >::iterator it =
         myMacro->pins.find("VDD");
     if(it == myMacro->pins.end()) {
       vdd_str = "VDD";

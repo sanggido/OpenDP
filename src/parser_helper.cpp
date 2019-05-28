@@ -39,7 +39,7 @@
 
 // requires full name, e.g., cell_instance/pin
 pin *circuit::locateOrCreatePin(const string &pinName) {
-  dense_hash_map< string, unsigned >::iterator it = pin2id.find(pinName);
+  OPENDP_HASH_MAP< string, unsigned >::iterator it = pin2id.find(pinName);
   if(it == pin2id.end()) {
     pin thePin;
     thePin.name = pinName;
@@ -53,7 +53,7 @@ pin *circuit::locateOrCreatePin(const string &pinName) {
 }
 
 cell *circuit::locateOrCreateCell(const string &cellName) {
-  dense_hash_map< string, unsigned >::iterator it = cell2id.find(cellName);
+  OPENDP_HASH_MAP< string, unsigned >::iterator it = cell2id.find(cellName);
   if(it == cell2id.end()) {
     cell theCell;
     theCell.name = cellName;
@@ -67,7 +67,7 @@ cell *circuit::locateOrCreateCell(const string &cellName) {
 }
 
 macro *circuit::locateOrCreateMacro(const string &macroName) {
-  dense_hash_map< string, unsigned >::iterator it = macro2id.find(macroName);
+  OPENDP_HASH_MAP< string, unsigned >::iterator it = macro2id.find(macroName);
   if(it == macro2id.end()) {
     macro theMacro;
     theMacro.name = macroName;
@@ -80,7 +80,7 @@ macro *circuit::locateOrCreateMacro(const string &macroName) {
 }
 
 net *circuit::locateOrCreateNet(const string &netName) {
-  dense_hash_map< string, unsigned >::iterator it = net2id.find(netName);
+  OPENDP_HASH_MAP< string, unsigned >::iterator it = net2id.find(netName);
   if(it == net2id.end()) {
     net theNet;
     theNet.name = netName;
@@ -93,7 +93,7 @@ net *circuit::locateOrCreateNet(const string &netName) {
 }
 
 row *circuit::locateOrCreateRow(const string &rowName) {
-  dense_hash_map< string, unsigned >::iterator it = row2id.find(rowName);
+  OPENDP_HASH_MAP< string, unsigned >::iterator it = row2id.find(rowName);
   if(it == row2id.end()) {
     row theRow;
     theRow.name = rowName;
@@ -106,7 +106,7 @@ row *circuit::locateOrCreateRow(const string &rowName) {
 }
 
 site *circuit::locateOrCreateSite(const string &siteName) {
-  dense_hash_map< string, unsigned >::iterator it = site2id.find(siteName);
+  OPENDP_HASH_MAP< string, unsigned >::iterator it = site2id.find(siteName);
   if(it == site2id.end()) {
     site theSite;
     theSite.name = siteName;
@@ -119,7 +119,7 @@ site *circuit::locateOrCreateSite(const string &siteName) {
 }
 
 layer *circuit::locateOrCreateLayer(const string &layerName) {
-  dense_hash_map< string, unsigned >::iterator it = layer2id.find(layerName);
+  OPENDP_HASH_MAP< string, unsigned >::iterator it = layer2id.find(layerName);
   if(it == layer2id.end()) {
     layer theLayer;
     theLayer.name = layerName;
@@ -132,7 +132,7 @@ layer *circuit::locateOrCreateLayer(const string &layerName) {
 }
 
 via *circuit::locateOrCreateVia(const string &viaName) {
-  dense_hash_map< string, unsigned >::iterator it = via2id.find(viaName);
+  OPENDP_HASH_MAP< string, unsigned >::iterator it = via2id.find(viaName);
   if(it == via2id.end()) {
     via theVia;
     theVia.name = viaName;
@@ -145,7 +145,7 @@ via *circuit::locateOrCreateVia(const string &viaName) {
 }
 
 group *circuit::locateOrCreateGroup(const string &groupName) {
-  dense_hash_map< string, unsigned >::iterator it = group2id.find(groupName);
+  OPENDP_HASH_MAP< string, unsigned >::iterator it = group2id.find(groupName);
   if(it == group2id.end()) {
     group theGroup;
     theGroup.name = groupName;
@@ -256,7 +256,7 @@ void macro::print() {
   for(unsigned i = 0; i < sites.size(); ++i) {
     cout << "sites[" << i << "]: " << sites[i] << endl;
   }
-  for(dense_hash_map< string, macro_pin >::iterator it = pins.begin();
+  for(OPENDP_HASH_MAP< string, macro_pin >::iterator it = pins.begin();
       it != pins.end(); it++) {
     cout << "pins: " << (*it).first << endl;
   }
@@ -269,7 +269,7 @@ void cell::print() {
   cout << "type:               " << type << endl;
   cout << "orient:             " << cellorient << endl;
   cout << "isFixed?            " << (isFixed ? "true" : "false") << endl;
-  for(dense_hash_map< string, unsigned >::iterator it = ports.begin();
+  for(OPENDP_HASH_MAP< string, unsigned >::iterator it = ports.begin();
       it != ports.end(); it++)
     cout << "port: " << (*it).first << " - " << (*it).second << endl;
   cout << "(init_x,  init_y):  " << init_x_coord << ", " << init_y_coord

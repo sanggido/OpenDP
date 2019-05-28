@@ -32,28 +32,23 @@
 #include <ctime>
 #include <string>
 #include <vector>
-#include <sparsehash/dense_hash_map>
+#include <unordered_map>
 
-using google::dense_hash_map;
 using namespace std;
 
 class CMeasure {
  private:
-  dense_hash_map< string, double > timeStor;
+  unordered_map< string, double > timeStor;
 
   // this is intended for saving starting clock.
-  dense_hash_map< string, double > timeTmpStor;
+  unordered_map< string, double > timeTmpStor;
 
   // true -> recording start
   // false -> recording end.
-  dense_hash_map< string, bool > inputChk;
+  unordered_map< string, bool > inputChk;
 
  public:
-  CMeasure() {
-    timeStor.set_empty_key("");
-    timeTmpStor.set_empty_key("");
-    inputChk.set_empty_key("");
-  }
+  CMeasure() {}
 
   double wbegin;
 
