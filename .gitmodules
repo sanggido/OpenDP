@@ -1,3 +1,0 @@
-[submodule "module/sparsehash"]
-	path = module/sparsehash
-	url = https://github.com/sparsehash/sparsehash
