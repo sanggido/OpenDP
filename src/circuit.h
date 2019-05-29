@@ -54,6 +54,7 @@
 #include <omp.h>
 #include "mymeasure.h"
 
+// hashmap settings
 #ifdef USE_GOOGLE_HASH
 #include <sparsehash/OPENDP_HASH_MAP>
 #define INITSTR "SANGGIDO!@#!@#"
@@ -64,6 +65,10 @@ using google::OPENDP_HASH_MAP;
 using std::unordered_map;
 #define OPENDP_HASH_MAP unordered_map
 #endif
+
+// def Reader modules
+#include "defrReader.hpp"
+#include "defiAlias.hpp"
 
 #define INIT false
 #define FINAL true
@@ -582,6 +587,15 @@ class circuit {
   void read_def_size(const string& input);
   void copy_init_to_final();
   void calc_design_area_stats();
+
+
+  // Si2 parsing engine
+  int ReadDef(const string& input);
+  void DefDieAreaCbk();  
+  void DefCellSizeCbk();
+
+  int ReadLef(const vector<string>& lefStor);
+
 
   // utility.cpp - By SGD
   void power_mapping();

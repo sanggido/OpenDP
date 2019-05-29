@@ -32,6 +32,9 @@ set( OPENDP_SRC
   src/parser_helper.cpp
   src/place.cpp
   src/utility.cpp
+
+  src/defParser.cpp
+  src/lefParser.cpp
 )
 
 set ( OPENDP_HEADER
@@ -44,6 +47,11 @@ set ( OPENDP_HEADER
 ############################################################
 
 include_directories (
+  ${LEFLIB_HOME}/lef
+  ${LEFLIB_HOME}/lefzlib
+  ${LEFLIB_HOME}/clef
+  ${LEFLIB_HOME}/clefzlib
+
   ${DEFLIB_HOME}/def
   ${DEFLIB_HOME}/defzlib
   ${DEFLIB_HOME}/cdef
@@ -71,6 +79,15 @@ add_executable( opendp
 )
 
 target_link_libraries( opendp
+  PUBLIC
+  def
+  defzlib
+  cdef
+  cdefzlib
+  lef
+  lefzlib
+  clef
+  clefzlib
   -static-libstdc++  
 )
 
