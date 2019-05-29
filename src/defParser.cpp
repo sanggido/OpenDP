@@ -3,7 +3,6 @@
 #include "defiAlias.hpp"
 
 
-static char defaultName[64];
 static char defaultOut[64];
 
 // Global variables
@@ -2858,18 +2857,26 @@ static void printWarning(const char *str)
     fprintf(stderr, "%s\n", str);
 }
 
+//////////////////////////////////////////////////////
+// Circuit Callback functions to populate data.
+//
+
+static int DefDieAreaCbk(defrCallbackType_e c, defiBox* box, defiUserData ud) {
+  circuit* ckt = (circuit*) ud;
+  ckt->die.xLL = box->xl();
+  ckt->die.yLL = box->yl();
+  ckt->die.xUR = box->xh();
+  ckt->die.yUR = box->yh();
+}
+
+//////////////////////////////////////////////////////
+
 int circuit::ReadDef(const string& defName) {
   int num = 99;
-  char* inFile[6];
-  char* outFile;
   FILE* f;
   int res;
 //  long start_mem;
   int retStr = 0;
-  int numInFile = 0;
-  int fileCt = 0;
-  int test1 = 0;
-  int test2 = 0;
   int noNetCb = 0;
   int ccr749853 = 0;
   int line_num_print_interval = 50;
@@ -2879,14 +2886,11 @@ int circuit::ReadDef(const string& defName) {
     _set_output_format(_TWO_DIGIT_EXPONENT);
 #endif
 
-//  start_mem = (long)sbrk(0);
-
-  strcpy(defaultName, "def.in");
   strcpy(defaultOut, "list");
-  inFile[0] = defaultName;
-  outFile = defaultOut;
   fout = stdout;
-  userData = (void*) 0x01020304;
+
+  // it is circuit class itself
+  userData = (void*) this;
 
   //defrSetLogFunction(myLogFunction);
   //defrSetWarningLogFunction(myWarningLogFunction);
@@ -2977,7 +2981,10 @@ int circuit::ReadDef(const string& defName) {
   defrSetSiteCbk((defrSiteCbkFnType)cls);
   defrSetCanplaceCbk((defrSiteCbkFnType)cls);
   defrSetCannotOccupyCbk((defrSiteCbkFnType)cls);
-  defrSetDieAreaCbk((defrBoxCbkFnType)cls);
+
+  // CBK example
+  defrSetDieAreaCbk((defrBoxCbkFnType)DefDieAreaCbk);
+
   defrSetPinCapCbk((defrPinCapCbkFnType)cls);
   defrSetPinCbk((defrPinCbkFnType)cls);
   defrSetPinPropCbk((defrPinPropCbkFnType)cls);
@@ -3064,40 +3071,15 @@ int circuit::ReadDef(const string& defName) {
     defrSetLimitPerMsg (6008, 2);
   } 
 
-  for (fileCt = 0; fileCt < numInFile; fileCt++) {
-    if (strcmp(inFile[fileCt], "STDIN") == 0) {
-      f = stdin;
-    } else if ((f = fopen(inFile[fileCt],"r")) == 0) {
-      fprintf(stderr,"Couldn't open input file '%s'\n", inFile[fileCt]);
-      return(2);
-    }
-    // Set case sensitive to 0 to start with, in History & PropertyDefinition
-    // reset it to 1.
+  // def Parsing
+  res = defrRead(f, defName.c_str(), userData, 1);
 
-    res = defrRead(f, inFile[fileCt], userData, 1);
+  if (res)
+    fprintf(stderr, "Reader returns bad status.\n", defName.c_str());
 
-    if (res)
-      fprintf(stderr, "Reader returns bad status.\n", inFile[fileCt]);
+  (void)defrPrintUnusedCallbacks(fout);
+  (void)defrReleaseNResetMemory();
 
-    // Testing the aliases API.
-    defrAddAlias ("alias1", "aliasValue1", 1);
-
-    defiAlias_itr aliasStore;
-    const char    *alias1Value = NULL;
-
-    while (aliasStore.Next()) {
-      if (strcmp(aliasStore.Key(), "alias1") == 0) {
-        alias1Value = aliasStore.Data();
-      }
-    } 
-
-    if (!alias1Value || strcmp(alias1Value, "aliasValue1")) {
-      fprintf(stderr, "ERROR: Aliases don't work\n");
-    }
-
-    (void)defrPrintUnusedCallbacks(fout);
-    (void)defrReleaseNResetMemory();
-  }
   (void)defrUnsetCallbacks();
   (void)defrSetUnusedCallbacks(unUsedCB);
 

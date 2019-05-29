@@ -11,41 +11,71 @@ import subprocess as sp
 from datetime import datetime
 
 dirpos = "../bench/benchmarks"
-binaryName = "./OpenDP"
+binaryName = "./opendp"
 outpos = "../output"
 logpos = "../logdir"
 numThreads = 1
 
+def GetFileName( pos, extension ):
+  lis = os.listdir( pos )
+  res = []
+  for curFile in lis:
+    if curFile.endswith("." + extension):
+      res.append(curFile)
+  return res
+
+def GetFileStr( pos, folder, ext, modeStr ):
+  retList = GetFileName("%s/%s"%(pos, folder), ext)
+  retStr = ""
+  for rStr in retList:
+    retStr = retStr + "%s %s/%s/%s " % (modeStr, pos, folder, rStr)
+  return retStr
+
+dirList = os.listdir(dirpos)
+
 if len(sys.argv) <=1:
-	print "usage:   ./execute.py <benchname or number>"
-	print "Example: "
-	print "         ./execute.py 1"
-	print "         ./execute.py des_perf_b_md1"
-	sys.exit(1)
+  print("usage:   ./execute.py <benchname or number>")
+  print("Example: ")
+  print("         ./execute.py 1")
+  print("         ./execute.py des_perf_b_md1")
+
+  for idx, cdir in enumerate(sorted(dirList)):
+    print("%d %s" % (idx, cdir))
+  sys.exit(1)
 
 benchNum = -1
 benchName = ""
 if sys.argv[1].isdigit():
-	benchNum = int(sys.argv[1])
-	benchName = sorted(os.listdir(dirpos))[benchNum]
+  benchNum = int(sys.argv[1])
+  benchName = sorted(os.listdir(dirpos))[benchNum]
 elif sys.argv[1] == "all":
-	benchName = sorted(os.listdir(dirpos))
+  benchName = sorted(os.listdir(dirpos))
 else:
-	benchName = sys.argv[1]
+  benchName = sys.argv[1]
 
 curTime = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
 
 if type(benchName) is list:
-	cnt = 0
-	for curBench in benchName:
+  cnt = 0
+  for curBench in benchName:
 
-		exeStr = "%s -tech_lef %s/%s/tech.lef -cell_lef %s/%s/cells_modified.lef -input_def %s/%s/placed.def -cpu %d -placement_constraints %s/%s/placement.constraints -output_def %s/%s_%s.def |& tee %s/%s_%s_out.log" % (binaryName, dirpos, curBench, dirpos, curBench, dirpos, curBench, numThreads, dirpos, curBench, outpos, curBench, curTime, logpos, curBench, curTime)
-		print exeStr
-		sp.call(exeStr, shell=True)
-		cnt = cnt+1
+    lefStr = GetFileStr( dirpos, curBench, 'lef', '-lef' )
+    defStr = GetFileStr( dirpos, curBench, 'def', '-def' )
+    constStr = GetFileStr( dirpos, curBench, 'constraints', '-placement_constraints' )
+
+    exeStr = binaryName + " " + lefStr + defStr + constStr + " -cpu %d -output_def %s/%s_%s.def |& tee %s/%s_%s_out.log" % (numThreads, outpos, curBench, curTime, logpos, curBench, curTime)
+    print(exeStr)
+    sp.call(exeStr, shell=True)
+    cnt = cnt+1
 
 else:
-	exeStr = "%s -tech_lef %s/%s/tech.lef -cell_lef %s/%s/cells_modified.lef -input_def %s/%s/placed.def -cpu %d -placement_constraints %s/%s/placement.constraints -output_def %s/%s_%s.def |& tee %s/%s_%s_out.log" % (binaryName, dirpos, benchName, dirpos, benchName, dirpos, benchName, numThreads, dirpos, benchName, outpos, benchName, curTime, logpos, benchName, curTime)
-	print exeStr
-	sp.call(exeStr, shell=True)
+  lefStr = GetFileStr( dirpos, benchName, 'lef', '-lef' )
+  defStr = GetFileStr( dirpos, benchName, 'def', '-def' )
+  constStr = GetFileStr( dirpos, benchName, 'constraints', '-placement_constraints' )
+
+  exeStr = binaryName + " " + lefStr + defStr + constStr + " -cpu %d -output_def %s/%s_%s.def |& tee %s/%s_%s_out.log" % (numThreads, outpos, benchName, curTime, logpos, benchName, curTime)
+
+  print(exeStr)
+  sp.call(exeStr, shell=True)
+
 

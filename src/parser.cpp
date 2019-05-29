@@ -50,11 +50,11 @@ inline bool operator<(const row& a, const row& b) {
 
 void circuit::print_usage() {
   cout << "Incorrect arguments. exiting .." << endl;
-  cout << "Usage1 : opendp -tech_lef tech.lef -cell_lef cell.lef -input_def "
+  cout << "Usage1 : opendp -lef tech.lef -lef cell.lef -def "
           "placed.def -cpu 4 -placement_constraints placement.constraints "
           "-output_def lg.def"
        << endl;
-  cout << "Usage2 : opendp -lef design.lef -input_def placed.def -cpu 4 "
+  cout << "Usage2 : opendp -lef design.lef -def placed.def -cpu 4 "
           "-placement_constraints placement.constraints -output_def lg.def"
        << endl;
 
@@ -72,13 +72,9 @@ void circuit::read_files(int argc, char* argv[]) {
 
   for(int i = 1; i < argc; i++) {
     if(i + 1 != argc) {
-      if(strncmp(argv[i], "-tech_lef", 9) == 0)
-        tech = argv[++i];
-      else if(strncmp(argv[i], "-cell_lef", 9) == 0)
-        cell_lef = argv[++i];
-      else if(strncmp(argv[i], "-lef", 4) == 0)
+      if(strncmp(argv[i], "-lef", 4) == 0)
         lef = argv[++i];
-      else if(strncmp(argv[i], "-input_def", 10) == 0)
+      else if(strncmp(argv[i], "-def", 4) == 0)
         in_def = argv[++i];
       else if(strncmp(argv[i], "-cpu", 4) == 0)
         cpu = argv[++i];
@@ -155,7 +151,10 @@ void circuit::read_files(int argc, char* argv[]) {
        << endl;
 
   // read_def shuld after read_lef
-  read_def(in_def_str, INIT);
+  //read_def(in_def_str, INIT);
+  
+  ReadDef(in_def_str);
+
   if(size != NULL) {
     string size_file = size;
     read_def_size(size_file);

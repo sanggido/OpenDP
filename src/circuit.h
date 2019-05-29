@@ -591,8 +591,10 @@ class circuit {
 
   // Si2 parsing engine
   int ReadDef(const string& input);
-  void DefDieAreaCbk();  
-  void DefCellSizeCbk();
+  // int DefDieAreaCbk(defrCallbackType_e c, defiBox* box, defiUserData ud);  
+
+  int DefRowCbk();
+
 
   int ReadLef(const vector<string>& lefStor);
 
