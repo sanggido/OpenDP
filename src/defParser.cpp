@@ -2882,7 +2882,7 @@ static int DefDesignCbk(defrCallbackType_e c, const char* string, defiUserData u
 }
 // UNITS
 static int DefUnitsCbk(defrCallbackType_e c, double d, defiUserData ud) {
-  citcuit* ckt = (citcuit*) ud;
+  circuit* ckt = (circuit*) ud;
   ckt->DEFdist2Microns = d;
 }
 // DIEAREA
@@ -2897,7 +2897,7 @@ static int DefDieAreaCbk(defrCallbackType_e c, defiBox* box, defiUserData ud) {
 static int DefRowCbk(defrCallbackType_e c, defiRow* _row, defiUserData ud) {
   circuit* ckt = (circuit*) ud;
   row* myRow = ckt->locateOrCreateRow( _row->name() );
-  myRow->site = ckt->site2id( _row->macro() );
+  myRow->site = ckt->site2id.at( _row->macro() );
   myRow->origX = _row->x();
   myRow->origY = _row->y();
   myRow->siteorient = _row->orient();

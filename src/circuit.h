@@ -598,8 +598,6 @@ class circuit {
   // int DefDieAreaCbk(defrCallbackType_e c, defiBox* box, defiUserData ud);  
   // int DefRowCbk(defrCallbackType_e c, defiRow* row, defiUserData ud);
 
-  int DefRowCbk();
-
 
   int ReadLef(const vector<string>& lefStor);
 
