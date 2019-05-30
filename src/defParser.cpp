@@ -2724,7 +2724,6 @@ int cls(defrCallbackType_e c, void* cl, defiUserData ud) {
                    for (j = 0; j < points.numPoints; j++)
                      fprintf(fout, "%d %d ", points.x[j], points.y[j]);
                    fprintf(fout, ";\n");
-	cout << " S_mm             : " << S_mm() << endl;
                 } 
                 fprintf(fout, ";\n");
              }
