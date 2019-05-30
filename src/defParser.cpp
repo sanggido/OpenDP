@@ -2724,6 +2724,7 @@ int cls(defrCallbackType_e c, void* cl, defiUserData ud) {
                    for (j = 0; j < points.numPoints; j++)
                      fprintf(fout, "%d %d ", points.x[j], points.y[j]);
                    fprintf(fout, ";\n");
+	cout << " S_mm             : " << S_mm() << endl;
                 } 
                 fprintf(fout, ";\n");
              }
@@ -2860,7 +2861,32 @@ static void printWarning(const char *str)
 //////////////////////////////////////////////////////
 // Circuit Callback functions to populate data.
 //
-
+// VERSION
+static int DefVersionCbk(defrCallbackType_e c, const char* versionName, defiUserData ud) {
+  circuit* ckt = (circuit*) ud;
+  ckt->DEFVersion = versionName;
+}
+// DIVIDERCHAR
+static int DefDividerCbk(defrCallbackType_e c, const char* h, defiUserData ud) {
+  circuit* ckt = (circuit*) ud;
+  ckt->DEFDelimiter = h;
+}
+// BUSBITCHARS
+static int DefBusbitCbk(defrCallbackType_e c, const char* h, defiUserData ud) {
+  circuit* ckt = (circuit*) ud;
+  ckt->DEFBusCharacters = h;
+}
+// DESIGN
+static int DefDesignCbk(defrCallbackType_e c, const char* string, defiUserData ud) { 
+  circuit* ckt = (circuit*) ud;
+  ckt->design_name = string;
+}
+// UNITS
+static int DefUnitsCbk(defrCallbackType_e c, double d, defiUserData ud) {
+  citcuit* ckt = (citcuit*) ud;
+  ckt->DEFdist2Microns = d;
+}
+// DIEAREA
 static int DefDieAreaCbk(defrCallbackType_e c, defiBox* box, defiUserData ud) {
   circuit* ckt = (circuit*) ud;
   ckt->die.xLL = box->xl();
@@ -2868,6 +2894,19 @@ static int DefDieAreaCbk(defrCallbackType_e c, defiBox* box, defiUserData ud) {
   ckt->die.xUR = box->xh();
   ckt->die.yUR = box->yh();
 }
+// ROW
+static int DefRowCbk(defrCallbackType_e c, defiRow* _row, defiUserData ud) {
+  circuit* ckt = (circuit*) ud;
+  row* myRow = ckt->locateOrCreateRow( _row->name() );
+  myRow->site = ckt->site2id( _row->macro() );
+  myRow->origX = _row->x();
+  myRow->origY = _row->y();
+  myRow->siteorient = _row->orient();
+  myRow->numSites = max(_row->xNum(),_row->yNum());
+  myRow->stepX = _row->xStep();
+  myRow->stepY = _row->yStep();
+}
+
 
 //////////////////////////////////////////////////////
 
@@ -2984,12 +3023,14 @@ int circuit::ReadDef(const string& defName) {
 
   // CBK example
   defrSetDieAreaCbk((defrBoxCbkFnType)DefDieAreaCbk);
+  defrSetRowCbk((defrRowCbkFnType)DefRowCbk);
+
 
   defrSetPinCapCbk((defrPinCapCbkFnType)cls);
   defrSetPinCbk((defrPinCbkFnType)cls);
   defrSetPinPropCbk((defrPinPropCbkFnType)cls);
   defrSetDefaultCapCbk((defrIntegerCbkFnType)cls);
-  defrSetRowCbk((defrRowCbkFnType)cls);
+  //defrSetRowCbk((defrRowCbkFnType)cls);
   defrSetTrackCbk((defrTrackCbkFnType)cls);
   defrSetGcellGridCbk((defrGcellGridCbkFnType)cls);
   defrSetViaCbk((defrViaCbkFnType)cls);

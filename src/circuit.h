@@ -591,7 +591,12 @@ class circuit {
 
   // Si2 parsing engine
   int ReadDef(const string& input);
+  // int DefVersionCbk(defrCallbackType_e c, const char* versionName, defiUserData ud);
+  // int DefDividerCbk(defrCallbackType_e c, const char* h, defiUserData ud);
+  // int DefDesignCbk(defrCallbackType_e c, const char* string, defiUserData ud);
+  // int DefUnitsCbk(defrCallbackType_e c, double d, defiUserData ud);
   // int DefDieAreaCbk(defrCallbackType_e c, defiBox* box, defiUserData ud);  
+  // int DefRowCbk(defrCallbackType_e c, defiRow* row, defiUserData ud);
 
   int DefRowCbk();
 
