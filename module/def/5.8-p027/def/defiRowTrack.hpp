@@ -43,9 +43,6 @@ public:
   defiRow(defrData *data);
   void Init();
 
-  DEF_COPY_CONSTRUCTOR_H( defiRow );
-  DEF_ASSIGN_OPERATOR_H( defiRow );
-
   ~defiRow();
   void Destroy();
   void clear();
@@ -115,9 +112,6 @@ public:
   defiTrack(defrData *data);
   void Init();
 
-  DEF_COPY_CONSTRUCTOR_H( defiTrack );
-  DEF_ASSIGN_OPERATOR_H( defiTrack );
-
   ~defiTrack();
   void Destroy();
 
@@ -159,10 +153,7 @@ public:
 
   defiGcellGrid(defrData *data);
   void Init();
- 
-  DEF_COPY_CONSTRUCTOR_H( defiGcellGrid );
-  DEF_ASSIGN_OPERATOR_H( defiGcellGrid );
- 
+
   ~defiGcellGrid();
   void Destroy();
 

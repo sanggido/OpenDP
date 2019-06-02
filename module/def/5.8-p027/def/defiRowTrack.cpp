@@ -75,55 +75,6 @@ void defiRow::Init() {
 }
 
 
-DEF_COPY_CONSTRUCTOR_C( defiRow ) {
-
-  this->Init();
-    DEF_COPY_FUNC( nameLength_ );
-    DEF_MALLOC_FUNC( name_, char, sizeof(char) * (strlen(prev.name_) +1));
-    DEF_COPY_FUNC( macroLength_ );
-    DEF_MALLOC_FUNC( macro_, char, sizeof(char) * (strlen(prev.macro_) +1));
-    DEF_COPY_FUNC( x_ );
-    DEF_COPY_FUNC( y_ );
-    DEF_COPY_FUNC( xNum_ );
-    DEF_COPY_FUNC( yNum_ );
-    DEF_COPY_FUNC( orient_ );
-    DEF_COPY_FUNC( xStep_ );
-    DEF_COPY_FUNC( yStep_ );
-    DEF_COPY_FUNC( hasDo_ );
-    DEF_COPY_FUNC( hasDoStep_ );
-    DEF_COPY_FUNC( numProps_ );
-    DEF_COPY_FUNC( propsAllocated_ );
-    DEF_MALLOC_FUNC_FOR_2D_STR( propNames_, numProps_);
-    DEF_MALLOC_FUNC_FOR_2D_STR( propValues_, numProps_);
-    DEF_MALLOC_FUNC( propDValues_, double, sizeof(double) * numProps_);
-    DEF_MALLOC_FUNC( propTypes_, char, sizeof(char) * numProps_ );
-
-}
-
-DEF_ASSIGN_OPERATOR_C( defiRow ) {
-  this->Init();
-    DEF_COPY_FUNC( nameLength_ );
-    DEF_MALLOC_FUNC( name_, char, sizeof(char) * (strlen(prev.name_) +1));
-    DEF_COPY_FUNC( macroLength_ );
-    DEF_MALLOC_FUNC( macro_, char, sizeof(char) * (strlen(prev.macro_) +1));
-    DEF_COPY_FUNC( x_ );
-    DEF_COPY_FUNC( y_ );
-    DEF_COPY_FUNC( xNum_ );
-    DEF_COPY_FUNC( yNum_ );
-    DEF_COPY_FUNC( orient_ );
-    DEF_COPY_FUNC( xStep_ );
-    DEF_COPY_FUNC( yStep_ );
-    DEF_COPY_FUNC( hasDo_ );
-    DEF_COPY_FUNC( hasDoStep_ );
-    DEF_COPY_FUNC( numProps_ );
-    DEF_COPY_FUNC( propsAllocated_ );
-    DEF_MALLOC_FUNC_FOR_2D_STR( propNames_, numProps_);
-    DEF_MALLOC_FUNC_FOR_2D_STR( propValues_, numProps_);
-    DEF_MALLOC_FUNC( propDValues_, double, sizeof(double) * numProps_);
-    DEF_MALLOC_FUNC( propTypes_, char, sizeof(char) * numProps_ );
-
-}
-
 defiRow::~defiRow() {
   Destroy();
 }
@@ -455,37 +406,6 @@ void defiTrack::Init() {
   samemask_ = 0;
 }
 
-
-DEF_COPY_CONSTRUCTOR_C( defiTrack ) {
-    this->Init();
-    DEF_COPY_FUNC( macroLength_ );
-    DEF_MALLOC_FUNC( macro_, char, sizeof(char) * (strlen(prev.macro_) +1));
-    DEF_COPY_FUNC( x_ );
-    DEF_COPY_FUNC( xNum_ );
-    DEF_COPY_FUNC( xStep_ );
-    DEF_COPY_FUNC( layersLength_ );
-    DEF_COPY_FUNC( numLayers_ );
-    DEF_MALLOC_FUNC_FOR_2D_STR( layers_, numLayers_ );
-    DEF_COPY_FUNC( firstTrackMask_ );
-    DEF_COPY_FUNC( samemask_ );
-
-}
-
-DEF_ASSIGN_OPERATOR_C( defiTrack ) {
-    this->Init();
-    DEF_COPY_FUNC( macroLength_ );
-    DEF_MALLOC_FUNC( macro_, char, sizeof(char) * (strlen(prev.macro_) +1));
-    DEF_COPY_FUNC( x_ );
-    DEF_COPY_FUNC( xNum_ );
-    DEF_COPY_FUNC( xStep_ );
-    DEF_COPY_FUNC( layersLength_ );
-    DEF_COPY_FUNC( numLayers_ );
-    DEF_MALLOC_FUNC_FOR_2D_STR( layers_, numLayers_ );
-    DEF_COPY_FUNC( firstTrackMask_ );
-    DEF_COPY_FUNC( samemask_ );
-
-}
-
 defiTrack::~defiTrack() {
   Destroy();
 }
@@ -647,23 +567,6 @@ void defiGcellGrid::Init() {
   xStep_ = 0;
 }
 
-DEF_COPY_CONSTRUCTOR_C( defiGcellGrid ) {
-    this->Init();
-    DEF_COPY_FUNC( macroLength_ );
-    DEF_MALLOC_FUNC( macro_, char, sizeof(char) * (strlen(prev.macro_) +1));
-    DEF_COPY_FUNC( x_ );
-    DEF_COPY_FUNC( xNum_ );
-    DEF_COPY_FUNC( xStep_ );
-}
-
-DEF_ASSIGN_OPERATOR_C( defiGcellGrid ) {
-    this->Init();
-    DEF_COPY_FUNC( macroLength_ );
-    DEF_MALLOC_FUNC( macro_, char, sizeof(char) * (strlen(prev.macro_) +1));
-    DEF_COPY_FUNC( x_ );
-    DEF_COPY_FUNC( xNum_ );
-    DEF_COPY_FUNC( xStep_ );
-}
 
 defiGcellGrid::~defiGcellGrid() {
   Destroy();

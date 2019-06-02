@@ -40,11 +40,8 @@ class defrData;
 // Struct holds the data for one property.
 class defiProp {
 public:
-  defiProp(defrData *data = NULL);
+  defiProp(defrData *data);
   void Init();
-  
-  DEF_COPY_CONSTRUCTOR_H( defiProp );
-  DEF_ASSIGN_OPERATOR_H( defiProp );
 
   void Destroy();
   ~defiProp();

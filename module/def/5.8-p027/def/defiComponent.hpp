@@ -48,11 +48,9 @@ class defrData;
 // Struct holds the data for componentMaskShiftLayers.
 class defiComponentMaskShiftLayer {
 public:
-                defiComponentMaskShiftLayer();
                 defiComponentMaskShiftLayer(defrData *data);
                 ~defiComponentMaskShiftLayer();
-    DEF_COPY_CONSTRUCTOR_H( defiComponentMaskShiftLayer );
-    DEF_ASSIGN_OPERATOR_H( defiComponentMaskShiftLayer );
+
     void         Init();
     void         Destroy();
     void         addMaskShiftLayer(const char* layer);
@@ -76,14 +74,13 @@ public:
   defiComponent(defrData *defData);
   void Init();
 
-  DEF_COPY_CONSTRUCTOR_H( defiComponent );
   void Destroy();
   ~defiComponent();
 
   void IdAndName(const char* id, const char* name);
   void setGenerate(const char* genName, const char* macroName);
   void setPlacementStatus(int n);
-  void setPlacementLocation(int x, int y, int orient = -1); // changed by Mgwoo
+  void setPlacementLocation(int x, int y, int orient);
   void setRegionName(const char* name);
   void setRegionBounds(int xl, int yl, int xh, int yh);
   void setEEQ(const char* name);

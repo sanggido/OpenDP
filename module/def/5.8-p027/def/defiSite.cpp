@@ -197,28 +197,6 @@ void defiBox::Init() {
   points_ = 0;
 }
 
-DEF_COPY_CONSTRUCTOR_C( defiBox ) {
-    this->Init();
-   
-    DEF_COPY_FUNC( xl_ );
-    DEF_COPY_FUNC( yl_ );
-    DEF_COPY_FUNC( xh_ );
-    DEF_COPY_FUNC( yh_ );
-    
-    DEF_MALLOC_FUNC_WITH_OPERATOR( points_, defiPoints, sizeof(defiPoints)*1 );
-}
-
-DEF_ASSIGN_OPERATOR_C( defiBox ) {
-    this->Init();
-   
-    DEF_COPY_FUNC( xl_ );
-    DEF_COPY_FUNC( yl_ );
-    DEF_COPY_FUNC( xh_ );
-    DEF_COPY_FUNC( yh_ );
-    
-    DEF_MALLOC_FUNC_WITH_OPERATOR( points_, defiPoints, sizeof(defiPoints)*1 );
-}
-
 defiBox::~defiBox() {
   Destroy();
 }

@@ -2466,8 +2466,6 @@ defrAddAlias(const char     *key,
     sprintf(v1, "%d%s", marked, value);
 
     defData->def_alias_set[k1] = v1;
-    free(k1);
-    free(v1);
 }
 
 void

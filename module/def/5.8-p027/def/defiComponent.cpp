@@ -45,32 +45,6 @@ defiComponentMaskShiftLayer::defiComponentMaskShiftLayer(defrData *data)
     Init();
 }
 
-defiComponentMaskShiftLayer::defiComponentMaskShiftLayer() {
-    defData = NULL;
-    layersAllocated_ = 0;
-    numLayers_ = 0;
-    layers_ = 0;
-}
-
-DEF_COPY_CONSTRUCTOR_C( defiComponentMaskShiftLayer ) {
-    layersAllocated_ = 0;
-    numLayers_ = 0;
-    layers_ = 0;
-    DEF_COPY_FUNC( layersAllocated_ );
-    DEF_COPY_FUNC( numLayers_ );
-    DEF_MALLOC_FUNC_FOR_2D_STR( layers_ , numLayers_  );
-    
-}
-
-DEF_ASSIGN_OPERATOR_C( defiComponentMaskShiftLayer ) {
-    layersAllocated_ = 0;
-    numLayers_ = 0;
-    layers_ = 0;
-    DEF_COPY_FUNC( layersAllocated_ );
-    DEF_COPY_FUNC( numLayers_ );
-    DEF_MALLOC_FUNC_FOR_2D_STR( layers_ , numLayers_ );
-}
-
 defiComponentMaskShiftLayer::~defiComponentMaskShiftLayer() {
     Destroy();
 }
@@ -197,76 +171,6 @@ void defiComponent::Init() {
   rectYh_ = (int*)malloc(sizeof(int)*1);
 }
 
-DEF_COPY_CONSTRUCTOR_C( defiComponent ) 
-{
-    defData = NULL;
-    this->Init();
-
-    DEF_COPY_FUNC( idSize_ );
-    DEF_COPY_FUNC( nameSize_ );
-//    printf("nameSize_:  %d\n", nameSize_);
-//    fflush(stdout);
-    DEF_MALLOC_FUNC( id_, char, sizeof(char) * (strlen(prev.id_)+1));
-    DEF_MALLOC_FUNC( name_, char, sizeof(char) * (strlen(prev.name_)+1));
-    DEF_COPY_FUNC( ForiSize_ );
-    DEF_COPY_FUNC( status_ );
-    DEF_COPY_FUNC( hasRegionName_ );
-    DEF_COPY_FUNC( hasEEQ_ );
-    DEF_COPY_FUNC( hasGenerate_ );
-    DEF_COPY_FUNC( hasWeight_ );
-    DEF_COPY_FUNC( hasFori_ );
-    DEF_COPY_FUNC( orient_ );
-    DEF_COPY_FUNC( x_ );
-    DEF_COPY_FUNC( y_ );
-    DEF_COPY_FUNC( numRects_ );
-    DEF_COPY_FUNC( rectsAllocated_ );
-    DEF_MALLOC_FUNC( rectXl_, int, sizeof(int) * numRects_);
-    DEF_MALLOC_FUNC( rectYl_, int, sizeof(int) * numRects_);
-    DEF_MALLOC_FUNC( rectXh_, int, sizeof(int) * numRects_);
-    DEF_MALLOC_FUNC( rectYh_, int, sizeof(int) * numRects_);
-    
-    DEF_COPY_FUNC( regionNameSize_ );
-    DEF_MALLOC_FUNC( regionName_, char, sizeof(char) * (regionNameSize_));
-    DEF_COPY_FUNC( EEQSize_ );
-    DEF_MALLOC_FUNC( EEQ_, char, sizeof(char) * (EEQSize_));
-    DEF_COPY_FUNC( numNets_ );
-    DEF_COPY_FUNC( netsAllocated_ );
-
-    DEF_MALLOC_FUNC_FOR_2D_STR( nets_, numNets_ );
-
-    DEF_COPY_FUNC( weight_ );
-    DEF_COPY_FUNC( maskShiftSize_ );
-    DEF_MALLOC_FUNC( maskShift_, int, sizeof(int) * maskShiftSize_);
-
-    DEF_MALLOC_FUNC( source_, char, sizeof(char) * (strlen(prev.source_) +1));
-    DEF_COPY_FUNC( hasForeignName_ );
-    DEF_COPY_FUNC( foreignNameSize_ );
-    DEF_MALLOC_FUNC( foreignName_, char, sizeof(char) * foreignNameSize_);
-    DEF_COPY_FUNC( Fx_ );
-    DEF_COPY_FUNC( Fy_ );
-    DEF_COPY_FUNC( Fori_ );
-    DEF_COPY_FUNC( generateNameSize_ );
-    DEF_MALLOC_FUNC( generateName_, char, sizeof(char) * (generateNameSize_));
-    DEF_COPY_FUNC( macroNameSize_ );
-    DEF_MALLOC_FUNC( macroName_, char, sizeof(char) * (macroNameSize_));
-    DEF_COPY_FUNC( hasHalo_ );
-    DEF_COPY_FUNC( hasHaloSoft_ );
-    DEF_COPY_FUNC( leftHalo_ );
-    DEF_COPY_FUNC( bottomHalo_ );
-    DEF_COPY_FUNC( rightHalo_ );
-    DEF_COPY_FUNC( topHalo_ );
-    DEF_COPY_FUNC( haloDist_ );
-    DEF_COPY_FUNC( minLayerSize_ );
-    DEF_MALLOC_FUNC( minLayer_, char, sizeof(char) * (minLayerSize_));
-    DEF_COPY_FUNC( maxLayerSize_ );
-    DEF_MALLOC_FUNC( maxLayer_, char, sizeof(char) * (maxLayerSize_));
-    DEF_COPY_FUNC( numProps_ );
-    DEF_COPY_FUNC( propsAllocated_ );
-    DEF_MALLOC_FUNC_FOR_2D_STR( names_, numProps_);
-    DEF_MALLOC_FUNC_FOR_2D_STR( values_, numProps_);
-    DEF_MALLOC_FUNC( dvalues_, double, sizeof(double) * numProps_);
-    DEF_MALLOC_FUNC( types_, char, sizeof(char) * numProps_);
-}
 
 void defiComponent::Destroy() {
   free(name_);
@@ -413,10 +317,7 @@ void defiComponent::setPlacementStatus(int n) {
 void defiComponent::setPlacementLocation(int x, int y, int orient) {
   x_ = x;
   y_ = y;
-
-  if( orient != -1 ) { // mgwoo
-      orient_ = orient;
-  }
+  orient_ = orient;
 }
 
 

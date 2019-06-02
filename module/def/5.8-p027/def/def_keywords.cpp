@@ -42,6 +42,7 @@
 #include "defrCallBacks.hpp"
 #include "defrData.hpp"
 #include "defrSettings.hpp"
+#include <iostream>
 
 #ifdef WIN32
 #   include <direct.h>
@@ -106,6 +107,7 @@ int defrData::defGetDefine(const string &name, string &result)
 #   include <unistd.h>
 #endif
 
+
 void 
 defrData::reload_buffer() {
    int nb = 0;
@@ -118,6 +120,8 @@ defrData::reload_buffer() {
             return;
          }
       } else {
+        cout << "buffer: " << buffer << endl;
+        cout << "file: " << File << endl;
          if ((nb = fread(buffer, 1, 4, File)) != 4) {
             next = NULL;
             return;

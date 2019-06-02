@@ -54,8 +54,6 @@ class defiWire {
 public:
   defiWire(defrData *data);
   ~defiWire();
-  DEF_COPY_CONSTRUCTOR_H( defiWire );
-  DEF_ASSIGN_OPERATOR_H( defiWire );
 
   void Init(const char* type, const char* wireShieldName);
   void Destroy();
@@ -87,9 +85,6 @@ class defiSubnet {
 public:
   defiSubnet(defrData *data);
   void Init();
-
-  DEF_COPY_CONSTRUCTOR_H( defiSubnet );
-  DEF_ASSIGN_OPERATOR_H( defiSubnet );
 
   void Destroy();
   ~defiSubnet();
@@ -173,9 +168,6 @@ public:
   defiVpin(defrData *data);
   ~defiVpin();
 
-  DEF_COPY_CONSTRUCTOR_H( defiVpin );
-  DEF_ASSIGN_OPERATOR_H( defiVpin );
-
   void Init(const char* name);
   void Destroy();
   void setLayer(const char* name);
@@ -219,9 +211,6 @@ public:
   defiShield(defrData *data);
   ~defiShield();
 
-  DEF_COPY_CONSTRUCTOR_H( defiShield );
-  DEF_ASSIGN_OPERATOR_H( defiShield );
-
   void Init(const char* name);
   void Destroy();
   void clear();
@@ -252,9 +241,6 @@ class defiNet {
 public:
   defiNet(defrData *data);
   void Init();
-
-  DEF_COPY_CONSTRUCTOR_H( defiNet );
-  DEF_ASSIGN_OPERATOR_H( defiNet );
 
   void Destroy();
   ~defiNet();

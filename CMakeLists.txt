@@ -6,6 +6,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(OpenDP)
 
+set(CMAKE_CXX_FLAGS "-g -ggdb")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -ggdb")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
@@ -35,6 +36,8 @@ set( OPENDP_SRC
 
   src/defParser.cpp
   src/lefParser.cpp
+
+  src/circuitParser.cpp
 )
 
 set ( OPENDP_HEADER
@@ -88,7 +91,6 @@ target_link_libraries( opendp
   lefzlib
   clef
   clefzlib
-  -static-libstdc++  
 )
 
 add_dependencies( opendp def )

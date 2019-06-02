@@ -38,39 +38,6 @@ BEGIN_LEFDEF_PARSER_NAMESPACE
 
 ////////////////////////////////////////////////////
 //
-//    defiPoints 
-//    Below does not working in some examples...
-//
-////////////////////////////////////////////////////
-
-defiPoints::defiPoints() 
-: numPoints(0),
-  x(0),
-  y(0) 
-{
-}
-
-DEF_COPY_CONSTRUCTOR_C( defiPoints ) 
-: numPoints(0),
-  x(0),
-  y(0)
-{
-    DEF_COPY_FUNC( numPoints );
-    DEF_MALLOC_FUNC( x, int, sizeof(int) * numPoints );
-    DEF_MALLOC_FUNC( y, int, sizeof(int) * numPoints );
-}
-
-DEF_ASSIGN_OPERATOR_C( defiPoints ) {
-    DEF_COPY_FUNC( numPoints );
-    DEF_MALLOC_FUNC( x, int, sizeof(int) * numPoints );
-    DEF_MALLOC_FUNC( y, int, sizeof(int) * numPoints );
-}
-
-
-
-
-////////////////////////////////////////////////////
-//
 //    Handle points for a polygon
 //
 ////////////////////////////////////////////////////

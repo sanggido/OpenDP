@@ -62,9 +62,6 @@ public:
   defiPinAntennaModel(defrData *data);
   void Init();
 
-  DEF_COPY_CONSTRUCTOR_H(defiPinAntennaModel);
-  DEF_ASSIGN_OPERATOR_H(defiPinAntennaModel);
-
   ~defiPinAntennaModel();
   void clear();
   void Destroy();
@@ -131,9 +128,7 @@ class defiPinPort {                      // 5.7
 public:
   defiPinPort(defrData *data);
   void Init();
-  
-  DEF_COPY_CONSTRUCTOR_H(defiPinPort);
-  DEF_ASSIGN_OPERATOR_H(defiPinPort);
+
   ~defiPinPort();
 
   void clear();
@@ -215,9 +210,6 @@ class defiPin {
 public:
   defiPin(defrData *data);
   void Init();
-
-  DEF_COPY_CONSTRUCTOR_H( defiPin );
-  DEF_ASSIGN_OPERATOR_H( defiPin );
 
   ~defiPin();
   void Destroy();

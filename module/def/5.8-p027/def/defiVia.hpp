@@ -42,10 +42,6 @@ class defrData;
 class defiVia {
 public:
   defiVia(defrData *data);
-
-  DEF_COPY_CONSTRUCTOR_H( defiVia );
-  DEF_ASSIGN_OPERATOR_H( defiVia );
-
   void Init();
 
   void clear();

@@ -63,7 +63,7 @@ if type(benchName) is list:
     defStr = GetFileStr( dirpos, curBench, 'def', '-def' )
     constStr = GetFileStr( dirpos, curBench, 'constraints', '-placement_constraints' )
 
-    exeStr = binaryName + " " + lefStr + defStr + constStr + " -cpu %d -output_def %s/%s_%s.def |& tee %s/%s_%s_out.log" % (numThreads, outpos, curBench, curTime, logpos, curBench, curTime)
+    exeStr = binaryName + " " + lefStr + defStr + constStr + " -cpu %d -output_def %s/%s_%s.def | tee %s/%s_%s_out.log" % (numThreads, outpos, curBench, curTime, logpos, curBench, curTime)
     print(exeStr)
     sp.call(exeStr, shell=True)
     cnt = cnt+1
@@ -73,7 +73,7 @@ else:
   defStr = GetFileStr( dirpos, benchName, 'def', '-def' )
   constStr = GetFileStr( dirpos, benchName, 'constraints', '-placement_constraints' )
 
-  exeStr = binaryName + " " + lefStr + defStr + constStr + " -cpu %d -output_def %s/%s_%s.def |& tee %s/%s_%s_out.log" % (numThreads, outpos, benchName, curTime, logpos, benchName, curTime)
+  exeStr = binaryName + " " + lefStr + defStr + constStr + " -cpu %d -output_def %s/%s_%s.def | tee %s/%s_%s_out.log" % (numThreads, outpos, benchName, curTime, logpos, benchName, curTime)
 
   print(exeStr)
   sp.call(exeStr, shell=True)

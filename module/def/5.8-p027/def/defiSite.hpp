@@ -92,10 +92,6 @@ public:
 
   defiBox();
   void Init();
-
-  DEF_COPY_CONSTRUCTOR_H( defiBox );
-  DEF_ASSIGN_OPERATOR_H( defiBox );
-
   void Destroy();
   ~defiBox();
 

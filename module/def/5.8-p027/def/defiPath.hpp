@@ -87,9 +87,6 @@ public:
   // This is 'data ownership transfer' constructor.
   defiPath(defiPath *defiPathRef);
 
-  DEF_COPY_CONSTRUCTOR_H( defiPath );
-  DEF_ASSIGN_OPERATOR_H( defiPath );
-
   void Init();
 
   void Destroy();

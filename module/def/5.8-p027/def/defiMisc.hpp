@@ -41,10 +41,6 @@ struct defiPoints {
   int numPoints;
   int* x;
   int* y;
-
-  defiPoints();
-  DEF_COPY_CONSTRUCTOR_H( defiPoints );
-  DEF_ASSIGN_OPERATOR_H( defiPoints );
 };
 
 class defiGeometries {
