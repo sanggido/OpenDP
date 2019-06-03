@@ -38,16 +38,13 @@
 #include "defiAlias.hpp"
 #include "circuit.h"
 
-char defaultName[64];
-char defaultOut[64];
-
 // Global variables
-FILE* fout;
-void* userData;
-int numObjs;
-int isSumSet;    // to keep track if within SUM
-int isProp = 0;  // for PROPERTYDEFINITIONS
-int begOperand;  // to keep track for constraint, to print - as the 1st char
+static FILE* fout;
+static void* userData;
+static int numObjs;
+static int isSumSet;    // to keep track if within SUM
+static int isProp = 0;  // for PROPERTYDEFINITIONS
+static int begOperand;  // to keep track for constraint, to print - as the 1st char
 static double curVer = 0;
 static int setSNetWireCbk = 0;
 static int isSessionless = 0;
@@ -91,7 +88,7 @@ int endfunc(defrCallbackType_e c, void*, defiUserData ud) {
   return 0;
 }
 
-char* orientStr(int orient) {
+static char* orientStr(int orient) {
   switch(orient) {
     case 0:
       return ((char*)"N");
@@ -2722,9 +2719,7 @@ void printWarning(const char* str) { fprintf(stderr, "%s\n", str); }
 
 int circuit::ReadDef(const string& defName) {
   int num = 99;
-  char* inFile[6];
-  char* outFile;
-  FILE* f;
+  FILE* f = NULL;
   int res;
   int noCalls = 0;
   //  long start_mem;
@@ -2743,10 +2738,6 @@ int circuit::ReadDef(const string& defName) {
 
   //  start_mem = (long)sbrk(0);
 
-  strcpy(defaultName, "def.in");
-  strcpy(defaultOut, "list");
-  inFile[0] = defaultName;
-  outFile = defaultOut;
   fout = stdout;
   userData = (void*)0x01020304;
   // userData = (void*) this;
@@ -2932,6 +2923,12 @@ int circuit::ReadDef(const string& defName) {
   // reset it to 1.
 
   char* fileStr = strdup(defName.c_str());
+  if((f = fopen(fileStr, "r")) == 0) {                                                                                                                 
+    fprintf(stderr, "**\nERROR: Couldn't open input file '%s'\n",                                                                                             
+            fileStr);                                                                                                                                  
+    exit(1);                                                                                                                                                  
+  }     
+
   cout << "defFile: " << defName << endl;
   res = defrRead(f, fileStr, userData, 1);
 
