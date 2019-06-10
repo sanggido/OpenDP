@@ -599,6 +599,7 @@ void circuit::read_init_def_components(ifstream& is) {
       get_next_n_tokens(is, tokens, 2, DEFCommentChar);
       // assert(cell2id.find(tokens[0]) != cell2id.end());
       if(cell2id.find(tokens[0]) == cell2id.end()) {
+        cout << "tokens[0]: " << tokens[0] << endl;
         myCell = locateOrCreateCell(tokens[0]);
         myCell->type = macro2id[tokens[1]];
         macro* myMacro = &macros[macro2id[tokens[1]]];
