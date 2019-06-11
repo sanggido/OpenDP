@@ -450,7 +450,9 @@ class circuit {
   double lx, rx, by,
       ty; /* placement image's left/right/bottom/top end coordintes */
   rect die;
-  power initial_power;
+
+  double minVddCoordiY; // VDD stripe coordinates for parsing
+  power initial_power; // informations
 
   double max_utilization;
   double displacement;
