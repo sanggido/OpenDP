@@ -47,7 +47,6 @@ static int isSumSet;    // to keep track if within SUM
 static int isProp = 0;  // for PROPERTYDEFINITIONS
 static int begOperand;  // to keep track for constraint, to print - as the 1st char
 static double curVer = 0;
-static int setSNetWireCbk = 0;
 static int ignoreRowNames = 0;
 static int ignoreViaNames = 0;
 static int testDebugPrint = 0;  // test for ccr1488696
@@ -2702,12 +2701,7 @@ void lineNumberCB(long long lineNo) {
     defrSetNLines(lineNo);
     ccr1131444 = 0;
   }
-
-#ifdef _WIN32
-  fprintf(fout, "Parsed %I64d number of lines!!\n", lineNo);
-#else
-  fprintf(fout, "Parsed %lld number of lines!!\n", lineNo);
-#endif
+  cout << "Parsed " << lineNo << " number of lines!!" << endl;
 }
 
 int unUsedCB(defrCallbackType_e, void*, defiUserData) {
@@ -2738,7 +2732,6 @@ int circuit::ReadDef(const string& defName) {
   fout = stdout;
   CircuitParser cp(this);
   userData = cp.Circuit();
-  cout << "userData: " << cp.Circuit() << endl;
 
   // defrSetLogFunction(myLogFunction);
 
@@ -2762,18 +2755,25 @@ int circuit::ReadDef(const string& defName) {
   
   defrSetComponentStartCbk(cp.DefStartCbk);
   defrSetNetStartCbk(cp.DefStartCbk);
-  defrSetRegionStartCbk(cp.DefStartCbk);
+  defrSetSNetStartCbk(cp.DefStartCbk);
+  defrSetStartPinsCbk(cp.DefStartCbk);
+
+  defrSetSNetEndCbk(cp.DefEndCbk);
 
   // Components
   defrSetComponentCbk(cp.DefComponentCbk);
   
   // pins
-  defrSetPinCbk((defrPinCbkFnType)cls);
+  defrSetPinCbk((defrPinCbkFnType)cp.DefPinCbk);
 
   // Nets
   defrSetNetCbk(cp.DefNetCbk);
   // SpecialNets
-  defrSetSNetPartialPathCbk(cp.DefSNetPathCbk);
+//  defrSetSNetWireCbk(cp.DefSNetWireCbk);
+//  defrSetSNetWireCbk(snetwire);
+//  defrSetSNetPartialPathCbk(snetpath);
+  defrSetSNetCbk(cp.DefSNetCbk);
+  defrSetAddPathToNet();
 
   // Regions
   defrSetRegionCbk((defrRegionCbkFnType)cp.DefRegionCbk);
@@ -2801,7 +2801,7 @@ int circuit::ReadDef(const string& defName) {
 //  defrSetPropCbk(prop);
 //  defrSetPropDefEndCbk(propend);
 //  defrSetSNetCbk(snetf);
-//  if(setSNetWireCbk) defrSetSNetWireCbk(snetwire);
+//  defrSetSNetWireCbk(snetwire);
 //  defrSetComponentMaskShiftLayerCbk(compMSL);
 //  defrSetAddPathToNet();
 //  defrSetHistoryCbk(hist);

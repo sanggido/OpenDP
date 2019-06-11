@@ -4,6 +4,12 @@
 CircuitParser::CircuitParser(circuit* ckt )
 : ckt_(ckt) {};
 
+
+
+//////////////////////////////////////////////////
+// DEF Parsing Cbk Functions
+//
+
 int 
 CircuitParser::DefDieAreaCbk(
     defrCallbackType_e c, 
@@ -58,6 +64,30 @@ int CircuitParser::DefStartCbk(
   return 0; 
 }
 
+// DEF's End callback
+int CircuitParser::DefEndCbk(
+    defrCallbackType_e c,
+    void*,
+    defiUserData ud) {
+
+  circuit* ckt = (circuit*) ud;
+  switch(c) {
+    case defrSNetEndCbkType:
+      // fill initial_power information
+      if( (int(ckt->minVddCoordiY+0.5f) / int(ckt->rowHeight+0.5f)) % 2 == 0 ) {
+        ckt->initial_power = VDD; 
+      }
+      else {
+        ckt->initial_power = VSS;
+      }
+      break;
+
+    default:
+      break;
+  }
+  return 0;
+}
+
 // DEF's ROW parsing
 int CircuitParser::DefRowCbk(
     defrCallbackType_e c, 
@@ -73,6 +103,28 @@ int CircuitParser::DefRowCbk(
   myRow->numSites = max(_row->xNum(),_row->yNum());
   myRow->stepX = _row->xStep();
   myRow->stepY = _row->yStep();
+  return 0;
+}
+
+int CircuitParser::DefPinCbk(
+    defrCallbackType_e c, 
+    defiPin* pi,
+    defiUserData ud) {
+  
+  circuit* ckt = (circuit*) ud;
+  pin* myPin = ckt->locateOrCreatePin( pi->pinName() );
+  if( strcmp(pi->direction(), "INPUT") == 0 ) {
+    myPin -> type = PI_PIN;
+  }
+  else if( strcmp(pi->direction(), "OUTPUT") == 0 ) {
+    myPin -> type = PO_PIN;
+  }
+
+  myPin->isFixed = pi->isFixed();
+
+  myPin->x_coord = pi->placementX();
+  myPin->y_coord = pi->placementY();
+
   return 0;
 }
 
@@ -140,8 +192,14 @@ int CircuitParser::DefNetCbk(
       myPin->owner = ckt->cell2id[ dnet->instance(i) ];
       myPin->type = NONPIO_PIN;
 
-      macro* theMacro = &ckt->macros[ ckt->cells[myPin->owner].type ]; 
+//      cout << "owner: " << myPin->owner << endl;
+//      cout << "type: " << ckt->cells[myPin->owner].type << endl; 
+      macro* theMacro = &ckt->macros[ ckt->cells[myPin->owner].type ];
+//      cout << "theMacro: " << theMacro << endl;
+//      cout << "theMacro pin size: " << theMacro->pins.size() << endl;
       macro_pin* myMacroPin = &theMacro->pins[ dnet->pin(i) ];
+//      cout << "myMacroPin: " << myMacroPin << endl;
+//      cout << "port: " << myMacroPin->port.size() << endl;
 
       myPin->x_offset = 
         myMacroPin->port[0].xLL / 2 + myMacroPin->port[0].xUR / 2;
@@ -153,38 +211,73 @@ int CircuitParser::DefNetCbk(
 }
 
 // DEF's SPECIALNETS
-// Extract VDD/VSS row informations
-int CircuitParser::DefSNetPathCbk(
+// Extract VDD/VSS row informations for mixed-height legalization
+int CircuitParser::DefSNetCbk(
     defrCallbackType_e c,
-    defiNet* ppath, 
+    defiNet* swire, 
     defiUserData ud) {
+  
+  circuit* ckt = (circuit*) ud;
 
-  cout << "snetPath" << endl;
   // Check the VDD values
-  if( strcmp("vdd", ppath->name()) == 0 ||
-      strcmp("VDD", ppath->name()) ) {
-    if( ppath->numWires() ) {
-
-      for(int i=0; i<ppath->numWires(); i++) {
-        defiWire* wire = ppath->wire(i);
+  if( strcmp("vdd", swire->name()) == 0 ||
+      strcmp("VDD", swire->name()) ) {
+    if( swire->numWires() ) {
+      for(int i=0; i<swire->numWires(); i++) {
+        defiWire* wire = swire->wire(i);
 
         for(int j=0; j<wire->numPaths(); j++) {
           defiPath* p = wire->path(j);
           p->initTraverse();
           int path = 0;
-          while((path = (int)p->next()) != DEFIPATH_DONE ) {
-            switch(path) {
-              case DEFIPATH_SHAPE:
-                cout << "SHAPE_STR: " << p->getShape() << endl;
-                break;
-            }
-          } 
+          int x1 = 0, y1 = 0, x3 = 0, y3 = 0;
 
+          bool isMeetFirstLayer = false;
+          bool isMeetFirstPoint = false;
+          bool isViaRelated = false;
+
+          int pathCnt = 0;
+          while((path = (int)p->next()) != DEFIPATH_DONE ) {
+            pathCnt++;
+            switch(path) {
+              case DEFIPATH_LAYER:
+                // HARD CODE for extracting metal1. 
+                // Need to be fixed later
+                if( strcmp( p->getLayer(), "metal1") == 0) {
+                  isMeetFirstLayer = true;
+                  isMeetFirstPoint = false;
+                }
+                break;
+              case DEFIPATH_POINT:
+                if( isMeetFirstLayer ) {
+                  if( !isMeetFirstPoint ) {
+                    p->getPoint(&x1, &y1);
+                    isMeetFirstPoint = true;
+                  }
+                  else {
+                    p->getPoint(&x3, &y3);
+                  }
+                }
+                break;
+              case DEFIPATH_VIA:
+                isViaRelated = true;
+                break;
+
+              default:
+                break; 
+            }
+          }
+
+          if( isMeetFirstLayer && !isViaRelated ) {
+            ckt->minVddCoordiY = (ckt->minVddCoordiY < y1)? ckt->minVddCoordiY : y1;
+//            cout << x1 << " " << y1 << " " << x3 << " " << y3 << endl;
+          }
         }
       } 
 
     } 
   }
+//  cout << "Final VDD min coordi: " << ckt->minVddCoordiY << endl;
   return 0;
 }
 

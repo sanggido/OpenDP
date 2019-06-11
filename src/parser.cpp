@@ -1,39 +1,39 @@
+/////////////////////////////////////////////////////////////////////////////
+// Authors: SangGi Do(sanggido@unist.ac.kr), Mingyu Woo(mwoo@eng.ucsd.edu)
+//          (respective Ph.D. advisors: Seokhyeong Kang, Andrew B. Kahng)
+//
+//          Original parsing structure was made by Myung-Chul Kim (IBM).
+//
+// BSD 3-Clause License
+//
+// Copyright (c) 2018, SangGi Do and Mingyu Woo
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// * Redistributions of source code must retain the above copyright notice, this
+//   list of conditions and the following disclaimer.
+//
+// * Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the following disclaimer in the documentation
+//   and/or other materials provided with the distribution.
+//
+// * Neither the name of the copyright holder nor the names of its
+//   contributors may be used to endorse or promote products derived from
+//   this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ///////////////////////////////////////////////////////////////////////////////
-//// Authors: SangGi Do(sanggido@unist.ac.kr), Mingyu Woo(mwoo@eng.ucsd.edu)
-////          (respective Ph.D. advisors: Seokhyeong Kang, Andrew B. Kahng)
-////
-////          Original parsing structure was made by Myung-Chul Kim (IBM).
-////
-//// BSD 3-Clause License
-////
-//// Copyright (c) 2018, SangGi Do and Mingyu Woo
-//// All rights reserved.
-////
-//// Redistribution and use in source and binary forms, with or without
-//// modification, are permitted provided that the following conditions are met:
-////
-//// * Redistributions of source code must retain the above copyright notice, this
-////   list of conditions and the following disclaimer.
-////
-//// * Redistributions in binary form must reproduce the above copyright notice,
-////   this list of conditions and the following disclaimer in the documentation
-////   and/or other materials provided with the distribution.
-////
-//// * Neither the name of the copyright holder nor the names of its
-////   contributors may be used to endorse or promote products derived from
-////   this software without specific prior written permission.
-////
-//// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-//// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-//// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-//// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-//// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-//// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-//// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-//// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-/////////////////////////////////////////////////////////////////////////////////
 
 #include "circuit.h"
 #define _DEBUG
@@ -62,8 +62,11 @@ void circuit::print_usage() {
 }
 
 void circuit::read_files(int argc, char* argv[]) {
-  char *tech = NULL, *lef = NULL, *cell_lef = NULL, *in_def = NULL, *cpu = NULL,
-       *constraints = NULL, *out_def = NULL, *size = NULL;
+
+  vector<string> lefStor;
+  string defLoc = "";
+
+  char *cpu = NULL, *constraints = NULL, *out_def = NULL, *size = NULL;
 
   if(argc < 5) {
     print_usage();
@@ -73,9 +76,9 @@ void circuit::read_files(int argc, char* argv[]) {
   for(int i = 1; i < argc; i++) {
     if(i + 1 != argc) {
       if(strncmp(argv[i], "-lef", 4) == 0)
-        lef = argv[++i];
+        lefStor.push_back( argv[++i] );
       else if(strncmp(argv[i], "-def", 4) == 0)
-        in_def = argv[++i];
+        defLoc = argv[++i];
       else if(strncmp(argv[i], "-cpu", 4) == 0)
         cpu = argv[++i];
       else if(strncmp(argv[i], "-placement_constraints", 22) == 0)
@@ -87,40 +90,28 @@ void circuit::read_files(int argc, char* argv[]) {
     }
   }
 
-  bool input_fail = false;
-
-  if((cell_lef == NULL || tech == NULL) && lef == NULL)
-    input_fail == true;
-  else if(in_def == NULL)
-    input_fail == true;
-
-  if(input_fail == true) {
+  if(lefStor.size() == 0 || defLoc == "") {
     print_usage();
     exit(1);
   }
 
   string tech_str, cell_lef_str, lef_str;
   string constraints_str;
-  size_t lef_found, def_found;
 
-  if(lef != NULL) {
-    lef_str = lef;
-    lef_found = lef_str.find_last_of("/\\");
-    read_lef(lef_str);
+  // Below should be modified!!
+  if( lefStor.size() == 1 ) {
+    read_lef(lefStor[0]); 
   }
   else {
-    tech_str = tech;
-    cell_lef_str = cell_lef;
-    read_tech_lef(tech_str);
-    read_cell_lef(cell_lef_str);
-    lef_found = tech_str.find_last_of("/\\");
+    read_tech_lef(lefStor[1]);
+    read_cell_lef(lefStor[0]);
   }
-  string in_def_str = in_def;
+
   if(constraints != NULL) constraints_str = constraints;
 
-  in_def_name = in_def_str;
-  def_found = in_def_str.find_last_of("/\\");
-  string dir_bench = in_def_str.substr(0, def_found);
+  in_def_name = defLoc;
+  size_t def_found = defLoc.find_last_of("/\\");
+  string dir_bench = defLoc.substr(0, def_found);
   string dir = dir_bench.substr(0, dir_bench.find_last_of("/\\"));
   string bench = dir_bench.substr(dir_bench.find_last_of("/\\") + 1);
   benchmark = bench;
@@ -135,25 +126,22 @@ void circuit::read_files(int argc, char* argv[]) {
        << endl;
   cout << " benchmark name    : " << bench << endl;
   cout << " directory         : " << dir << endl;
-  if(lef != NULL) {
-    cout << " lef               : " << lef_str.substr(lef_found + 1) << endl;
+
+  for(auto& curLefLoc : lefStor) {
+    cout << " lef               : " << curLefLoc << endl;
   }
-  else {
-    cout << " tech_lef          : " << tech_str.substr(lef_found + 1) << endl;
-    cout << " cell_lef          : " << cell_lef_str.substr(lef_found + 1)
-         << endl;
-  }
-  cout << " def               : " << in_def_str.substr(def_found + 1) << endl;
+  cout << " def               : " << defLoc << endl;
+
   if(constraints != NULL)
-    cout << " constraints       : " << constraints_str.substr(lef_found + 1)
-         << endl;
+    cout << " constraints       : " << constraints_str << endl;
   cout << "-------------------------------------------------------------------"
        << endl;
 
   // read_def shuld after read_lef
-  //read_def(in_def_str, INIT);
+//  read_def(in_def_str, INIT);
   
-  ReadDef(in_def_str);
+  ReadDef(defLoc );
+  exit(1);
 
   if(size != NULL) {
     string size_file = size;
@@ -599,7 +587,7 @@ void circuit::read_init_def_components(ifstream& is) {
       get_next_n_tokens(is, tokens, 2, DEFCommentChar);
       // assert(cell2id.find(tokens[0]) != cell2id.end());
       if(cell2id.find(tokens[0]) == cell2id.end()) {
-        cout << "tokens[0]: " << tokens[0] << endl;
+//        cout << "tokens[0]: " << tokens[0] << endl;
         myCell = locateOrCreateCell(tokens[0]);
         myCell->type = macro2id[tokens[1]];
         macro* myMacro = &macros[macro2id[tokens[1]]];
