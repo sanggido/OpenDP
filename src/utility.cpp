@@ -39,6 +39,8 @@
 #define _DEBUG
 #define SOFT_IGNORE true
 
+using namespace opendp;
+
 void circuit::power_mapping() {
   for(int i = 0; i < rows.size(); i++) {
     row* theRow = &rows[i];

@@ -39,6 +39,8 @@
 #include "circuit.h"
 #include "circuitParser.h"
 
+using namespace opendp;
+
 // Global variables
 static FILE* fout;
 static void* userData;
@@ -53,19 +55,19 @@ static int testDebugPrint = 0;  // test for ccr1488696
 
 // TX_DIR:TRANSLATION ON
 
-void myLogFunction(const char* errMsg) {
+static void myLogFunction(const char* errMsg) {
   fprintf(fout, "ERROR: found error: %s\n", errMsg);
 }
 
-void myWarningLogFunction(const char* errMsg) {
+static void myWarningLogFunction(const char* errMsg) {
   fprintf(fout, "WARNING: found error: %s\n", errMsg);
 }
 
-void dataError() {
+static void dataError() {
   fprintf(fout, "ERROR: returned user data is not correct!\n");
 }
 
-void checkType(defrCallbackType_e c) {
+static void checkType(defrCallbackType_e c) {
   if(c >= 0 && c <= defrDesignEndCbkType) {
     // OK
   }
@@ -2712,15 +2714,8 @@ int unUsedCB(defrCallbackType_e, void*, defiUserData) {
 static void printWarning(const char* str) { fprintf(stderr, "%s\n", str); }
 
 int circuit::ReadDef(const string& defName) {
-  int num = 99;
   FILE* f = NULL;
-  int res;
-  int noCalls = 0;
   //  long start_mem;
-  int test1 = 0;
-  int test2 = 0;
-  int noNetCb = 0;
-  int ccr749853 = 0;
   int line_num_print_interval = 1000;
 
 #ifdef WIN32
@@ -2733,7 +2728,7 @@ int circuit::ReadDef(const string& defName) {
   CircuitParser cp(this);
   userData = cp.Circuit();
 
-  // defrSetLogFunction(myLogFunction);
+  defrSetLogFunction(myLogFunction);
 
   defrInitSession(0);
   
@@ -2932,7 +2927,7 @@ int circuit::ReadDef(const string& defName) {
   }     
 
   cout << "defFile: " << defName << endl;
-  res = defrRead(f, fileStr, userData, 1);
+  int res = defrRead(f, fileStr, userData, 1);
   cout << "read End" << endl;
 
 

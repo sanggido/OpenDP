@@ -1,10 +1,93 @@
 #include "circuitParser.h"
 #include <cfloat>
 
+using namespace opendp;
+
 CircuitParser::CircuitParser(circuit* ckt )
 : ckt_(ckt) {};
 
+//////////////////////////////////////////////////
+// LEF Parsing Cbk Functions
+//
 
+// Layer Parsing
+// No need to parse all data
+int 
+CircuitParser::LefLayerCbk(
+    lefrCallbackType_e c,
+    lefiLayer* la, 
+    lefiUserData ud ) {
+  circuit* ckt = (circuit*) ud;
+  layer* myLayer = ckt->locateOrCreateLayer( la->name() );
+
+  if( la->hasType() ) { myLayer->type = la->type(); }
+  if( la->hasDirection() ) { myLayer->direction = la->direction(); }
+
+  if( la->hasPitch() ) { 
+    myLayer->xPitch = myLayer->yPitch = la->pitch(); 
+  }
+  else if( la->hasXYPitch() ) { 
+    myLayer->xPitch = la->pitchX(); 
+    myLayer->yPitch = la->pitchY(); 
+  }
+
+  if( la->hasOffset() ) {
+    myLayer->xOffset = myLayer->yOffset = la->offset(); 
+  }
+  else if( la->hasXYOffset() ) {
+    myLayer->xOffset = la->offsetX();
+    myLayer->yOffset = la->offsetY();
+  }
+
+  if( la->hasWidth() ) {
+    myLayer->width = la->width(); 
+  }
+  if( la->hasMaxwidth() ) {
+    myLayer->maxWidth = la->minwidth();
+  }
+  return 0;
+}
+
+// SITE parsing
+int
+CircuitParser::LefSiteCbk(
+    lefrCallbackType_e c,
+    lefiSite* si, 
+    lefiUserData ud ) {
+
+  circuit* ckt = (circuit*) ud;
+  site* mySite = ckt->locateOrCreateSite( si->name() );
+  if( si->hasSize() ) {
+    mySite->width = si->sizeX();
+    mySite->height = si->sizeY();
+  }
+
+  if( si->hasClass() ) {
+    mySite->type = si->siteClass();
+  }
+
+  if( si->hasXSymmetry() ) {
+    mySite->symmetries.push_back("X");
+  }
+  if( si->hasYSymmetry() ) {
+    mySite->symmetries.push_back("Y");
+  }
+  if( si->has90Symmetry() ) {
+    mySite->symmetries.push_back("R90");
+  }
+
+}
+
+// MACRO parsing
+int
+CircuitParser::LefMacroCbk(
+    lefrCallbackType_e c,
+    lefiMacro* ma, 
+    lefiUserData ud ) {
+  circuit* ckt = (circuit*) ud;
+  macro* myMacro = ckt->locateOrCreateMacro( ma->name() );
+
+}
 
 //////////////////////////////////////////////////
 // DEF Parsing Cbk Functions
@@ -306,7 +389,7 @@ int CircuitParser::DefRegionCbk(
   curGroup->boundary.yUR = DBL_MIN;
 
   for(int i = 0; i < re->numRectangles(); i++) {
-    rect tmpRect;
+    opendp::rect tmpRect;
     tmpRect.xLL = re->xl(i);
     tmpRect.yLL = re->yl(i);
     tmpRect.xUR = re->xl(i) + re->xh(i);

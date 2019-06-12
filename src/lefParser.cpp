@@ -1,4 +1,5 @@
 #include "circuit.h"
+#include "circuitParser.h"
 
 #include "lefrReader.hpp"
 #include "lefwWriter.hpp"
@@ -6,13 +7,11 @@
 #include "lefiEncryptInt.hpp"
 #include "lefiUtil.hpp"
 
-static char defaultName[128];
-static char defaultOut[128];
+using namespace opendp;
+
 static FILE* fout;
-static int printing = 0;     // Printing the output.
 static int parse65nm = 0;
 static int parseLef58Type = 0;
-static int isSessionles = 0;
 
 // TX_DIR:TRANSLATION ON
 
@@ -2155,7 +2154,7 @@ static void freeCB(void* name) {
 }
 
 static void lineNumberCB(int lineNo) {
-  fprintf(fout, "Parsed %d number of lines!!\n", lineNo);
+  cout << "Parsed " << lineNo << " number of lines!!" << endl;
   return;
 }
 
@@ -2168,38 +2167,20 @@ static void printWarning(const char *str)
 
 int
 circuit::ReadLef(const vector<string>& lefStor) {
-  char* inFile[100];
-  char* outFile;
   FILE* f;
-  int res;
-  int noCalls = 0;
-  //  long start_mem;
-  int num;
-  int status;
   int retStr = 0;
-  int numInFile = 0;
-  int fileCt = 0;
   int relax = 0;
   const char* version = "N/A";
   int setVer = 0;
-  char* userData;
-  int msgCb = 0;
-  int test1 = 0;
-  int test2 = 0;
-  int ccr749853 = 0;
-  int ccr1688946 = 0;
-  int ccr1709089 = 0;
   int verbose = 0;
 
   // start_mem = (long)sbrk(0);
 
-  userData = strdup ("(lefrw-5100)");
-  strcpy(defaultName,"lef.in");
-  strcpy(defaultOut,"list");
-  inFile[0] = defaultName;
-  outFile = defaultOut;
+
   fout = stdout;
-  //  userData = 0x01020304;
+  CircuitParser cp(this);
+  void* userData = cp.Circuit();
+  
 
 #ifdef WIN32
   // Enable two-digit exponent format
@@ -2209,11 +2190,13 @@ circuit::ReadLef(const vector<string>& lefStor) {
   // sets the parser to be case sensitive...
   // default was supposed to be the case but false...
   // lefrSetCaseSensitivity(true);
-  if (isSessionles) {
-    lefrSetOpenLogFileAppend();
-  }
 
-  lefrInitSession(isSessionles ? 0 : 1);
+  lefrInitSession(0);
+  
+  lefrSetUserData(cp.Circuit());
+  lefrSetLayerCbk(layerCB);
+
+
 
   lefrSetWarningLogFunction(printWarning);
   lefrSetAntennaInputCbk(antennaCB);
@@ -2240,7 +2223,6 @@ circuit::ReadLef(const vector<string>& lefStor) {
   lefrSetIRDropBeginCbk(irdropBeginCB);
   lefrSetIRDropCbk(irdropCB);
   lefrSetIRDropEndCbk(irdropEndCB);
-  lefrSetLayerCbk(layerCB);
   lefrSetLibraryEndCbk(doneCB); 
   lefrSetMacroBeginCbk(macroBeginCB);
   lefrSetMacroCbk(macroCB);
@@ -2265,28 +2247,27 @@ circuit::ReadLef(const vector<string>& lefStor) {
   lefrSetTimingCbk(timingCB);
   lefrSetUnitsCbk(unitsCB);
   lefrSetUseMinSpacingCbk(useMinSpacingCB);
-  lefrSetUserData((void*)3);
+
   if (!retStr)
     lefrSetVersionCbk(versionCB);
   else
     lefrSetVersionStrCbk(versionStrCB);
+
   lefrSetViaCbk(viaCB);
   lefrSetViaRuleCbk(viaRuleCB);
   lefrSetInputAntennaCbk(antennaCB);
   lefrSetOutputAntennaCbk(antennaCB);
   lefrSetInoutAntennaCbk(antennaCB);
 
-  if (msgCb) {
-    lefrSetLogFunction(errorCB);
-    lefrSetWarningLogFunction(warningCB);
-  }
+  lefrSetLogFunction(errorCB);
+  lefrSetWarningLogFunction(warningCB);
 
   lefrSetMallocFunction(mallocCB);
   lefrSetReallocFunction(reallocCB);
   lefrSetFreeFunction(freeCB);
 
-  //        lefrSetLineNumberFunction(lineNumberCB);
-  //        lefrSetDeltaNumberLines(50);
+  lefrSetLineNumberFunction(lineNumberCB);
+  lefrSetDeltaNumberLines(1000);
 
   lefrSetRegisterUnusedCallbacks();
 
@@ -2329,51 +2310,28 @@ circuit::ReadLef(const vector<string>& lefStor) {
 
   (void) lefrSetShiftCase();  // will shift name to uppercase if caseinsensitive
   // is set to off or not set
-  if (!isSessionles) {
-    lefrSetOpenLogFileAppend();
-  }
+  lefrSetOpenLogFileAppend();
 
-  if (ccr749853) {
-    lefrSetTotalMsgLimit (5);
-    lefrSetLimitPerMsg (1618, 2);
-  }
-
-  if (ccr1688946) {
-    lefrRegisterLef58Type("XYZ", "CUT");
-    lefrRegisterLef58Type("XYZ", "CUT");
-  }
-
-  for (fileCt = 0; fileCt < numInFile; fileCt++) {
+  for(auto curLefLoc : lefStor) {
     lefrReset();
 
-    if ((f = fopen(inFile[fileCt],"r")) == 0) {
-      fprintf(stderr,"Couldn't open input file '%s'\n", inFile[fileCt]);
+    if ((f = fopen(curLefLoc.c_str(),"r")) == 0) {
+      cout << "Couldn't open input file " << curLefLoc << endl;
       return(2);
     }
 
     (void)lefrEnableReadEncrypted();
 
-    status = lefwInit(fout); // initialize the lef writer,
+    int status = lefwInit(fout); // initialize the lef writer,
     // need to be called 1st
     if (status != LEFW_OK)
       return 1;
 
-    if (ccr1709089) {
-      // CCR 1709089 test.
-      // Non-initialized lefData case.
-      lefrSetLimitPerMsg(10000, 10000);
+    int res = lefrRead(f, curLefLoc.c_str(), (void*)userData);
+
+    if (res) {
+      cout << "Reader returns bad status: " << curLefLoc << endl;
     }
-
-    res = lefrRead(f, inFile[fileCt], (void*)userData);
-
-    if (ccr1709089) {
-      // CCR 1709089 test.
-      // Initialized lefData case.
-      lefrSetLimitPerMsg(10000, 10000);
-    }
-
-    if (res)
-      fprintf(stderr, "Reader returns bad status.\n", inFile[fileCt]);
 
     (void)lefrPrintUnusedCallbacks(fout);
     (void)lefrReleaseNResetMemory();

@@ -38,6 +38,8 @@
 #include "circuit.h"
 #define _DEBUG
 
+using namespace opendp;
+
 const char* DEFCommentChar = "#";
 const char* DEFLineEndingChar = ";";
 const char* LEFCommentChar = "#";
@@ -99,6 +101,7 @@ void circuit::read_files(int argc, char* argv[]) {
   string constraints_str;
 
   // Below should be modified!!
+  /*
   if( lefStor.size() == 1 ) {
     read_lef(lefStor[0]); 
   }
@@ -106,6 +109,10 @@ void circuit::read_files(int argc, char* argv[]) {
     read_tech_lef(lefStor[1]);
     read_cell_lef(lefStor[0]);
   }
+  */
+
+  ReadLef(lefStor);
+  exit(1);
 
   if(constraints != NULL) constraints_str = constraints;
 

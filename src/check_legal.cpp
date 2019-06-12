@@ -38,6 +38,8 @@
 #include "circuit.h"
 #define _DEBUG
 
+using namespace opendp;
+
 bool circuit::check_legality() {
   ofstream log("../logdir/check_legality.log");
   cout << " ==== CHECK LEGALITY ==== " << endl;
