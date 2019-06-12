@@ -531,6 +531,8 @@ class circuit {
   void read_lef_macro(ifstream& is);
   void read_lef_macro_site(ifstream& is, macro* myMacro);
   void read_lef_macro_pin(ifstream& is, macro* myMacro);
+  // priv func
+  void read_lef_macro_define_top_power(macro* myMacro);
 
   /* IO helpers for DEF - parser.cpp */
   void read_init_def_components(ifstream& is);
@@ -557,11 +559,14 @@ class circuit {
         max_disp_const(0.0),
         max_utilization(100.0),
         wsite(0),
-        max_cell_height(1) {
+        max_cell_height(1),
+        rowHeight(0.0f) {
+
     macros.reserve(128);
     layers.reserve(32);
     rows.reserve(4096);
     sub_regions.reserve(100);
+
 #ifdef USE_GOOGLE_HASH
     macro2id.set_empty_key(
         INITSTR); /* OPENDP_HASH_MAP between macro name and ID */

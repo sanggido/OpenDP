@@ -2133,11 +2133,11 @@ int doneCB(lefrCallbackType_e c, void*, lefiUserData) {
 }
 
 void errorCB(const char* msg) {
-  cout << lefrGetUserData() << " : " << msg << endl;
+  cout << msg << endl;
 }
 
 void warningCB(const char* msg) {
-  cout << lefrGetUserData() << " : " << msg << endl;
+  cout << msg << endl;
 }
 
 void* mallocCB(int size) {
@@ -2203,8 +2203,8 @@ circuit::ReadLef(const vector<string>& lefStor) {
   
   // Macro 
   lefrSetMacroBeginCbk(cp.LefStartCbk);
-//  lefrSetMacroCbk(cp.LefMacroCbk);
-  lefrSetMacroCbk(macroCB);
+  lefrSetMacroCbk(cp.LefMacroCbk);
+//  lefrSetMacroCbk(macroCB);
   lefrSetPinCbk(cp.LefMacroPinCbk);
   lefrSetObstructionCbk(cp.LefMacroObsCbk);
   lefrSetMacroEndCbk(cp.LefEndCbk);
@@ -2409,7 +2409,7 @@ circuit::ReadLef(const vector<string>& lefStor) {
   void lefrUnsetViaRuleCbk();
   */
 
-  fclose(fout);
+  fclose(f);
 
   // Release allocated singleton data.
   lefrClear();    

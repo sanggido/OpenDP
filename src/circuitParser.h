@@ -42,9 +42,7 @@ public:
   static int DefPinCbk(defrCallbackType_e c, defiPin* pi, defiUserData ud);
   static int DefComponentCbk(defrCallbackType_e c, defiComponent* co, defiUserData ud);
   static int DefNetCbk(defrCallbackType_e c, defiNet* net, defiUserData ud);
-
   static int DefSNetCbk(defrCallbackType_e c, defiNet* wire, defiUserData ud);
-  static int DefSNetEndCbk(defrCallbackType_e c, void*, defiUserData ud);
 
   static int DefRegionCbk(defrCallbackType_e c, defiRegion* re, defiUserData ud);
   static int DefGroupCbk(defrCallbackType_e c, defiGroup* group, defiUserData ud);

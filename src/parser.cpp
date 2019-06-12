@@ -112,7 +112,6 @@ void circuit::read_files(int argc, char* argv[]) {
   */
 
   ReadLef(lefStor);
-  exit(1);
 
   if(constraints != NULL) constraints_str = constraints;
 
@@ -1827,7 +1826,15 @@ void circuit::read_lef_macro(ifstream& is) {
     get_next_token(is, tokens[0], LEFCommentChar);
   }
 
-  // - - - - - - - define multi row cell & define top power - - - - - - - - //
+  read_lef_macro_define_top_power(myMacro);
+
+  get_next_token(is, tokens[0], LEFCommentChar);
+  assert(myMacro->name == tokens[0]);
+  return;
+}
+
+// - - - - - - - define multi row cell & define top power - - - - - - - - //
+void circuit::read_lef_macro_define_top_power(macro* myMacro) {
 
   bool power_found = false;
   string vdd_str, vss_str;
@@ -1874,11 +1881,6 @@ void circuit::read_lef_macro(ifstream& is) {
 #endif
     }
   }
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
-
-  get_next_token(is, tokens[0], LEFCommentChar);
-  assert(myMacro->name == tokens[0]);
-  return;
 }
 
 // assumes the keyword SITE has already been read in

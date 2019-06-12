@@ -3,6 +3,7 @@
 
 using namespace opendp;
 
+// static variable definition
 opendp::macro* CircuitParser::topMacro_ = 0;
 
 CircuitParser::CircuitParser(circuit* ckt )
@@ -83,6 +84,9 @@ CircuitParser::LefSiteCbk(
 
 
 // MACRO parsing
+//
+// Begin Call back
+// Set topMacro_ pointer
 int 
 CircuitParser::LefStartCbk(
     lefrCallbackType_e c,
@@ -91,8 +95,8 @@ CircuitParser::LefStartCbk(
   circuit* ckt = (circuit*) ud;
   switch(c) {
     case lefrMacroBeginCbkType:
+      // Fill topMacro_'s pointer
       topMacro_ = ckt->locateOrCreateMacro(name); 
-      cout << "MacroBeginCB Start " << topMacro_ << " " << name << endl;
       break;
     default:
       break;
@@ -106,10 +110,13 @@ CircuitParser::LefMacroCbk(
     lefiMacro* ma, 
     lefiUserData ud ) {
   circuit* ckt = (circuit*) ud;
-  macro* myMacro = topMacro_ = ckt->locateOrCreateMacro( ma->name() );
 //  cout << "MacroCB Start " << topMacro_ << " " << ma->name() << endl;
 
   // Need to extract EDGETYPE vallues from cell macro lef
+  // but LEF libraries cannot get below information correctly...
+  // 
+  // Need custom parser to handle this.
+  //
   if( ma->numProperties() > 0 ) {
     for(int i=0; i<ma->numProperties(); i++) {
       if( ma->propValue(i) ) {
@@ -123,44 +130,121 @@ CircuitParser::LefMacroCbk(
   }
 
   if( ma->hasClass() ) {
-    myMacro->type = ma->macroClass();
+    topMacro_->type = ma->macroClass();
   }
 
   if( ma->hasOrigin() ) {
-    myMacro->xOrig = ma -> originX();
-    myMacro->yOrig = ma -> originY();
+    topMacro_->xOrig = ma -> originX();
+    topMacro_->yOrig = ma -> originY();
   }
 
   if( ma->hasSize() ) {
-    myMacro->width = ma->sizeX();
-    myMacro->height = ma->sizeY();
+    topMacro_->width = ma->sizeX();
+    topMacro_->height = ma->sizeY();
   }
 
   if( ma->hasSiteName() ) {
     site* mySite = ckt->locateOrCreateSite(ma->siteName());
-    myMacro->sites.push_back( ckt->site2id.find(mySite->name)->second );
+    topMacro_->sites.push_back( ckt->site2id.find(mySite->name)->second );
   }
-  
-  topMacro_ = 0;
+
   
   return 0;
 }
 
+// Set macro's pin 
 int 
 CircuitParser::LefMacroPinCbk(
     lefrCallbackType_e c,
     lefiPin* pi, 
     lefiUserData ud ) {
   circuit* ckt = (circuit*) ud;
+
+  macro_pin myPin;
+
+  string pinName = pi->name();
+  if( pi->hasDirection() ) {
+    myPin.direction = pi->direction();
+  }
+
+  if( pi->hasShape() ) {
+    myPin.shape = pi->shape(); 
+  }
+
+  layer* curLayer = NULL;
+  for(int i=0; i<pi->numPorts(); i++) {
+    lefiGeometries* geom = pi->port(i);
+    lefiGeomRect* lrect = NULL;
+    opendp::rect tmpRect;
+
+    for(int j=0; j<geom->numItems(); j++) {
+      switch(geom->itemType(j)) {
+        // when meets Layer .
+        case lefiGeomLayerE:
+          curLayer = ckt->locateOrCreateLayer( geom->getLayer(j) );
+          break;
+          // when meets Rect
+        case lefiGeomRectE:
+          lrect = geom->getRect(j);
+          tmpRect.xLL = lrect->xl;
+          tmpRect.yLL = lrect->yl;
+          tmpRect.xUR = lrect->xl + lrect->xh;
+          tmpRect.yUR = lrect->yl + lrect->yh;
+          myPin.port.push_back(tmpRect);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  topMacro_->pins[pinName] = myPin;
+
   return 0; 
 }
 
+// Set macro's Obs
 int 
 CircuitParser::LefMacroObsCbk(
     lefrCallbackType_e c,
     lefiObstruction* obs,
     lefiUserData ud ) {
   circuit* ckt = (circuit*) ud;
+  lefiGeometries* geom = obs->geometries();
+
+  bool isMeetMetalLayer1 = false;
+  for(int i=0; i<geom->numItems(); i++) {
+    lefiGeomRect* lrect = NULL;
+    opendp::rect tmpRect;
+
+    switch(geom->itemType(i)) {
+      // when meets metal1 segments.
+      case lefiGeomLayerE:
+        // HARD CODE
+        // Need to be replaced layer. (metal1 name)
+        isMeetMetalLayer1 = 
+          (strcmp(geom->getLayer(i), "metal1") == 0)? true : false;
+      break;
+      // only metal1's obs should be pushed.
+      case lefiGeomRectE:
+        if(!isMeetMetalLayer1){ 
+          break;
+        }
+
+        lrect = geom->getRect(i);
+        tmpRect.xLL = lrect->xl;
+        tmpRect.yLL = lrect->yl;
+        tmpRect.xUR = lrect->xl + lrect->xh;
+        tmpRect.yUR = lrect->yl + lrect->yh;
+  
+        topMacro_->obses.push_back(tmpRect);
+        break;
+      default: 
+        break;    
+    }
+  }
+
+//  cout << "obs: " << topMacro_->obses.size() << endl;
   return 0;
 }
 
@@ -172,7 +256,8 @@ CircuitParser::LefEndCbk(
   circuit* ckt = (circuit*) ud;
   switch(c) {
     case lefrMacroBeginCbkType:
-      // reset
+      ckt->read_lef_macro_define_top_power(topMacro_);
+      // reset topMacro_'s pointer
       topMacro_ = 0;
       break;
     default:
@@ -191,6 +276,7 @@ CircuitParser::DefDieAreaCbk(
     defiBox* box, 
     defiUserData ud ) {
   circuit* ckt = (circuit*) ud;
+
   ckt->die.xLL = box->xl();
   ckt->die.yLL = box->yl();
   ckt->die.xUR = box->xh();
@@ -203,6 +289,7 @@ int CircuitParser::DefDesignCbk(
     const char* string, 
     defiUserData ud) { 
   circuit* ckt = (circuit*) ud;
+
   ckt->design_name = string;
   return 0;
 }
@@ -212,6 +299,7 @@ int CircuitParser::DefUnitsCbk(
     double d, 
     defiUserData ud) {
   circuit* ckt = (circuit*) ud;
+
   ckt->DEFdist2Microns = d;
   return 0;
 }
@@ -278,6 +366,13 @@ int CircuitParser::DefRowCbk(
   myRow->numSites = max(_row->xNum(),_row->yNum());
   myRow->stepX = _row->xStep();
   myRow->stepY = _row->yStep();
+
+  // initialize rowHeight variable 
+  if( fabs(ckt->rowHeight - 0.0f) <= DBL_EPSILON ) {
+    ckt->rowHeight = ckt->sites[ myRow->site ].height * ckt->DEFdist2Microns;
+    cout << "rowHeight: " << ckt->rowHeight << endl;
+  }
+
   return 0;
 }
 
@@ -317,8 +412,8 @@ int CircuitParser::DefComponentCbk(
     myCell->type = ckt->macro2id[ co->name() ];
     
     macro* myMacro = &ckt->macros[ ckt->macro2id[ co->name() ]];
-    myCell->width = myMacro->width * static_cast<double> (ckt->LEFdist2Microns);
-    myCell->height = myMacro->height * static_cast<double> (ckt->LEFdist2Microns);
+    myCell->width = myMacro->width * static_cast<double> (ckt->DEFdist2Microns);
+    myCell->height = myMacro->height * static_cast<double> (ckt->DEFdist2Microns);
   }
   else {
     myCell = ckt->locateOrCreateCell( co->id() );
@@ -453,14 +548,6 @@ int CircuitParser::DefSNetCbk(
     } 
   }
 //  cout << "Final VDD min coordi: " << ckt->minVddCoordiY << endl;
-  return 0;
-}
-
-int CircuitParser::DefSNetEndCbk(
-    defrCallbackType_e c,
-    void*, 
-    defiUserData ud) {
-  
   return 0;
 }
 

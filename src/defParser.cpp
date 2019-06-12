@@ -3063,7 +3063,7 @@ int circuit::ReadDef(const string& defName) {
 //  defrUnsetViaEndCbk();
 
 
-  fclose(fout);
+  fclose(f);
 
   // Release allocated singleton data.
   defrClear();
