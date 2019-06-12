@@ -3,6 +3,8 @@
 
 using namespace opendp;
 
+opendp::macro* CircuitParser::topMacro_ = 0;
+
 CircuitParser::CircuitParser(circuit* ckt )
 : ckt_(ckt) {};
 
@@ -75,18 +77,108 @@ CircuitParser::LefSiteCbk(
   if( si->has90Symmetry() ) {
     mySite->symmetries.push_back("R90");
   }
-
+  return 0;
 }
 
+
+
 // MACRO parsing
+int 
+CircuitParser::LefStartCbk(
+    lefrCallbackType_e c,
+    const char* name, 
+    lefiUserData ud ) {
+  circuit* ckt = (circuit*) ud;
+  switch(c) {
+    case lefrMacroBeginCbkType:
+      topMacro_ = ckt->locateOrCreateMacro(name); 
+      cout << "MacroBeginCB Start " << topMacro_ << " " << name << endl;
+      break;
+    default:
+      break;
+  }
+  return 0;
+}
+
 int
 CircuitParser::LefMacroCbk(
     lefrCallbackType_e c,
     lefiMacro* ma, 
     lefiUserData ud ) {
   circuit* ckt = (circuit*) ud;
-  macro* myMacro = ckt->locateOrCreateMacro( ma->name() );
+  macro* myMacro = topMacro_ = ckt->locateOrCreateMacro( ma->name() );
+//  cout << "MacroCB Start " << topMacro_ << " " << ma->name() << endl;
 
+  // Need to extract EDGETYPE vallues from cell macro lef
+  if( ma->numProperties() > 0 ) {
+    for(int i=0; i<ma->numProperties(); i++) {
+      if( ma->propValue(i) ) {
+        cout << ma->propName(i) << " val: " << ma->propValue(i) << endl;
+        printf("%s val: %s\n", ma->propName(i),  ma->propValue(i));
+      }
+      else {
+        cout << ma->propName(i) << " num: " << ma->propNum(i) << endl;
+      }
+    }
+  }
+
+  if( ma->hasClass() ) {
+    myMacro->type = ma->macroClass();
+  }
+
+  if( ma->hasOrigin() ) {
+    myMacro->xOrig = ma -> originX();
+    myMacro->yOrig = ma -> originY();
+  }
+
+  if( ma->hasSize() ) {
+    myMacro->width = ma->sizeX();
+    myMacro->height = ma->sizeY();
+  }
+
+  if( ma->hasSiteName() ) {
+    site* mySite = ckt->locateOrCreateSite(ma->siteName());
+    myMacro->sites.push_back( ckt->site2id.find(mySite->name)->second );
+  }
+  
+  topMacro_ = 0;
+  
+  return 0;
+}
+
+int 
+CircuitParser::LefMacroPinCbk(
+    lefrCallbackType_e c,
+    lefiPin* pi, 
+    lefiUserData ud ) {
+  circuit* ckt = (circuit*) ud;
+  return 0; 
+}
+
+int 
+CircuitParser::LefMacroObsCbk(
+    lefrCallbackType_e c,
+    lefiObstruction* obs,
+    lefiUserData ud ) {
+  circuit* ckt = (circuit*) ud;
+  return 0;
+}
+
+int 
+CircuitParser::LefEndCbk(
+    lefrCallbackType_e c,
+    const char* name, 
+    lefiUserData ud ) {
+  circuit* ckt = (circuit*) ud;
+  switch(c) {
+    case lefrMacroBeginCbkType:
+      // reset
+      topMacro_ = 0;
+      break;
+    default:
+      break;
+  }
+  return 0;
 }
 
 //////////////////////////////////////////////////

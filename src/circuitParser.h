@@ -13,6 +13,8 @@
 class CircuitParser {
 protected:
   opendp::circuit* ckt_;
+  static opendp::macro* topMacro_;
+
 public:
 	CircuitParser(opendp::circuit* ckt_);
   opendp::circuit* Circuit() { return ckt_; };
@@ -20,7 +22,12 @@ public:
   // LEF CallBacks.
   static int LefLayerCbk( lefrCallbackType_e c, lefiLayer* la, lefiUserData ud );
   static int LefSiteCbk( lefrCallbackType_e c, lefiSite* si, lefiUserData ud );
+  
+  static int LefStartCbk( lefrCallbackType_e c, const char* name, lefiUserData ud );
   static int LefMacroCbk( lefrCallbackType_e c, lefiMacro* ma, lefiUserData ud ); 
+  static int LefMacroPinCbk( lefrCallbackType_e c, lefiPin * ma, lefiUserData ud );
+  static int LefMacroObsCbk( lefrCallbackType_e c, lefiObstruction* obs, lefiUserData ud );
+  static int LefEndCbk( lefrCallbackType_e c, const char* name, lefiUserData ud );
 
 
   // DEF CallBacks

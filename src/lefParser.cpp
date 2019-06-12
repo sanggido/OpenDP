@@ -2133,11 +2133,11 @@ int doneCB(lefrCallbackType_e c, void*, lefiUserData) {
 }
 
 void errorCB(const char* msg) {
-  printf ("%s : %s\n", lefrGetUserData(), msg);
+  cout << lefrGetUserData() << " : " << msg << endl;
 }
 
 void warningCB(const char* msg) {
-  printf ("%s : %s\n", lefrGetUserData(), msg);
+  cout << lefrGetUserData() << " : " << msg << endl;
 }
 
 void* mallocCB(int size) {
@@ -2194,11 +2194,32 @@ circuit::ReadLef(const vector<string>& lefStor) {
   lefrInitSession(0);
   
   lefrSetUserData(cp.Circuit());
-  lefrSetLayerCbk(layerCB);
 
-
-
+  // Layer
+  lefrSetLayerCbk(cp.LefLayerCbk);
+  
+  // Site
+  lefrSetSiteCbk(cp.LefSiteCbk);
+  
+  // Macro 
+  lefrSetMacroBeginCbk(cp.LefStartCbk);
+//  lefrSetMacroCbk(cp.LefMacroCbk);
+  lefrSetMacroCbk(macroCB);
+  lefrSetPinCbk(cp.LefMacroPinCbk);
+  lefrSetObstructionCbk(cp.LefMacroObsCbk);
+  lefrSetMacroEndCbk(cp.LefEndCbk);
+  
   lefrSetWarningLogFunction(printWarning);
+  
+  lefrSetLineNumberFunction(lineNumberCB);
+  lefrSetDeltaNumberLines(1000);
+
+  lefrSetRegisterUnusedCallbacks();
+  lefrSetLogFunction(errorCB);
+  lefrSetWarningLogFunction(warningCB);
+
+
+  /*
   lefrSetAntennaInputCbk(antennaCB);
   lefrSetAntennaInoutCbk(antennaCB);
   lefrSetAntennaOutputCbk(antennaCB);
@@ -2224,23 +2245,17 @@ circuit::ReadLef(const vector<string>& lefStor) {
   lefrSetIRDropCbk(irdropCB);
   lefrSetIRDropEndCbk(irdropEndCB);
   lefrSetLibraryEndCbk(doneCB); 
-  lefrSetMacroBeginCbk(macroBeginCB);
-  lefrSetMacroCbk(macroCB);
   lefrSetMacroClassTypeCbk(macroClassTypeCB);
   lefrSetMacroOriginCbk(macroOriginCB);
   lefrSetMacroSizeCbk(macroSizeCB);
   lefrSetMacroFixedMaskCbk(macroFixedMaskCB);
-  lefrSetMacroEndCbk(macroEndCB);
   lefrSetManufacturingCbk(manufacturingCB);
   lefrSetMaxStackViaCbk(maxStackViaCB);
   lefrSetMinFeatureCbk(minFeatureCB);
   lefrSetNonDefaultCbk(nonDefaultCB);
-  lefrSetObstructionCbk(obstructionCB);
-  lefrSetPinCbk(pinCB);
   lefrSetPropBeginCbk(propDefBeginCB);
   lefrSetPropCbk(propDefCB);
   lefrSetPropEndCbk(propDefEndCB);
-  lefrSetSiteCbk(siteCB);
   lefrSetSpacingBeginCbk(spacingBeginCB);
   lefrSetSpacingCbk(spacingCB);
   lefrSetSpacingEndCbk(spacingEndCB);
@@ -2259,23 +2274,18 @@ circuit::ReadLef(const vector<string>& lefStor) {
   lefrSetOutputAntennaCbk(antennaCB);
   lefrSetInoutAntennaCbk(antennaCB);
 
-  lefrSetLogFunction(errorCB);
-  lefrSetWarningLogFunction(warningCB);
 
   lefrSetMallocFunction(mallocCB);
   lefrSetReallocFunction(reallocCB);
   lefrSetFreeFunction(freeCB);
 
-  lefrSetLineNumberFunction(lineNumberCB);
-  lefrSetDeltaNumberLines(1000);
-
-  lefrSetRegisterUnusedCallbacks();
 
   if (relax)
     lefrSetRelaxMode();
 
   if (setVer)
     (void)lefrSetVersionValue(version);
+  */
 
   lefrSetAntennaInoutWarnings(30);
   lefrSetAntennaInputWarnings(30);
@@ -2333,12 +2343,21 @@ circuit::ReadLef(const vector<string>& lefStor) {
       cout << "Reader returns bad status: " << curLefLoc << endl;
     }
 
-    (void)lefrPrintUnusedCallbacks(fout);
+//    (void)lefrPrintUnusedCallbacks(fout);
     (void)lefrReleaseNResetMemory();
 
   }
   (void)lefrUnsetCallbacks();
+  void lefrUnsetMacroBeginCbk();
+  void lefrUnsetMacroCbk();
+  void lefrUnsetMacroEndCbk();
+  void lefrUnsetLayerCbk();
+  void lefrUnsetPinCbk();
+  void lefrUnsetObstructionCbk();
+
+
   // Unset all the callbacks
+  /*
   void lefrUnsetAntennaInputCbk();
   void lefrUnsetAntennaInoutCbk();
   void lefrUnsetAntennaOutputCbk();
@@ -2362,12 +2381,8 @@ circuit::ReadLef(const vector<string>& lefStor) {
   void lefrUnsetIRDropBeginCbk();
   void lefrUnsetIRDropCbk();
   void lefrUnsetIRDropEndCbk();
-  void lefrUnsetLayerCbk();
   void lefrUnsetLibraryEndCbk();
-  void lefrUnsetMacroBeginCbk();
-  void lefrUnsetMacroCbk();
   void lefrUnsetMacroClassTypeCbk();
-  void lefrUnsetMacroEndCbk();
   void lefrUnsetMacroOriginCbk();
   void lefrUnsetMacroSizeCbk();
   void lefrUnsetManufacturingCbk();
@@ -2377,9 +2392,7 @@ circuit::ReadLef(const vector<string>& lefStor) {
   void lefrUnsetNoiseTableCbk();
   void lefrUnsetNonDefaultCbk();
   void lefrUnsetNoWireExtensionCbk();
-  void lefrUnsetObstructionCbk();
   void lefrUnsetOutputAntennaCbk();
-  void lefrUnsetPinCbk();
   void lefrUnsetPropBeginCbk();
   void lefrUnsetPropCbk();
   void lefrUnsetPropEndCbk();
@@ -2394,6 +2407,7 @@ circuit::ReadLef(const vector<string>& lefStor) {
   void lefrUnsetVersionStrCbk();
   void lefrUnsetViaCbk();
   void lefrUnsetViaRuleCbk();
+  */
 
   fclose(fout);
 
