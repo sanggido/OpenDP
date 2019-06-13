@@ -2212,7 +2212,7 @@ circuit::ReadLef(const vector<string>& lefStor) {
   lefrSetWarningLogFunction(printWarning);
   
   lefrSetLineNumberFunction(lineNumberCB);
-  lefrSetDeltaNumberLines(1000);
+  lefrSetDeltaNumberLines(10000);
 
   lefrSetRegisterUnusedCallbacks();
   lefrSetLogFunction(errorCB);

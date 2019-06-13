@@ -142,7 +142,7 @@ double circuit::HPWL(string mode) {
       box.xLL = box.xUR = source->x_coord;
       box.yLL = box.yUR = source->y_coord;
     }
-
+      
     for(int j = 0; j < theNet->sinks.size(); j++) {
       pin* sink = &pins[theNet->sinks[j]];
       // cout << " sink name : " << sink->name << endl;
@@ -168,6 +168,7 @@ double circuit::HPWL(string mode) {
         box.yUR = max(box.yUR, sink->y_coord);
       }
     }
+    
 
     double box_boundary = (box.xUR - box.xLL + box.yUR - box.yLL);
 

@@ -465,7 +465,10 @@ int CircuitParser::DefNetCbk(
     pin* myPin = ckt->locateOrCreatePin( pinName );
     myPin->net = myNetId;
 
-    myNet->source = myPin->id; // ?????????
+    // source setting
+    if( i == 0 ) {
+      myNet->source = myPin->id; 
+    }
 
     // if it is cell inst's pin (e.g. not equal to "PIN")
     // Fill owner's info
@@ -488,6 +491,12 @@ int CircuitParser::DefNetCbk(
         myMacroPin->port[0].xLL / 2 + myMacroPin->port[0].xUR / 2;
       myPin->y_offset = 
         myMacroPin->port[0].yLL / 2 + myMacroPin->port[0].yUR / 2;
+//      cout << "calculated x_offset: " << myPin->x_offset << endl;
+//      cout << "calculated y_offset: " << myPin->y_offset << endl;
+    }
+
+    if( i != 0 ){
+      myNet->sinks.push_back(myPin->id);
     }
   }
   return 0;

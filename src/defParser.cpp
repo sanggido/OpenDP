@@ -2716,7 +2716,7 @@ static void printWarning(const char* str) { fprintf(stderr, "%s\n", str); }
 int circuit::ReadDef(const string& defName) {
   FILE* f = NULL;
   //  long start_mem;
-  int line_num_print_interval = 1000;
+  int line_num_print_interval = 10000;
 
 #ifdef WIN32
   // Enable two-digit exponent format
