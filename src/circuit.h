@@ -482,7 +482,6 @@ class circuit {
   string LEFNamesCaseSensitive;
   string LEFDelimiter;
   string LEFBusCharacters;
-  unsigned LEFdist2Microns;
   double LEFManufacturingGrid;
 
   unsigned MAXVIASTACK;

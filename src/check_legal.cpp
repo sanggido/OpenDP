@@ -160,28 +160,28 @@ void circuit::local_density_check(double unit, double target_Ut) {
         int lcol =
             max((int)floor((theCell->x_coord +
                             (unsigned)(theRect->xLL *
-                                       static_cast< double >(LEFdist2Microns)) -
+                                       static_cast< double >(DEFdist2Microns)) -
                             lx) /
                            gridUnit),
                 0);
         int rcol =
             min((int)floor((theCell->x_coord +
                             (unsigned)(theRect->xUR *
-                                       static_cast< double >(LEFdist2Microns)) -
+                                       static_cast< double >(DEFdist2Microns)) -
                             lx) /
                            gridUnit),
                 x_gridNum - 1);
         int brow =
             max((int)floor((theCell->y_coord +
                             (unsigned)(theRect->yLL *
-                                       static_cast< double >(LEFdist2Microns)) -
+                                       static_cast< double >(DEFdist2Microns)) -
                             by) /
                            gridUnit),
                 0);
         int trow =
             min((int)floor((theCell->y_coord +
                             (unsigned)(theRect->yUR *
-                                       static_cast< double >(LEFdist2Microns)) -
+                                       static_cast< double >(DEFdist2Microns)) -
                             by) /
                            gridUnit),
                 y_gridNum - 1);
@@ -195,22 +195,22 @@ void circuit::local_density_check(double unit, double target_Ut) {
                 max(bins[binId].lx,
                     (double)theCell->x_coord +
                         (unsigned)(theRect->xLL *
-                                   static_cast< double >(LEFdist2Microns)));
+                                   static_cast< double >(DEFdist2Microns)));
             double hx =
                 min(bins[binId].hx,
                     (double)theCell->x_coord +
                         (unsigned)(theRect->xUR *
-                                   static_cast< double >(LEFdist2Microns)));
+                                   static_cast< double >(DEFdist2Microns)));
             double ly =
                 max(bins[binId].ly,
                     (double)theCell->y_coord +
                         (unsigned)(theRect->yLL *
-                                   static_cast< double >(LEFdist2Microns)));
+                                   static_cast< double >(DEFdist2Microns)));
             double hy =
                 min(bins[binId].hy,
                     (double)theCell->y_coord +
                         (unsigned)(theRect->yUR *
-                                   static_cast< double >(LEFdist2Microns)));
+                                   static_cast< double >(DEFdist2Microns)));
 
             if((hx - lx) > 1.0e-5 && (hy - ly) > 1.0e-5) {
               double common_area = (hx - lx) * (hy - ly);

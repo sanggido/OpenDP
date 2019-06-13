@@ -106,8 +106,8 @@ void circuit::read_files(int argc, char* argv[]) {
     read_lef(lefStor[0]); 
   }
   else {
-    read_tech_lef(lefStor[1]);
-    read_cell_lef(lefStor[0]);
+    read_tech_lef(lefStor[0]);
+    read_cell_lef(lefStor[1]);
   }
   */
 
@@ -144,10 +144,10 @@ void circuit::read_files(int argc, char* argv[]) {
        << endl;
 
   // read_def shuld after read_lef
-//  read_def(in_def_str, INIT);
+//  read_def(defLoc, INIT);
   
   ReadDef(defLoc );
-  exit(1);
+//  exit(1);
 
   if(size != NULL) {
     string size_file = size;
@@ -224,7 +224,7 @@ void circuit::calc_design_area_stats() {
       ++theRow)
     designArea += theRow->stepX * theRow->numSites *
                   sites[theRow->site].height *
-                  static_cast< double >(LEFdist2Microns);
+                  static_cast< double >(DEFdist2Microns);
 
   unsigned multi_num = 0;
   for(int i = 0; i < cells.size(); i++) {
@@ -240,10 +240,10 @@ void circuit::calc_design_area_stats() {
     macro* theMacro = &macros[theCell->type];
     if(theMacro->isMulti == true && theMacro->type == "CORE") {
       if(max_cell_height <
-         static_cast< int >(theMacro->height * LEFdist2Microns / rowHeight +
+         static_cast< int >(theMacro->height * DEFdist2Microns / rowHeight +
                             0.5))
         max_cell_height = static_cast< int >(
-            theMacro->height * LEFdist2Microns / rowHeight + 0.5);
+            theMacro->height * DEFdist2Microns / rowHeight + 0.5);
     }
   }
 
@@ -370,7 +370,7 @@ void circuit::read_def(const string& input, bool mode) {
       assert(tokens[0] == "DISTANCE");
       assert(tokens[1] == "MICRONS");
       DEFdist2Microns = atoi(tokens[2].c_str());
-      assert(DEFdist2Microns <= LEFdist2Microns);
+      assert(DEFdist2Microns <= DEFdist2Microns);
 #ifdef DEBUG
       cout << "unit distance to microns: " << DEFdist2Microns << endl;
 #endif
@@ -400,6 +400,16 @@ void circuit::read_def(const string& input, bool mode) {
         myRow->origX = atoi(tokens[2].c_str());
         myRow->origY = atoi(tokens[3].c_str());
         myRow->siteorient = tokens[4];
+  
+        if( fabs(rowHeight - 0.0f) <= numeric_limits<double>::epsilon() ) {
+          rowHeight = sites[myRow->site].height 
+            * static_cast< double >(DEFdist2Microns);
+        }
+
+        if( wsite == 0 ) {
+          wsite = static_cast< int >
+            (sites[myRow->site].width * DEFdist2Microns + 0.5);
+        }
         // NOTE: this contest does not allow flipping/rotation
         // assert(myRow->siteorient == "N");
         /*
@@ -430,7 +440,7 @@ void circuit::read_def(const string& input, bool mode) {
             //    assert(wsite == atoi(tokens[0].c_str()) );
 
             // NOTE: currenlty we only handle horizontal row sites & spacing = 0
-            assert(myRow->stepX == sites[myRow->site].width * LEFdist2Microns);
+            assert(myRow->stepX == sites[myRow->site].width * DEFdist2Microns);
             assert(myRow->stepY == 0);
             // assert(wsite > 0);
           }
@@ -551,15 +561,15 @@ void circuit::read_def_size(const string& input) {
 
     macro* theMacro = &macros[theCell->type];
     theMacro->width = static_cast< double >(atof(tokens[1].c_str()) *
-                                            (double)wsite / LEFdist2Microns);
+                                            (double)wsite / DEFdist2Microns);
     theMacro->height = static_cast< double >(
-        atof(tokens[2].c_str()) * (double)rowHeight / LEFdist2Microns);
+        atof(tokens[2].c_str()) * (double)rowHeight / DEFdist2Microns);
 
     theMacro->top_power = VDD;
 
     if(atof(tokens[2].c_str()) > 1) {
       theMacro->isMulti = true;
-      // cout << " multi cell height : " << theMacro->height * LEFdist2Microns /
+      // cout << " multi cell height : " << theMacro->height * DEFdist2Microns /
       // rowHeight << endl;
     }
   }
@@ -597,9 +607,9 @@ void circuit::read_init_def_components(ifstream& is) {
         myCell = locateOrCreateCell(tokens[0]);
         myCell->type = macro2id[tokens[1]];
         macro* myMacro = &macros[macro2id[tokens[1]]];
-        myCell->width = myMacro->width * static_cast< double >(LEFdist2Microns);
+        myCell->width = myMacro->width * static_cast< double >(DEFdist2Microns);
         myCell->height =
-            myMacro->height * static_cast< double >(LEFdist2Microns);
+            myMacro->height * static_cast< double >(DEFdist2Microns);
       }
       else
         myCell = locateOrCreateCell(tokens[0]);
@@ -1104,9 +1114,9 @@ void circuit::read_lef(const string& input) {
       assert(tokens.size() == 3);
       assert(tokens[0] == "DATABASE");
       assert(tokens[1] == "MICRONS");
-      LEFdist2Microns = atoi(tokens[2].c_str());
+      DEFdist2Microns = atoi(tokens[2].c_str());
 #ifdef DEBUG
-      cout << "unit distance to microns: " << LEFdist2Microns << endl;
+      cout << "unit distance to microns: " << DEFdist2Microns << endl;
 #endif
       get_next_n_tokens(dot_lef, tokens, 3, LEFCommentChar);
       assert(tokens[0] == LEFLineEndingChar);
@@ -1146,8 +1156,8 @@ void circuit::read_lef(const string& input) {
     }
   }
   dot_lef.close();
-  rowHeight = sites[0].height * static_cast< double >(LEFdist2Microns);
-  wsite = static_cast< int >(sites[0].width * LEFdist2Microns + 0.5);
+  rowHeight = sites[0].height * static_cast< double >(DEFdist2Microns);
+  wsite = static_cast< int >(sites[0].width * DEFdist2Microns + 0.5);
   assert(rowHeight != 0);
   assert(wsite != 0);
 #ifdef DEBUG
@@ -1207,9 +1217,9 @@ void circuit::read_cell_lef(const string& input) {
       assert(tokens.size() == 3);
       assert(tokens[0] == "DATABASE");
       assert(tokens[1] == "MICRONS");
-      LEFdist2Microns = atoi(tokens[2].c_str());
+      DEFdist2Microns = atoi(tokens[2].c_str());
 #ifdef DEBUG
-      cout << "unit distance to microns: " << LEFdist2Microns << endl;
+      cout << "unit distance to microns: " << DEFdist2Microns << endl;
 #endif
       get_next_n_tokens(dot_lef, tokens, 3, LEFCommentChar);
       assert(tokens[0] == LEFLineEndingChar);
@@ -1290,9 +1300,9 @@ void circuit::read_tech_lef(const string& input) {
       assert(tokens.size() == 3);
       assert(tokens[0] == "DATABASE");
       assert(tokens[1] == "MICRONS");
-      LEFdist2Microns = atoi(tokens[2].c_str());
+      DEFdist2Microns = atoi(tokens[2].c_str());
 #ifdef DEBUG
-      cout << "unit distance to microns: " << LEFdist2Microns << endl;
+      cout << "unit distance to microns: " << DEFdist2Microns << endl;
 #endif
       get_next_n_tokens(dot_lef, tokens, 3, LEFCommentChar);
       assert(tokens[0] == LEFLineEndingChar);
@@ -1336,10 +1346,6 @@ void circuit::read_tech_lef(const string& input) {
   cout << "Reading tech lef done ... " << endl;
 #endif
   // after read_lef_site
-  rowHeight = sites[0].height * static_cast< double >(LEFdist2Microns);
-  wsite = static_cast< int >(sites[0].width * LEFdist2Microns + 0.5);
-  assert(rowHeight != 0);
-  assert(wsite != 0);
   return;
 }
 
@@ -1399,9 +1405,9 @@ void circuit::read_lef_property(ifstream& is) {
     get_next_token(is, tokens[0], LEFCommentChar);
   }
   // Edge Spacing Hard Mapping -- by SGD
-  edge_spacing[make_pair(1, 1)] = 0.4 * LEFdist2Microns;
-  edge_spacing[make_pair(1, 2)] = 0.4 * LEFdist2Microns;
-  edge_spacing[make_pair(2, 2)] = 0 * LEFdist2Microns;
+  edge_spacing[make_pair(1, 1)] = 0.4 * DEFdist2Microns;
+  edge_spacing[make_pair(1, 2)] = 0.4 * DEFdist2Microns;
+  edge_spacing[make_pair(2, 2)] = 0 * DEFdist2Microns;
 
   get_next_token(is, tokens[0], LEFCommentChar);
   return;
@@ -1768,10 +1774,10 @@ void circuit::read_lef_macro(ifstream& is) {
       myMacro->width = atof(tokens[0].c_str());
       myMacro->height = atof(tokens[2].c_str());
       // remove because of DAC 16 bench ( read_def_size )
-      // if( (int)floor(myMacro->height*LEFdist2Microns/rowHeight+0.5) >
+      // if( (int)floor(myMacro->height*DEFdist2Microns/rowHeight+0.5) >
       // max_cell_height )
       //    max_cell_height =
-      //    (int)floor(myMacro->height*LEFdist2Microns/rowHeight+0.5);
+      //    (int)floor(myMacro->height*DEFdist2Microns/rowHeight+0.5);
     }
     else if(tokens[0] == "SITE")
       read_lef_macro_site(is, myMacro);
@@ -1839,16 +1845,15 @@ void circuit::read_lef_macro_define_top_power(macro* myMacro) {
   bool power_found = false;
   string vdd_str, vss_str;
 
-  OPENDP_HASH_MAP< string, macro_pin >::iterator it = myMacro->pins.find("vdd");
-  if(it == myMacro->pins.end()) {
+  auto pinPtr = myMacro->pins.find("vdd");
+  if(pinPtr != myMacro->pins.end()) {
     vdd_str = "vdd";
     vss_str = "vss";
     power_found = true;
   }
   else {
-    OPENDP_HASH_MAP< string, macro_pin >::iterator it =
-        myMacro->pins.find("VDD");
-    if(it == myMacro->pins.end()) {
+    pinPtr = myMacro->pins.find("VDD");
+    if(pinPtr != myMacro->pins.end()) {
       vdd_str = "VDD";
       vss_str = "VSS";
       power_found = true;
@@ -1856,29 +1861,34 @@ void circuit::read_lef_macro_define_top_power(macro* myMacro) {
   }
 
   if(power_found == true) {
-    macro_pin* pin_vdd = &myMacro->pins[vdd_str];
-    macro_pin* pin_vss = &myMacro->pins[vss_str];
+    macro_pin* pin_vdd = &myMacro->pins.at(vdd_str);
+    macro_pin* pin_vss = &myMacro->pins.at(vss_str);
     double max_vdd = 0;
     double max_vss = 0;
 
     for(int i = 0; i < pin_vdd->port.size(); i++) {
-      if(pin_vdd->port[i].yUR > max_vdd) max_vdd = pin_vdd->port[i].yUR;
+      if(pin_vdd->port[i].yUR > max_vdd) {
+        max_vdd = pin_vdd->port[i].yUR;
+      } 
     }
     for(int j = 0; j < pin_vss->port.size(); j++) {
-      if(pin_vss->port[j].yUR > max_vss) max_vss = pin_vss->port[j].yUR;
+      if(pin_vss->port[j].yUR > max_vss) {
+        max_vss = pin_vss->port[j].yUR;
+      }
     }
+
     if(max_vdd > max_vss)
       myMacro->top_power = VDD;
     else
       myMacro->top_power = VSS;
 
-    if(pin_vdd->port.size() + pin_vss->port.size() > 2)
+    if(pin_vdd->port.size() + pin_vss->port.size() > 2) {
       myMacro->isMulti = true;
+    }
     else if(pin_vdd->port.size() + pin_vss->port.size() < 2) {
-#ifdef DEBUG
       cerr << "read_lef_macro:: power num error, vdd + vss => "
            << (pin_vdd->port.size() + pin_vss->port.size()) << endl;
-#endif
+      exit(1);
     }
   }
 }

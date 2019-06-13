@@ -2772,8 +2772,13 @@ int circuit::ReadDef(const string& defName) {
 
   // Regions
   defrSetRegionCbk((defrRegionCbkFnType)cp.DefRegionCbk);
+
   // Groups
-  defrSetGroupCbk((defrGroupCbkFnType)cp.DefGroupCbk);
+//  defrSetGroupsStartCbk(cs);
+  defrSetGroupNameCbk((defrStringCbkFnType)cp.DefGroupNameCbk);
+  defrSetGroupMemberCbk((defrStringCbkFnType)cp.DefGroupMemberCbk);
+//  defrSetGroupCbk((defrGroupCbkFnType)cp.DefGroupCbk);
+//  defrSetGroupsEndCbk(endfunc);
   
   //
   //
@@ -2814,7 +2819,6 @@ int circuit::ReadDef(const string& defName) {
 //  defrSetStartPinsCbk(cs);
 //  defrSetViaStartCbk(cs);
 //  defrSetSNetStartCbk(cs);
-//  defrSetGroupsStartCbk(cs);
 //  defrSetScanchainsStartCbk(cs);
 //  defrSetIOTimingsStartCbk(cs);
 //  defrSetFPCStartCbk(cs);
@@ -2852,8 +2856,6 @@ int circuit::ReadDef(const string& defName) {
 //  defrSetDefaultCapCbk((defrIntegerCbkFnType)cls);
 //  defrSetGcellGridCbk((defrGcellGridCbkFnType)cls);
 //  defrSetViaCbk((defrViaCbkFnType)cls);
-//  defrSetGroupNameCbk((defrStringCbkFnType)cls);
-//  defrSetGroupMemberCbk((defrStringCbkFnType)cls);
 //  defrSetScanchainCbk((defrScanchainCbkFnType)cls);
 //  defrSetIOTimingCbk((defrIOTimingCbkFnType)cls);
 //  defrSetFPCCbk((defrFPCCbkFnType)cls);
@@ -2870,7 +2872,6 @@ int circuit::ReadDef(const string& defName) {
 //  defrSetNetEndCbk(endfunc);
 //  defrSetFPCEndCbk(endfunc);
 //  defrSetFPCEndCbk(endfunc);
-//  defrSetGroupsEndCbk(endfunc);
 //  defrSetIOTimingsEndCbk(endfunc);
 //  defrSetNetEndCbk(endfunc);
 //  defrSetPartitionsEndCbk(endfunc);

@@ -14,6 +14,7 @@ class CircuitParser {
 protected:
   opendp::circuit* ckt_;
   static opendp::macro* topMacro_;
+  static opendp::group* topGroup_;
 
 public:
 	CircuitParser(opendp::circuit* ckt_);
@@ -45,7 +46,9 @@ public:
   static int DefSNetCbk(defrCallbackType_e c, defiNet* wire, defiUserData ud);
 
   static int DefRegionCbk(defrCallbackType_e c, defiRegion* re, defiUserData ud);
-  static int DefGroupCbk(defrCallbackType_e c, defiGroup* group, defiUserData ud);
+
+  static int DefGroupNameCbk(defrCallbackType_e c, const char* name, defiUserData ud);
+  static int DefGroupMemberCbk(defrCallbackType_e c, const char* name, defiUserData ud);
 
 };
 

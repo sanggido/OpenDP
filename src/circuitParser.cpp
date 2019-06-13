@@ -5,6 +5,7 @@ using namespace opendp;
 
 // static variable definition
 opendp::macro* CircuitParser::topMacro_ = 0;
+opendp::group* CircuitParser::topGroup_ = 0;
 
 CircuitParser::CircuitParser(circuit* ckt )
 : ckt_(ckt) {};
@@ -96,7 +97,7 @@ CircuitParser::LefStartCbk(
   switch(c) {
     case lefrMacroBeginCbkType:
       // Fill topMacro_'s pointer
-      topMacro_ = ckt->locateOrCreateMacro(name); 
+      topMacro_ = ckt->locateOrCreateMacro(name);
       break;
     default:
       break;
@@ -113,18 +114,15 @@ CircuitParser::LefMacroCbk(
 //  cout << "MacroCB Start " << topMacro_ << " " << ma->name() << endl;
 
   // Need to extract EDGETYPE vallues from cell macro lef
-  // but LEF libraries cannot get below information correctly...
-  // 
-  // Need custom parser to handle this.
   //
   if( ma->numProperties() > 0 ) {
     for(int i=0; i<ma->numProperties(); i++) {
       if( ma->propValue(i) ) {
-        cout << ma->propName(i) << " val: " << ma->propValue(i) << endl;
-        printf("%s val: %s\n", ma->propName(i),  ma->propValue(i));
+//        cout << ma->propName(i) << " val: " << ma->propValue(i) << endl;
+//        printf("%s val: %s\n", ma->propName(i),  ma->propValue(i));
       }
       else {
-        cout << ma->propName(i) << " num: " << ma->propNum(i) << endl;
+//        cout << ma->propName(i) << " num: " << ma->propNum(i) << endl;
       }
     }
   }
@@ -188,8 +186,8 @@ CircuitParser::LefMacroPinCbk(
           lrect = geom->getRect(j);
           tmpRect.xLL = lrect->xl;
           tmpRect.yLL = lrect->yl;
-          tmpRect.xUR = lrect->xl + lrect->xh;
-          tmpRect.yUR = lrect->yl + lrect->yh;
+          tmpRect.xUR = lrect->xh;
+          tmpRect.yUR = lrect->yh;
           myPin.port.push_back(tmpRect);
           break;
         default:
@@ -197,7 +195,7 @@ CircuitParser::LefMacroPinCbk(
       }
     }
   }
-
+  
   topMacro_->pins[pinName] = myPin;
 
   return 0; 
@@ -234,8 +232,8 @@ CircuitParser::LefMacroObsCbk(
         lrect = geom->getRect(i);
         tmpRect.xLL = lrect->xl;
         tmpRect.yLL = lrect->yl;
-        tmpRect.xUR = lrect->xl + lrect->xh;
-        tmpRect.yUR = lrect->yl + lrect->yh;
+        tmpRect.xUR = lrect->xh;
+        tmpRect.yUR = lrect->yh;
   
         topMacro_->obses.push_back(tmpRect);
         break;
@@ -255,7 +253,8 @@ CircuitParser::LefEndCbk(
     lefiUserData ud ) {
   circuit* ckt = (circuit*) ud;
   switch(c) {
-    case lefrMacroBeginCbkType:
+    case lefrMacroEndCbkType:
+//      cout << "Macro: " << topMacro_->name << " is undergoing test" << endl;
       ckt->read_lef_macro_define_top_power(topMacro_);
       // reset topMacro_'s pointer
       topMacro_ = 0;
@@ -277,10 +276,10 @@ CircuitParser::DefDieAreaCbk(
     defiUserData ud ) {
   circuit* ckt = (circuit*) ud;
 
-  ckt->die.xLL = box->xl();
-  ckt->die.yLL = box->yl();
-  ckt->die.xUR = box->xh();
-  ckt->die.yUR = box->yh();
+  ckt->lx = ckt->die.xLL = box->xl();
+  ckt->by = ckt->die.yLL = box->yl();
+  ckt->rx = ckt->die.xUR = box->xh();
+  ckt->ty = ckt->die.yUR = box->yh();
   return 0;
 }
 
@@ -354,23 +353,35 @@ int CircuitParser::DefEndCbk(
 // DEF's ROW parsing
 int CircuitParser::DefRowCbk(
     defrCallbackType_e c, 
-    defiRow* _row,
+    defiRow* ro,
     defiUserData ud) {
 
   circuit* ckt = (circuit*) ud;
-  row* myRow = ckt->locateOrCreateRow( _row->name() );
-  myRow->site = ckt->site2id.at( _row->macro() );
-  myRow->origX = _row->x();
-  myRow->origY = _row->y();
-  myRow->siteorient = _row->orient();
-  myRow->numSites = max(_row->xNum(),_row->yNum());
-  myRow->stepX = _row->xStep();
-  myRow->stepY = _row->yStep();
+  row* myRow = ckt->locateOrCreateRow( ro->name() );
 
-  // initialize rowHeight variable 
+  myRow->site = ckt->site2id.at( ro->macro() );
+  myRow->origX = ro->x();
+  myRow->origY = ro->y();
+  myRow->siteorient = ro->orient();
+
+  if( ro->hasDo() ){
+    myRow->numSites = max(ro->xNum(),ro->yNum());
+  }
+
+  if( ro->hasDoStep() ) {
+    myRow->stepX = ro->xStep();
+    myRow->stepY = ro->yStep();
+  }
+
+  // initialize rowHeight variable (double)
   if( fabs(ckt->rowHeight - 0.0f) <= DBL_EPSILON ) {
     ckt->rowHeight = ckt->sites[ myRow->site ].height * ckt->DEFdist2Microns;
     cout << "rowHeight: " << ckt->rowHeight << endl;
+  }
+
+  // initialize wsite variable (int)
+  if( ckt->wsite == 0 ) {
+    ckt->wsite = int(ckt->sites[myRow->site].width * ckt->DEFdist2Microns + 0.5f);
   }
 
   return 0;
@@ -462,11 +473,13 @@ int CircuitParser::DefNetCbk(
       myPin->owner = ckt->cell2id[ dnet->instance(i) ];
       myPin->type = NONPIO_PIN;
 
+//      cout << "owner's name: " << dnet->instance(i) << endl;
 //      cout << "owner: " << myPin->owner << endl;
 //      cout << "type: " << ckt->cells[myPin->owner].type << endl; 
       macro* theMacro = &ckt->macros[ ckt->cells[myPin->owner].type ];
 //      cout << "theMacro: " << theMacro << endl;
 //      cout << "theMacro pin size: " << theMacro->pins.size() << endl;
+//      cout << "dnet->pin: " << dnet->pin(i) << endl;
       macro_pin* myMacroPin = &theMacro->pins[ dnet->pin(i) ];
 //      cout << "myMacroPin: " << myMacroPin << endl;
 //      cout << "port: " << myMacroPin->port.size() << endl;
@@ -571,8 +584,8 @@ int CircuitParser::DefRegionCbk(
     opendp::rect tmpRect;
     tmpRect.xLL = re->xl(i);
     tmpRect.yLL = re->yl(i);
-    tmpRect.xUR = re->xl(i) + re->xh(i);
-    tmpRect.yUR = re->yl(i) + re->yh(i); 
+    tmpRect.xUR = re->xh(i);
+    tmpRect.yUR = re->yh(i); 
     
     // Extract BB
     curGroup->boundary.xLL = min(curGroup->boundary.xLL, tmpRect.xLL);
@@ -588,12 +601,35 @@ int CircuitParser::DefRegionCbk(
 }
 
 // DEF's GROUPS -> call groups
-int CircuitParser::DefGroupCbk(
+int CircuitParser::DefGroupNameCbk(
     defrCallbackType_e c, 
-    defiGroup* gr,
+    const char* name,
     defiUserData ud) {
-  
   circuit* ckt = (circuit*) ud;
-  group* curGroup = ckt->locateOrCreateGroup(gr->name());
+  topGroup_ = ckt->locateOrCreateGroup(name);
   return 0;
 }
+
+int CircuitParser::DefGroupMemberCbk(
+    defrCallbackType_e c, 
+    const char* name,
+    defiUserData ud) {
+  circuit* ckt = (circuit*) ud;
+
+  topGroup_->tag = name;
+  for(auto& curCell : ckt->cells) {
+    // HARD CODE
+    // Suppose tag is always SOMETH/*
+    // need to port regexp lib later
+    if(strncmp(topGroup_->tag.c_str(), curCell.name.c_str(),
+          topGroup_->tag.size() - 1) == 0) {
+      topGroup_->siblings.push_back(&curCell);
+      curCell.group = topGroup_->name;
+      curCell.inGroup = true;
+    }
+  } 
+
+  topGroup_ = 0;
+  return 0;
+}
+

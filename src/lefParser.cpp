@@ -2318,7 +2318,7 @@ circuit::ReadLef(const vector<string>& lefStor) {
   lefrSetViaRuleWarnings(30);
   lefrSetViaWarnings(30);
 
-  (void) lefrSetShiftCase();  // will shift name to uppercase if caseinsensitive
+//  (void) lefrSetShiftCase();  // will shift name to uppercase if caseinsensitive
   // is set to off or not set
   lefrSetOpenLogFileAppend();
 
