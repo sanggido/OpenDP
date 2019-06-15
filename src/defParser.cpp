@@ -2779,6 +2779,9 @@ int circuit::ReadDef(const string& defName) {
   defrSetGroupMemberCbk((defrStringCbkFnType)cp.DefGroupMemberCbk);
 //  defrSetGroupCbk((defrGroupCbkFnType)cp.DefGroupCbk);
 //  defrSetGroupsEndCbk(endfunc);
+
+  // End Design
+  defrSetDesignEndCbk(cp.DefEndCbk);
   
   //
   //
@@ -2796,7 +2799,6 @@ int circuit::ReadDef(const string& defName) {
 
 //  defrSetTechnologyCbk(tname);
 //  defrSetExtensionCbk(extension);
-//  defrSetDesignEndCbk(done);
 //  defrSetPropDefStartCbk(propstart);
 //  defrSetPropCbk(prop);
 //  defrSetPropDefEndCbk(propend);
@@ -2927,9 +2929,14 @@ int circuit::ReadDef(const string& defName) {
     exit(1);
   }     
 
-  cout << "defFile: " << defName << endl;
   int res = defrRead(f, fileStr, userData, 1);
-  cout << "read End" << endl;
+  if( res ) {
+    cout << "Reader returns bad status: " << fileStr << endl;
+    exit(1); 
+  }
+  else {
+    cout << "Reading " << fileStr << " is Done" << endl;  
+  } 
 
 
   //// defrUnset all Cbk functions

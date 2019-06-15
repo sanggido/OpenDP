@@ -195,7 +195,7 @@ CircuitParser::LefMacroPinCbk(
       }
     }
   }
-  
+ 
   topMacro_->pins[pinName] = myPin;
 
   return 0; 
@@ -343,7 +343,19 @@ int CircuitParser::DefEndCbk(
         ckt->initial_power = VSS;
       }
       break;
+  
+    case defrDesignEndCbkType:
+      // Newly update DIEAREA information
+      ckt->lx = ckt->die.xLL = 0.0;
+      ckt->by = ckt->die.yLL = 0.0;
+      ckt->rx = ckt->die.xUR = ckt->core.xUR - ckt->core.xLL;
+      ckt->ty = ckt->die.yUR = ckt->core.yUR - ckt->core.yLL;
 
+      cout << "CoreArea: " << endl;
+      ckt->core.dump();
+      cout << "DieArea: " << endl;
+      ckt->die.dump();
+      break;
     default:
       break;
   }
@@ -364,8 +376,9 @@ int CircuitParser::DefRowCbk(
   myRow->origY = ro->y();
   myRow->siteorient = ro->orient();
 
+
   if( ro->hasDo() ){
-    myRow->numSites = max(ro->xNum(),ro->yNum());
+    myRow->numSites = ro->xNum();
   }
 
   if( ro->hasDoStep() ) {
@@ -376,13 +389,18 @@ int CircuitParser::DefRowCbk(
   // initialize rowHeight variable (double)
   if( fabs(ckt->rowHeight - 0.0f) <= DBL_EPSILON ) {
     ckt->rowHeight = ckt->sites[ myRow->site ].height * ckt->DEFdist2Microns;
-    cout << "rowHeight: " << ckt->rowHeight << endl;
   }
 
   // initialize wsite variable (int)
   if( ckt->wsite == 0 ) {
     ckt->wsite = int(ckt->sites[myRow->site].width * ckt->DEFdist2Microns + 0.5f);
   }
+  
+  ckt->core.xLL = min(1.0*myRow->origX, ckt->core.xLL);
+  ckt->core.yLL = min(1.0*myRow->origY, ckt->core.yLL);
+  ckt->core.xUR = max(1.0*myRow->origX + myRow->numSites * ckt->wsite, 
+      ckt->core.xUR);
+  ckt->core.yUR = max(1.0*myRow->origY + ckt->rowHeight, ckt->core.yUR);
 
   return 0;
 }
@@ -431,12 +449,13 @@ int CircuitParser::DefComponentCbk(
   }
 
   myCell->isFixed = co->isFixed();
-  myCell->init_x_coord = co->placementX(); 
-  myCell->init_y_coord = co->placementY();
+  myCell->init_x_coord = max(0.0, (co->placementX() - ckt->core.xLL)); 
+  myCell->init_y_coord = max(0.0, (co->placementY() - ckt->core.yLL));
 
+  // fixed cells
   if( myCell->isFixed ) {
-    myCell->x_coord = co->placementX();
-    myCell->y_coord = co->placementY();
+    myCell->x_coord = (co->placementX() - ckt->core.xLL);
+    myCell->y_coord = (co->placementY() - ckt->core.yLL);
     myCell->isPlaced = true;
   }
 

@@ -454,6 +454,7 @@ class circuit {
   double lx, rx, by,
       ty; /* placement image's left/right/bottom/top end coordintes */
   rect die;
+  rect core; // COREAREA
 
   double minVddCoordiY; // VDD stripe coordinates for parsing
   power initial_power; // informations

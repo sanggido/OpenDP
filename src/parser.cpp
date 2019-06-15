@@ -191,8 +191,8 @@ void circuit::read_files(int argc, char* argv[]) {
     row* myRow = &rows[i];
     int col_size = myRow->numSites;
     for(int j = 0; j < col_size; j++) {
-      int y_pos = myRow->origY / rowHeight;
-      int x_pos = j + myRow->origX / wsite;
+      int y_pos = (myRow->origY-core.yLL) / rowHeight;
+      int x_pos = j + (myRow->origX-core.xLL) / wsite;
       grid[y_pos][x_pos].isValid = true;
     }
   }
@@ -2038,14 +2038,16 @@ void circuit::write_def(const string& output) {
                     << endl;
         if(theCell->isFixed == true) {
           getline(dot_in_def, line);
-          dot_out_def << "      + FIXED ( " << theCell->x_coord << " "
-                      << theCell->y_coord << " ) " << theCell->cellorient
+          dot_out_def << "      + FIXED ( " << theCell->x_coord + core.xLL 
+                      << " " << theCell->y_coord + core.yLL << " ) " 
+                      << theCell->cellorient
                       << " ;" << endl;
         }
         else {
           getline(dot_in_def, line);
-          dot_out_def << "      + PLACED ( " << theCell->x_coord << " "
-                      << theCell->y_coord << " ) " << theCell->cellorient
+          dot_out_def << "      + PLACED ( " << theCell->x_coord + core.xLL
+                      << " " << theCell->y_coord + core.yLL
+                      << " ) " << theCell->cellorient
                       << " ;" << endl;
         }
       }

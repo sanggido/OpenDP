@@ -2341,6 +2341,10 @@ circuit::ReadLef(const vector<string>& lefStor) {
 
     if (res) {
       cout << "Reader returns bad status: " << curLefLoc << endl;
+      exit(1);
+    }
+    else {
+      cout << "Reading " << curLefLoc << " is Done" << endl;
     }
 
 //    (void)lefrPrintUnusedCallbacks(fout);
