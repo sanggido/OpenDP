@@ -2024,33 +2024,39 @@ void circuit::write_def(const string& output) {
 
   string line;
 
+  bool isMeetComponents = false;
   while(!dot_in_def.eof()) {
     if(dot_in_def.eof()) break;
     getline(dot_in_def, line);
     dot_out_def << line << endl;
+    
     if(strncmp(line.c_str(), "COMPONENTS", 10) == 0) {
+      isMeetComponents = true;
       for(int i = 0; i < cells.size(); i++) {
         cell* theCell = &cells[i];
         macro* theMacro = &macros[theCell->type];
-        getline(dot_in_def, line);
         // assert( line[3] == '-');
         dot_out_def << "   - " << theCell->name << " " << theMacro->name
                     << endl;
         if(theCell->isFixed == true) {
-          getline(dot_in_def, line);
           dot_out_def << "      + FIXED ( " << theCell->x_coord + core.xLL 
                       << " " << theCell->y_coord + core.yLL << " ) " 
                       << theCell->cellorient
                       << " ;" << endl;
         }
         else {
-          getline(dot_in_def, line);
           dot_out_def << "      + PLACED ( " << theCell->x_coord + core.xLL
                       << " " << theCell->y_coord + core.yLL
                       << " ) " << theCell->cellorient
                       << " ;" << endl;
         }
       }
+
+      do{ 
+        getline(dot_in_def, line);
+      } while( strncmp(line.c_str(), "END COMPONENTS", 14) != 0 );
+
+      dot_out_def << line << endl;
     }
   }
   cout << " DEF file write success !! " << endl;
