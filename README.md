@@ -28,7 +28,6 @@
 
 ### How To Execute (using binary)
     // Check doc/ScriptUsage.md in detail
-    $ cd OpenDP/src
     $ ./opendp -lef <techLef> -lef <cellLef> ... -def <inputDef> -output_def <outputDef> [-options]
 
 ### Manual
