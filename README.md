@@ -29,7 +29,7 @@
 ### How To Execute (using binary)
     // Check doc/ScriptUsage.md in detail
     $ cd OpenDP/src
-    $ ./opendp -lef <lefile> -input_def <defile> [-options]
+    $ ./opendp -lef <techLef> -lef <cellLef> ... -def <inputDef> -output_def <outputDef> [-options]
 
 ### Manual
 * [doc/ScriptUsage.md](doc/ScriptUsage.md)
@@ -37,9 +37,6 @@
 
 ### License
 * BSD-3-clause License [[Link]](LICENSE)
-
-### 3rd Party Module List
-* Google Dense Hash Map
 
 ### Authors
 - SangGi Do and Mingyu Woo (respective Ph. D. advisors: Seokhyeong Kang, Andrew B. Kahng).
