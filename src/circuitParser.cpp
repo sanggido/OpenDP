@@ -439,17 +439,8 @@ int CircuitParser::DefEndCbk(
       // sort ckt->rows
       sort(ckt->prevrows.begin(), ckt->prevrows.end(), SortByRowCoordinate);
 
-      cout << "previous row: " << endl;
-      for(auto& curRow : ckt->prevrows) {
-        curRow.print();
-      }
       // change ckt->rows as CoreArea;
       ckt->rows = GetNewRow(ckt);
-      
-      cout << "next row: " << endl;
-      for(auto& curRow : ckt->rows) {
-        curRow.print();
-      }
       
       break;
     default:
