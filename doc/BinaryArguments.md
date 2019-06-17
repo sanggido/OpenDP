@@ -1,5 +1,5 @@
 # Usage
-    $ ./OpenDP -lef <*.lef> -lef <*.lef> ... -def <*.def> [Options]
+    $ ./opendp -lef <*.lef> -lef <*.lef> ... -def <*.def> [Options]
 
 * __-lef__ : \*.lef Location (Multiple lef files supported. __Technology LEF must be ahead of other LEFs.__)
 * __-def__ : \*.def Location (Input def file for Detail Placer.)
