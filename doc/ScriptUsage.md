@@ -1,6 +1,5 @@
 # OpenDP script Usage
-
-    execute.py is excution script for given iccad2017 benchmarks.
+execute.py is excution script for given iccad2017 benchmarks.
 * [execute.py](../src/execute.py)
 
 ## Configure options to execute scripts
