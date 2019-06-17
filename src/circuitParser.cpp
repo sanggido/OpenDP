@@ -10,6 +10,75 @@ opendp::group* CircuitParser::topGroup_ = 0;
 CircuitParser::CircuitParser(circuit* ckt )
 : ckt_(ckt) {};
 
+// orient coordinate shift 
+inline static std::pair<double, double> 
+GetOrientPoint( double x, double y, double w, double h, int orient ) {
+  switch(orient) {
+    case 0: // North
+      return std::make_pair(x, y); 
+    case 1: // West
+      return std::make_pair(h-y, x);
+    case 2: // South
+      return std::make_pair(w-x, h-y); // x-flip, y-flip
+    case 3: // East
+      return std::make_pair(y, w-x);
+    case 4: // Flipped North
+      return std::make_pair(w-x, y); // x-flip
+    case 5: // Flipped West
+      return std::make_pair(y, x); // x-flip from West
+    case 6: // Flipped South
+      return std::make_pair(x, h-y); // y-flip
+    case 7: // Flipped East
+      return std::make_pair(h-y, w-x); // y-flip from West
+  }
+}
+
+// Get Lower-left coordinates from rectangle's definition
+inline static std::pair<double, double> 
+GetOrientLowerLeftPoint( double lx, double ly, double ux, double uy,
+   double w, double h, int orient ) {
+  switch(orient) {
+    case 0: // North
+      return std::make_pair(lx, ly); // verified
+    case 1: // West
+      return GetOrientPoint(lx, uy, w, h, orient);
+    case 2: // South
+      return GetOrientPoint(ux, uy, w, h, orient);
+    case 3: // East
+      return GetOrientPoint(ux, ly, w, h, orient);
+    case 4: // Flipped North
+      return GetOrientPoint(ux, ly, w, h, orient); // x-flip
+    case 5: // Flipped West
+      return GetOrientPoint(lx, ly, w, h, orient); // x-flip from west
+    case 6: // Flipped South
+      return GetOrientPoint(lx, uy, w, h, orient); // y-flip
+    case 7: // Flipped East
+      return GetOrientPoint(ux, uy, w, h, orient); // y-flip from west
+  }
+}
+
+
+// orient coordinate shift 
+inline static std::pair<double, double> 
+GetOrientSize( double w, double h, int orient ) {
+  switch(orient) {
+    // East, West, FlipEast, FlipWest
+    case 1:
+    case 3:
+    case 5:
+    case 7:
+      return std::make_pair(h, w);
+    // otherwise 
+    case 0:
+    case 2:
+    case 4:
+    case 6:
+      return std::make_pair(w, h); 
+  }
+}
+
+// for Saving verilog information
+
 //////////////////////////////////////////////////
 // LEF Parsing Cbk Functions
 //
@@ -265,6 +334,13 @@ CircuitParser::LefEndCbk(
   return 0;
 }
 
+
+// Row Sort Function
+bool SortByRowCoordinate(const opendp::row& lhs,
+    const opendp::row& rhs);
+// Row Generation Function
+vector<opendp::row> GetNewRow(const circuit* ckt);
+
 //////////////////////////////////////////////////
 // DEF Parsing Cbk Functions
 //
@@ -355,6 +431,26 @@ int CircuitParser::DefEndCbk(
       ckt->core.dump();
       cout << "DieArea: " << endl;
       ckt->die.dump();
+ 
+      if( ckt->prevrows.size() <= 0) {
+        RaiseError("rowSize is 0. Please define at least one ROW in DEF");
+      }
+
+      // sort ckt->rows
+      sort(ckt->prevrows.begin(), ckt->prevrows.end(), SortByRowCoordinate);
+
+      cout << "previous row: " << endl;
+      for(auto& curRow : ckt->prevrows) {
+        curRow.print();
+      }
+      // change ckt->rows as CoreArea;
+      ckt->rows = GetNewRow(ckt);
+      
+      cout << "next row: " << endl;
+      for(auto& curRow : ckt->rows) {
+        curRow.print();
+      }
+      
       break;
     default:
       break;
@@ -421,8 +517,9 @@ int CircuitParser::DefPinCbk(
 
   myPin->isFixed = pi->isFixed();
 
-  myPin->x_coord = pi->placementX();
-  myPin->y_coord = pi->placementY();
+  // Shift by core.xLL and core.yLL
+  myPin->x_coord = pi->placementX() - ckt->core.xLL;
+  myPin->y_coord = pi->placementY() - ckt->core.yLL;
 
   return 0;
 }
@@ -435,31 +532,40 @@ int CircuitParser::DefComponentCbk(
 
   circuit* ckt = (circuit*) ud;
   cell* myCell = NULL;
+  
+
   // newly inserted cells
   if( ckt->cell2id.find( co->id() ) == ckt->cell2id.end() ) {
     myCell = ckt->locateOrCreateCell( co->id() );
     myCell->type = ckt->macro2id[ co->name() ];
-    
-    macro* myMacro = &ckt->macros[ ckt->macro2id[ co->name() ]];
-    myCell->width = myMacro->width * static_cast<double> (ckt->DEFdist2Microns);
-    myCell->height = myMacro->height * static_cast<double> (ckt->DEFdist2Microns);
   }
   else {
     myCell = ckt->locateOrCreateCell( co->id() );
   }
+   
+//  cout << "co->id: " << co->id() << endl; 
+  macro* myMacro = &ckt->macros[ ckt->macro2id[ co->name() ]];
+  pair<double, double> orientSize 
+    = GetOrientSize( myMacro->width, myMacro->height, co->placementOrient());
+
+  myCell->width = orientSize.first * static_cast<double> (ckt->DEFdist2Microns);
+  myCell->height = orientSize.second * static_cast<double> (ckt->DEFdist2Microns);
 
   myCell->isFixed = co->isFixed();
+  
+  // Shift by core.xLL and core.yLL
   myCell->init_x_coord = max(0.0, (co->placementX() - ckt->core.xLL)); 
   myCell->init_y_coord = max(0.0, (co->placementY() - ckt->core.yLL));
 
   // fixed cells
   if( myCell->isFixed ) {
+    // Shift by core.xLL and core.yLL
     myCell->x_coord = (co->placementX() - ckt->core.xLL);
     myCell->y_coord = (co->placementY() - ckt->core.yLL);
     myCell->isPlaced = true;
   }
-
   myCell->cellorient = co->placementOrientStr();
+
   return 0;
 }
 
@@ -661,3 +767,46 @@ int CircuitParser::DefGroupMemberCbk(
   return 0;
 }
 
+bool SortByRowCoordinate(
+    const opendp::row& lhs,
+    const opendp::row& rhs) {
+  if( lhs.origX < rhs.origX ) {
+    return true;
+  }
+  if( lhs.origX > rhs.origX ) {
+    return false;
+  }
+
+  return ( lhs.origY < rhs.origY );
+}
+
+// Generate New Row Based on CoreArea
+vector<opendp::row> GetNewRow(const circuit* ckt) {
+  // Return Row Vectors
+  vector<opendp::row> retRow;
+
+  // calculation X and Y from CoreArea
+  int rowCntX = IntConvert((ckt->core.xUR - ckt->core.xLL)/ckt->wsite);
+  int rowCntY = IntConvert((ckt->core.yUR - ckt->core.yLL)/ckt->rowHeight);
+
+  unsigned siteIdx = ckt->prevrows[0].site;
+  string curOrient = ckt->prevrows[0].siteorient;
+
+  for(int i=0; i<rowCntY; i++) {
+    opendp::row myRow;
+    myRow.site = siteIdx;
+    myRow.origX = IntConvert(ckt->core.xLL);
+    myRow.origY = IntConvert(ckt->core.yLL + i * ckt->rowHeight);
+
+    myRow.stepX = ckt->wsite;
+    myRow.stepY = 0;
+
+    myRow.numSites = rowCntX;
+//    myRow.siteorient = curOrient;
+    retRow.push_back(myRow);
+
+    // curOrient is flipping. e.g. N -> FS -> N -> FS -> ...
+//    curOrient = (curOrient == "N")? "FS" : "N";
+  }
+  return retRow;
+}

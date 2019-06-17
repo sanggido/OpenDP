@@ -99,12 +99,12 @@ row *circuit::locateOrCreateRow(const string &rowName) {
   if(it == row2id.end()) {
     row theRow;
     theRow.name = rowName;
-    row2id.insert(make_pair(theRow.name, rows.size()));
-    rows.push_back(theRow);
-    return &rows[rows.size() - 1];
+    row2id.insert(make_pair(theRow.name, prevrows.size()));
+    prevrows.push_back(theRow);
+    return &prevrows[prevrows.size() - 1];
   }
   else
-    return &rows[it->second];
+    return &prevrows[it->second];
 }
 
 site *circuit::locateOrCreateSite(const string &siteName) {

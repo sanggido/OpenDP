@@ -39,7 +39,7 @@ public:
   static int DefStartCbk(defrCallbackType_e c, int num, defiUserData ud);
   static int DefEndCbk(defrCallbackType_e c, void*, defiUserData ud);
   
-  static int DefRowCbk(defrCallbackType_e c, defiRow* _row, defiUserData ud);
+  static int DefRowCbk(defrCallbackType_e c, defiRow* ro, defiUserData ud);
   static int DefPinCbk(defrCallbackType_e c, defiPin* pi, defiUserData ud);
   static int DefComponentCbk(defrCallbackType_e c, defiComponent* co, defiUserData ud);
   static int DefNetCbk(defrCallbackType_e c, defiNet* net, defiUserData ud);

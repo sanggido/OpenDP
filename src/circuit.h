@@ -503,7 +503,10 @@ class circuit {
   vector< cell > cells;   /* cell list */
   vector< net > nets;     /* net list */
   vector< pin > pins;     /* pin list */
+  
+  vector< row > prevrows;     // fragmented row list
   vector< row > rows;     /* row list */
+
   vector< via > vias;
   vector< viaRule > viaRules;
   vector< group > groups; /* group list from .def */
@@ -689,6 +692,15 @@ bool read_line_as_tokens(istream& is, vector< string >& tokens);
 void get_next_token(ifstream& is, string& token, const char* beginComment);
 void get_next_n_tokens(ifstream& is, vector< string >& tokens, const unsigned n,
                        const char* beginComment);
+
+inline int IntConvert(double fp) {
+  return (int)(fp + 0.5f);
+}
+
+inline void RaiseError(string str) {
+  cerr << "  ERROR: " << str << endl;
+  exit(1);
+}
 
 OPENDP_NAMESPACE_CLOSE
 

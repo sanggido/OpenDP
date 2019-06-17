@@ -187,8 +187,30 @@ void circuit::read_files(int argc, char* argv[]) {
     }
   }
 
+  // Fragmented Row Handling
+  for(auto& curFragRow : prevrows) {
+    int x_start = IntConvert((1.0*curFragRow.origX - core.xLL) / wsite);
+    int y_start = IntConvert((1.0*curFragRow.origY - core.yLL) / rowHeight);
+    
+    int x_end = x_start + curFragRow.numSites;
+    int y_end = y_start + 1;
+
+//    cout << "x_start: " << x_start << endl;
+//    cout << "y_start: " << y_start << endl;
+//    cout << "x_end: " << x_end << endl;
+//    cout << "y_end: " << y_end << endl;
+    for(int i=x_start; i<x_end; i++) {
+      for(int j=y_start; j<y_end; j++) {
+        grid[j][i].isValid = true;
+      }
+    }
+  }
+
+  /* 
   for(int i = 0; i < rows.size(); i++) {
+    // original rows : Fragmented ROWS
     row* myRow = &rows[i];
+
     int col_size = myRow->numSites;
     for(int j = 0; j < col_size; j++) {
       int y_pos = (myRow->origY-core.yLL) / rowHeight;
@@ -196,6 +218,7 @@ void circuit::read_files(int argc, char* argv[]) {
       grid[y_pos][x_pos].isValid = true;
     }
   }
+  */
 
   // fixed cell marking
   fixed_cell_assign();
@@ -1842,38 +1865,51 @@ void circuit::read_lef_macro(ifstream& is) {
 // - - - - - - - define multi row cell & define top power - - - - - - - - //
 void circuit::read_lef_macro_define_top_power(macro* myMacro) {
 
-  bool power_found = false;
+  bool isVddFound = false, isVssFound = false;
   string vdd_str, vss_str;
 
   auto pinPtr = myMacro->pins.find("vdd");
   if(pinPtr != myMacro->pins.end()) {
     vdd_str = "vdd";
-    vss_str = "vss";
-    power_found = true;
+    isVddFound = true;
   }
-  else {
-    pinPtr = myMacro->pins.find("VDD");
-    if(pinPtr != myMacro->pins.end()) {
-      vdd_str = "VDD";
-      vss_str = "VSS";
-      power_found = true;
-    }
+  else if( pinPtr != myMacro->pins.find("VDD") ) {
+    vdd_str = "VDD";
+    isVddFound = true;
   }
 
-  if(power_found == true) {
-    macro_pin* pin_vdd = &myMacro->pins.at(vdd_str);
-    macro_pin* pin_vss = &myMacro->pins.at(vss_str);
+  pinPtr = myMacro->pins.find("vss");
+  if( pinPtr != myMacro->pins.end()) {
+    vss_str = "vss";
+    isVssFound = true;
+  }
+  else if( pinPtr != myMacro->pins.find("VSS") ) {
+    vss_str = "VSS";
+    isVssFound = true;
+  }
+
+
+  if( isVddFound || isVssFound ) {
     double max_vdd = 0;
     double max_vss = 0;
 
-    for(int i = 0; i < pin_vdd->port.size(); i++) {
-      if(pin_vdd->port[i].yUR > max_vdd) {
-        max_vdd = pin_vdd->port[i].yUR;
-      } 
+    macro_pin* pin_vdd = NULL;
+    if( isVddFound ) {
+      pin_vdd = &myMacro->pins.at(vdd_str);
+      for(int i = 0; i < pin_vdd->port.size(); i++) {
+        if(pin_vdd->port[i].yUR > max_vdd) {
+          max_vdd = pin_vdd->port[i].yUR;
+        } 
+      }
     }
-    for(int j = 0; j < pin_vss->port.size(); j++) {
-      if(pin_vss->port[j].yUR > max_vss) {
-        max_vss = pin_vss->port[j].yUR;
+   
+    macro_pin* pin_vss = NULL;
+    if( isVssFound ) {
+      pin_vss = &myMacro->pins.at(vss_str);
+      for(int j = 0; j < pin_vss->port.size(); j++) {
+        if(pin_vss->port[j].yUR > max_vss) {
+          max_vss = pin_vss->port[j].yUR;
+        }
       }
     }
 
@@ -1882,13 +1918,15 @@ void circuit::read_lef_macro_define_top_power(macro* myMacro) {
     else
       myMacro->top_power = VSS;
 
-    if(pin_vdd->port.size() + pin_vss->port.size() > 2) {
-      myMacro->isMulti = true;
-    }
-    else if(pin_vdd->port.size() + pin_vss->port.size() < 2) {
-      cerr << "read_lef_macro:: power num error, vdd + vss => "
+    if(pin_vdd && pin_vss) {
+      if (pin_vdd->port.size() + pin_vss->port.size() > 2) {
+        myMacro->isMulti = true;
+      } 
+      else if(pin_vdd->port.size() + pin_vss->port.size() < 2) {
+        cerr << "read_lef_macro:: power num error, vdd + vss => "
            << (pin_vdd->port.size() + pin_vss->port.size()) << endl;
-      exit(1);
+        exit(1);
+      }
     }
   }
 }
@@ -2039,14 +2077,14 @@ void circuit::write_def(const string& output) {
         dot_out_def << "   - " << theCell->name << " " << theMacro->name
                     << endl;
         if(theCell->isFixed == true) {
-          dot_out_def << "      + FIXED ( " << theCell->x_coord + core.xLL 
-                      << " " << theCell->y_coord + core.yLL << " ) " 
+          dot_out_def << "      + FIXED ( " << IntConvert(theCell->x_coord + core.xLL) 
+                      << " " << IntConvert(theCell->y_coord + core.yLL) << " ) " 
                       << theCell->cellorient
                       << " ;" << endl;
         }
         else {
-          dot_out_def << "      + PLACED ( " << theCell->x_coord + core.xLL
-                      << " " << theCell->y_coord + core.yLL
+          dot_out_def << "      + PLACED ( " << IntConvert(theCell->x_coord + core.xLL)
+                      << " " << IntConvert(theCell->y_coord + core.yLL)
                       << " ) " << theCell->cellorient
                       << " ;" << endl;
         }
