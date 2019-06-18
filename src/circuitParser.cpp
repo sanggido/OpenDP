@@ -754,7 +754,6 @@ int CircuitParser::DefGroupMemberCbk(
     }
   } 
 
-  topGroup_ = 0;
   return 0;
 }
 
