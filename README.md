@@ -30,6 +30,10 @@
     // Check doc/ScriptUsage.md in detail
     $ ./opendp -lef <techLef> -lef <cellLef> ... -def <inputDef> -output_def <outputDef> [-options]
 
+### Verified/supported Technologies
+* TSMC 65 (GP/LP)
+* TSMC 16 (9T)
+
 ### Manual
 * [doc/ScriptUsage.md](doc/ScriptUsage.md)
 * [doc/BinaryArguments.md](doc/BinaryArguments.md)
@@ -41,3 +45,9 @@
 - SangGi Do and Mingyu Woo (respective Ph. D. advisors: Seokhyeong Kang, Andrew B. Kahng).
 - parser_helper.cpp is based on Dr. Myung-Chul Kim(IBM)'s ICCAD 2015 contest starter_kit
 - Paper reference: S. Do, M. Woo and S. Kang, "Fence-Region-Aware Mixed-Height Standard Cell Legalization", Proc. Great Lakes Symposium on VLSI, 2019, pp. 259-262. [(link)](https://dl.acm.org/citation.cfm?id=3318012)
+
+### Features
+- Commercial format supports. (Si2 LEF/DEF parser has been ported).
+- Fence region and multi-height legalization supports. (ICCAD 2017 Contest benchmarks)
+- Fragmented ROW supports.
+- Macro orientations supports.
