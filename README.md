@@ -32,6 +32,7 @@
 
 ### Verified/supported Technologies
 * TSMC 65 (GP/LP)
+* ST FDSOI 28
 * TSMC 16 (9T)
 
 ### Manual

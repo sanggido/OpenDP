@@ -242,6 +242,10 @@ CircuitParser::LefMacroPinCbk(
   for(int i=0; i<pi->numPorts(); i++) {
     lefiGeometries* geom = pi->port(i);
     lefiGeomRect* lrect = NULL;
+    lefiGeomPolygon* lpoly = NULL;
+    double polyLx = DBL_MAX, polyLy = DBL_MAX;
+    double polyUx = DBL_MIN, polyUy = DBL_MAX;
+
     opendp::rect tmpRect;
 
     for(int j=0; j<geom->numItems(); j++) {
@@ -250,7 +254,8 @@ CircuitParser::LefMacroPinCbk(
         case lefiGeomLayerE:
           curLayer = ckt->locateOrCreateLayer( geom->getLayer(j) );
           break;
-          // when meets Rect
+        
+        // when meets Rect
         case lefiGeomRectE:
           lrect = geom->getRect(j);
           tmpRect.xLL = lrect->xl;
@@ -259,6 +264,29 @@ CircuitParser::LefMacroPinCbk(
           tmpRect.yUR = lrect->yh;
           myPin.port.push_back(tmpRect);
           break;
+
+        // when meets Polygon 
+        case lefiGeomPolygonE:
+          lpoly = geom->getPolygon(j);
+
+          polyLx = DBL_MAX;
+          polyLy = DBL_MAX;
+          polyUx = DBL_MIN;
+          polyUy = DBL_MIN;
+
+          for(int k=0; k<lpoly->numPoints; k++) {
+            polyLx = min(polyLx, lpoly->x[k]); 
+            polyLy = min(polyLy, lpoly->y[k]);
+            polyUx = max(polyUx, lpoly->x[k]);
+            polyUy = max(polyUy, lpoly->y[k]);
+          }
+         
+          tmpRect.xLL = polyLx;
+          tmpRect.yLL = polyLy;
+          tmpRect.xUR = polyUx;
+          tmpRect.yUR = polyUy; 
+          myPin.port.push_back(tmpRect);
+
         default:
           break;
       }
