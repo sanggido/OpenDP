@@ -631,6 +631,13 @@ int CircuitParser::DefNetCbk(
 //      cout << "myMacroPin: " << myMacroPin << endl;
 //      cout << "port: " << myMacroPin->port.size() << endl;
 
+      if( myMacroPin-> port.size() == 0 ) {
+        cout << "ERROR: in Net " << dnet->name() 
+          << " has a module:pin definition as " << pinName 
+          << " but there is no PORT/PIN definition in LEF MACRO: " 
+          << theMacro->name << endl;
+        exit(1);
+      }
       myPin->x_offset = 
         myMacroPin->port[0].xLL / 2 + myMacroPin->port[0].xUR / 2;
       myPin->y_offset = 
