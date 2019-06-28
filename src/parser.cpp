@@ -2074,16 +2074,15 @@ void circuit::write_def(const string& output) {
         cell* theCell = &cells[i];
         macro* theMacro = &macros[theCell->type];
         // assert( line[3] == '-');
-        dot_out_def << "   - " << theCell->name << " " << theMacro->name
-                    << endl;
+        dot_out_def << " - " << theCell->name << " " << theMacro->name;
         if(theCell->isFixed == true) {
-          dot_out_def << "      + FIXED ( " << IntConvert(theCell->x_coord + core.xLL) 
+          dot_out_def << " + FIXED ( " << IntConvert(theCell->x_coord + core.xLL) 
                       << " " << IntConvert(theCell->y_coord + core.yLL) << " ) " 
                       << theCell->cellorient
                       << " ;" << endl;
         }
         else {
-          dot_out_def << "      + PLACED ( " << IntConvert(theCell->x_coord + core.xLL)
+          dot_out_def << " + PLACED ( " << IntConvert(theCell->x_coord + core.xLL)
                       << " " << IntConvert(theCell->y_coord + core.yLL)
                       << " ) " << theCell->cellorient
                       << " ;" << endl;
