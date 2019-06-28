@@ -2046,8 +2046,13 @@ void circuit::read_lef_macro_pin(ifstream& is, macro* myMacro) {
   return;
 }
 
+
+// 
+// Writing DEF
+//  
+// It opens in_def_name pointer and write DEF in output
+//
 void circuit::write_def(const string& output) {
-  ofstream dot_out_def(output.c_str());
   ifstream dot_in_def(in_def_name.c_str());
 
   if(!dot_in_def.good()) {
@@ -2055,45 +2060,33 @@ void circuit::write_def(const string& output) {
          << endl;
     exit(1);
   }
-  if(!dot_out_def.good()) {
+  
+
+  // save writing pointer into ckt object 
+  fileOut = fopen(output.c_str(), "w");
+  if( !fileOut ) {
     cerr << "write_def:: cannot open '" << output << "' for writing. " << endl;
     exit(1);
   }
 
+  // upto meets COMPONENTS, just copy contents from dot_in_def pointer 
   string line;
-
-  bool isMeetComponents = false;
   while(!dot_in_def.eof()) {
     if(dot_in_def.eof()) break;
     getline(dot_in_def, line);
-    dot_out_def << line << endl;
-    
-    if(strncmp(line.c_str(), "COMPONENTS", 10) == 0) {
-      isMeetComponents = true;
-      for(int i = 0; i < cells.size(); i++) {
-        cell* theCell = &cells[i];
-        macro* theMacro = &macros[theCell->type];
-        // assert( line[3] == '-');
-        dot_out_def << " - " << theCell->name << " " << theMacro->name;
-        if(theCell->isFixed == true) {
-          dot_out_def << " + FIXED ( " << IntConvert(theCell->x_coord + core.xLL) 
-                      << " " << IntConvert(theCell->y_coord + core.yLL) << " ) " 
-                      << theCell->cellorient
-                      << " ;" << endl;
-        }
-        else {
-          dot_out_def << " + PLACED ( " << IntConvert(theCell->x_coord + core.xLL)
-                      << " " << IntConvert(theCell->y_coord + core.yLL)
-                      << " ) " << theCell->cellorient
-                      << " ;" << endl;
-        }
-      }
 
+    line += "\n";
+    fwrite( line.c_str(), line.length(), 1, fileOut );
+   
+    if(strncmp(line.c_str(), "COMPONENTS", 10) == 0) {
+
+      // Write Components Sections
+      WriteDefComponents(in_def_name);
       do{ 
         getline(dot_in_def, line);
       } while( strncmp(line.c_str(), "END COMPONENTS", 14) != 0 );
 
-      dot_out_def << line << endl;
+      fwrite( line.c_str(), line.length(), 1, fileOut );
     }
   }
   cout << " DEF file write success !! " << endl;

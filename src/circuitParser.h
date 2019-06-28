@@ -50,6 +50,10 @@ public:
   static int DefGroupNameCbk(defrCallbackType_e c, const char* name, defiUserData ud);
   static int DefGroupMemberCbk(defrCallbackType_e c, const char* name, defiUserData ud);
 
+
+  // DEF writing function
+  static int DefComponentWriteCbk(defrCallbackType_e c, defiComponent* co, defiUserData ud);
+
 };
 
 #endif

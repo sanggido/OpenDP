@@ -3078,3 +3078,60 @@ int circuit::ReadDef(const string& defName) {
 
   return res;
 }
+
+
+// takes inputDef, and writeOut in ckt->fileOut pointer
+void circuit::WriteDefComponents(const string& defName) {
+  FILE* f = NULL;
+  //  long start_mem;
+  int line_num_print_interval = 10000;
+
+  //  start_mem = (long)sbrk(0);
+  fout = stdout;
+  CircuitParser cp(this);
+  userData = cp.Circuit();
+
+//  defrSetLogFunction(myLogFunction);
+
+  defrInitSession(0);
+  defrSetUserData(userData);
+  (void)defrSetOpenLogFileAppend();
+ 
+  // 
+  // CircuitCallBack 
+  //
+  defrSetComponentCbk(cp.DefComponentWriteCbk);
+  
+
+  ////// File Read 
+  char* fileStr = strdup(defName.c_str());
+  if((f = fopen(fileStr, "r")) == 0) {
+    fprintf(stderr, "**\nERROR: Couldn't open output file '%s'\n",
+            fileStr);
+    exit(1);
+  }     
+
+  int res = defrRead(f, fileStr, userData, 1);
+  if( res ) {
+    cout << "Reader returns bad status: " << fileStr << endl;
+    exit(1); 
+  }
+  else {
+    cout << "Reading " << fileStr << " is Done" << endl;  
+  } 
+
+
+  //// defrUnset all Cbk functions
+//  (void)defrPrintUnusedCallbacks(fout);
+  (void)defrReleaseNResetMemory();
+
+  (void)defrUnsetCallbacks();
+  (void)defrSetUnusedCallbacks(unUsedCB);
+
+  defrUnsetComponentCbk();
+
+  fclose(f);
+
+  // Release allocated singleton data.
+  defrClear();
+}

@@ -548,6 +548,10 @@ class circuit {
   void read_def_groups(ifstream& is);
   void write_def(const string& output);
 
+  void WriteDefComponents(const string& inputDef);
+
+  FILE* fileOut;
+
   circuit()
       : GROUP_IGNORE(false),
         num_fixed_nodes(0),
@@ -563,7 +567,8 @@ class circuit {
         max_utilization(100.0),
         wsite(0),
         max_cell_height(1),
-        rowHeight(0.0f) {
+        rowHeight(0.0f), 
+        fileOut(0) {
 
     macros.reserve(128);
     layers.reserve(32);
