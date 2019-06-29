@@ -489,7 +489,7 @@ int CircuitParser::DefRowCbk(
   myRow->site = ckt->site2id.at( ro->macro() );
   myRow->origX = ro->x();
   myRow->origY = ro->y();
-  myRow->siteorient = ro->orient();
+  myRow->siteorient = ro->orientStr();
 
 
   if( ro->hasDo() ){
@@ -937,11 +937,11 @@ vector<opendp::row> GetNewRow(const circuit* ckt) {
     myRow.stepY = 0;
 
     myRow.numSites = rowCntX;
-//    myRow.siteorient = curOrient;
+    myRow.siteorient = curOrient;
     retRow.push_back(myRow);
 
     // curOrient is flipping. e.g. N -> FS -> N -> FS -> ...
-//    curOrient = (curOrient == "N")? "FS" : "N";
+    curOrient = (curOrient == "N")? "FS" : "N";
   }
   return retRow;
 }

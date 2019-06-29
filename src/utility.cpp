@@ -92,8 +92,8 @@ void circuit::evaluation() {
   cout << " SUM_displacement : " << sum_displacement << endl;
   cout << " MAX_displacement : " << max_displacement << endl;
   cout << " - - - - - - - - - - - - - - - - " << endl;
-  cout << " GP HPWL          : " << HPWL("INIT") / 1000000 << endl;
-  cout << " HPWL             : " << HPWL("") / 1000000 << endl;
+  cout << " GP HPWL          : " << HPWL("INIT") << endl;
+  cout << " HPWL             : " << HPWL("") << endl;
   cout << " avg_Disp_site    : " << Disp() / cells.size() / wsite << endl;
   cout << " avg_Disp_row     : " << Disp() / cells.size() / rowHeight << endl;
   cout << " delta_HPWL       : "
