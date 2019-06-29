@@ -2086,6 +2086,7 @@ void circuit::write_def(const string& output) {
         getline(dot_in_def, line);
       } while( strncmp(line.c_str(), "END COMPONENTS", 14) != 0 );
 
+      line += "\n";
       fwrite( line.c_str(), line.length(), 1, fileOut );
     }
   }
