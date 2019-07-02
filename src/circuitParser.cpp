@@ -902,17 +902,19 @@ int CircuitParser::DefGroupMemberCbk(
   return 0;
 }
 
+// Y first and X second
+// First row should be in the first index to get orient
 bool SortByRowCoordinate(
     const opendp::row& lhs,
     const opendp::row& rhs) {
-  if( lhs.origX < rhs.origX ) {
+  if( lhs.origY < rhs.origY ) {
     return true;
   }
-  if( lhs.origX > rhs.origX ) {
+  if( lhs.origY > rhs.origY ) {
     return false;
   }
 
-  return ( lhs.origY < rhs.origY );
+  return ( lhs.origX < rhs.origX );
 }
 
 // Generate New Row Based on CoreArea

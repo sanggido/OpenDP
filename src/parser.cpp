@@ -261,7 +261,9 @@ void circuit::calc_design_area_stats() {
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
     macro* theMacro = &macros[theCell->type];
-    if(theMacro->isMulti == true && theMacro->type == "CORE") {
+    if(theCell->isFixed == false && 
+        theMacro->isMulti == true && 
+        theMacro->type == "CORE") {
       if(max_cell_height <
          static_cast< int >(theMacro->height * DEFdist2Microns / rowHeight +
                             0.5))
