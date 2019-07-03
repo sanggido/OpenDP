@@ -36,6 +36,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "circuit.h"
+#include <iomanip>
+
 #define _DEBUG
 
 using namespace opendp;
@@ -233,6 +235,11 @@ void circuit::read_files(int argc, char* argv[]) {
 
 void circuit::calc_design_area_stats() {
   num_fixed_nodes = 0;
+
+  // total_mArea : total movable cell area that need to be placed
+  // total_fArea : total fixed cell area.
+  // designArea : total available place-able area.
+  //
   total_mArea = total_fArea = designArea = 0.0;
   for(vector< cell >::iterator theCell = cells.begin(); theCell != cells.end();
       ++theCell) {
@@ -284,9 +291,7 @@ void circuit::calc_design_area_stats() {
   cout << "  design area              : " << designArea << endl;
   cout << "  total f_area             : " << total_fArea << endl;
   cout << "  total m_area             : " << total_mArea << endl;
-  if(designArea - total_fArea > 1.0e-5)
-    cout << "  design util              : "
-         << total_mArea / (designArea - total_fArea) << endl;
+  cout << "  design util              : " << design_util * 100.00 << endl;
   cout << "  num rows                 : " << rows.size() << endl;
   cout << "  row height               : " << rowHeight << endl;
   if(max_cell_height > 1)
@@ -297,6 +302,16 @@ void circuit::calc_design_area_stats() {
     cout << "  group num                : " << groups.size() << endl;
   cout << "-------------------------------------------------------------------"
        << endl;
+
+  // 
+  // design_utilization error handling.
+  //
+  if( design_util >= 1.001 ) {
+    cout << "ERROR:  Utilization exceeds 100%. (" 
+      << fixed << setprecision(2) << design_util * 100.00  << "%)! ";
+    cout << "        Please double check your input files!" << endl;
+    exit(1); 
+  }
 
   return;
 }
