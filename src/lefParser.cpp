@@ -7,7 +7,20 @@
 #include "lefiEncryptInt.hpp"
 #include "lefiUtil.hpp"
 
-using namespace opendp;
+using opendp::circuit;
+
+using std::max;
+using std::min;
+using std::pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::ifstream;
+using std::ofstream;
+using std::vector;
+using std::make_pair;
+using std::to_string;
+using std::string;
 
 static FILE* fout;
 static int parse65nm = 0;

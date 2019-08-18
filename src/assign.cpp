@@ -39,7 +39,18 @@
 #define _DEBUG
 #define _DEBUG2
 
-using namespace opendp;
+using opendp::circuit;
+using opendp::cell;
+using opendp::row;
+using opendp::pixel;
+using opendp::rect;
+
+using std::max;
+using std::min;
+using std::pair;
+using std::cout;
+using std::endl;
+using std::cerr;
 
 // Fixed cell handle on parser ( no need to use this function during placement)
 // //

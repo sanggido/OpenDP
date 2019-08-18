@@ -1,7 +1,40 @@
 #include "circuitParser.h"
 #include <cfloat>
 
-using namespace opendp;
+using opendp::circuit;
+using opendp::cell;
+using opendp::row;
+using opendp::pixel;
+using opendp::rect;
+using opendp::pin;
+using opendp::macro;
+using opendp::net;
+using opendp::site;
+using opendp::layer;
+using opendp::via;
+using opendp::group;
+using opendp::density_bin;
+using opendp::macro_pin;
+using opendp::VDD;
+using opendp::VSS;
+using opendp::IntConvert;
+
+
+using std::max;
+using std::min;
+using std::pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::istream;
+using std::ifstream;
+using std::ofstream;
+using std::vector;
+using std::make_pair;
+using std::to_string;
+using std::string;
+using std::fixed;
+using std::numeric_limits;
 
 // static variable definition
 opendp::macro* CircuitParser::topMacro_ = 0;
@@ -461,7 +494,8 @@ int CircuitParser::DefEndCbk(
       ckt->die.dump();
  
       if( ckt->prevrows.size() <= 0) {
-        RaiseError("rowSize is 0. Please define at least one ROW in DEF");
+        cerr << "  ERROR: rowSize is 0. Please define at least one ROW in DEF" << endl;
+        exit(1);
       }
 
       // sort ckt->rows

@@ -38,7 +38,22 @@
 #include "circuit.h"
 #define _DEBUG
 
-using namespace opendp;
+using opendp::circuit;
+using opendp::cell;
+using opendp::row;
+using opendp::pixel;
+using opendp::rect;
+
+using std::max;
+using std::min;
+using std::pair;
+using std::cout;
+using std::endl;
+using std::ifstream;
+using std::ofstream;
+using std::vector;
+using std::make_pair;
+using std::to_string;
 
 bool circuit::check_legality() {
   ofstream log("../logdir/check_legality.log");

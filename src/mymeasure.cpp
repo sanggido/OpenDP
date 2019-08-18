@@ -23,7 +23,16 @@
 #include <string.h>
 #include <cstdio>
 
-using namespace std;
+using std::vector;
+using std::string;
+using std::cout;
+using std::endl;
+using std::ifstream;
+using std::ios_base;
+using std::setw;
+using std::fixed;
+using std::right;
+using std::setprecision;
 
 // attempts to read the system-dependent data for a process' virtual memory
 // size and resident set size, and return the results in KB.

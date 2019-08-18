@@ -40,7 +40,29 @@
 
 #define _DEBUG
 
-using namespace opendp;
+using opendp::circuit;
+using opendp::cell;
+using opendp::row;
+using opendp::pixel;
+using opendp::rect;
+
+using std::max;
+using std::min;
+using std::pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::ifstream;
+using std::ofstream;
+using std::vector;
+using std::make_pair;
+using std::to_string;
+using std::string;
+using std::fixed;
+using std::setprecision;
+using std::numeric_limits;
+
+
 
 const char* DEFCommentChar = "#";
 const char* DEFLineEndingChar = ";";

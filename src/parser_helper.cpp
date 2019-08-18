@@ -37,7 +37,35 @@
 
 #include "circuit.h"
 
-using namespace opendp;
+using opendp::circuit;
+using opendp::cell;
+using opendp::row;
+using opendp::pixel;
+using opendp::rect;
+using opendp::pin;
+using opendp::macro;
+using opendp::net;
+using opendp::site;
+using opendp::layer;
+using opendp::via;
+using opendp::group;
+using opendp::density_bin;
+
+using std::max;
+using std::min;
+using std::pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::istream;
+using std::ifstream;
+using std::ofstream;
+using std::vector;
+using std::make_pair;
+using std::to_string;
+using std::string;
+using std::fixed;
+using std::numeric_limits;
 
 // requires full name, e.g., cell_instance/pin
 pin *circuit::locateOrCreatePin(const string &pinName) {

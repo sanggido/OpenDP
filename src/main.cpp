@@ -39,8 +39,15 @@
 #include <time.h>
 #include "mymeasure.h"
 
-using namespace std;
-using namespace opendp;
+using opendp::circuit;
+using opendp::cell;
+using opendp::row;
+using opendp::pixel;
+using opendp::rect;
+
+using std::cout;
+using std::endl;
+using std::cerr;
 
 int main(int argc, char* argv[]) {
   cout << "===================================================================="

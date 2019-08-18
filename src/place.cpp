@@ -39,7 +39,20 @@
 
 #define _DEBUG
 
-using namespace opendp;
+using opendp::circuit;
+using opendp::cell;
+using opendp::row;
+using opendp::pixel;
+using opendp::rect;
+
+using std::cout;
+using std::endl;
+using std::cerr;
+using std::string;
+using std::vector;
+using std::pair;
+using std::sort;
+using std::make_pair;
 
 double disp(cell* theCell) {
   return abs(theCell->init_x_coord - theCell->x_coord) +

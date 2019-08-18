@@ -34,18 +34,17 @@
 #include <vector>
 #include <unordered_map>
 
-using namespace std;
 
 class CMeasure {
  private:
-  unordered_map< string, double > timeStor;
+  std::unordered_map< std::string, double > timeStor;
 
   // this is intended for saving starting clock.
-  unordered_map< string, double > timeTmpStor;
+  std::unordered_map< std::string, double > timeTmpStor;
 
   // true -> recording start
   // false -> recording end.
-  unordered_map< string, bool > inputChk;
+  std::unordered_map< std::string, bool > inputChk;
 
  public:
   CMeasure() {}
@@ -53,24 +52,24 @@ class CMeasure {
   double wbegin;
 
   clock_t cbegin;
-  vector< string > tasks;
-  vector< double > welapsed_secs, celapsed_secs;
+  std::vector< std::string > tasks;
+  std::vector< double > welapsed_secs, celapsed_secs;
 
   // functions
   void process_mem_usage();
   void start_clock();
-  void stop_clock(string task);
+  void stop_clock(std::string task);
   void print_clock();
 
   void printMemoryUsage(void);
 
   // print only function
-  void print_only(string task);
+  void print_only(std::string task);
 
   // accumulation clock functions
-  void accm_clock_start(string task);
-  void accm_clock_end(string task);
-  void accm_clock_print(string task);
+  void accm_clock_start(std::string task);
+  void accm_clock_end(std::string task);
+  void accm_clock_print(std::string task);
 };
 
 const char* fileNameTrim(const char* fileName);

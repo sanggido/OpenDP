@@ -28,6 +28,7 @@ set( OPENDP_SRC
   src/assign.cpp
   src/check_legal.cpp
   src/main.cpp
+  src/circuit.cpp
   src/mymeasure.cpp
   src/parser.cpp
   src/parser_helper.cpp
