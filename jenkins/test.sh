@@ -1,0 +1,1 @@
+docker run -v $(pwd):/opendp opendp bash -c "echo Tests are not ready yet!"
