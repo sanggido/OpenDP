@@ -489,9 +489,9 @@ int CircuitParser::DefEndCbk(
       ckt->ty = ckt->die.yUR = ckt->core.yUR - ckt->core.yLL;
 
       cout << "CoreArea: " << endl;
-      ckt->core.dump();
+      ckt->core.print();
       cout << "DieArea: " << endl;
-      ckt->die.dump();
+      ckt->die.print();
  
       if( ckt->prevrows.size() <= 0) {
         cerr << "  ERROR: rowSize is 0. Please define at least one ROW in DEF" << endl;

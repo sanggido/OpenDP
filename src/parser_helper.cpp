@@ -264,35 +264,6 @@ void opendp::get_next_n_tokens(ifstream &is, vector< string > &tokens,
   } while(!is.eof() && count < numTokens);
 }
 
-void pin::print() {
-  cout << "|=== BEGIN PIN ===|  " << endl;
-  cout << "name:                " << name << endl;
-  cout << "id:                  " << id << endl;
-  cout << "type:                " << type << endl;
-  cout << "net:                 " << net << endl;
-  cout << "pin owner:           " << owner << endl;
-  cout << "isFixed?             " << (isFixed ? "yes" : "no") << endl;
-  cout << "(x_coord,y_coord):   " << x_coord << ", " << y_coord << endl;
-  cout << "(x_offset,y_offset): " << x_offset << ", " << y_offset << endl;
-  cout << "|===  END  PIN ===|  " << endl;
-}
-
-void macro::print() {
-  cout << "|=== BEGIN MACRO ===|" << endl;
-  cout << "name:                " << name << endl;
-  cout << "type:                " << type << endl;
-  cout << "(xOrig,yOrig):       " << xOrig << ", " << yOrig << endl;
-  cout << "[width,height]:      " << width << ", " << height << endl;
-  for(unsigned i = 0; i < sites.size(); ++i) {
-    cout << "sites[" << i << "]: " << sites[i] << endl;
-  }
-  for(OPENDP_HASH_MAP< string, macro_pin >::iterator it = pins.begin();
-      it != pins.end(); it++) {
-    cout << "pins: " << (*it).first << endl;
-  }
-  cout << "|=== BEGIN MACRO ===|" << endl;
-}
-
 void cell::print() {
   cout << "|=== BEGIN CELL ===|" << endl;
   cout << "name:               " << name << endl;
@@ -341,16 +312,6 @@ void site::print() {
   cout << "|===  END  SITE ===|" << endl;
 }
 
-void layer::print() {
-  cout << "|=== BEGIN LAYER ===|" << endl;
-  cout << "name:               " << name << endl;
-  cout << "type:               " << type << endl;
-  cout << "direction:          " << direction << endl;
-  cout << "[xPitch,yPitch]:    " << xPitch << ", " << yPitch << endl;
-  cout << "[xOffset,yOffset]:  " << xOffset << ", " << yOffset << endl;
-  cout << "width:              " << width << endl;
-  cout << "|===  END  LAYER ===|" << endl;
-}
 
 void density_bin::print() {
   cout << "|=== BEGIN DENSITY_BIN ===|" << endl;

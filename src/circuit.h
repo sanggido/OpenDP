@@ -86,28 +86,24 @@ using max_heap = std::priority_queue< T >;
 struct rect {
   double xLL, yLL;
   double xUR, yUR;
-  rect()
-      : xLL(std::numeric_limits< double >::max()),
-        yLL(std::numeric_limits< double >::max()),
-        xUR(std::numeric_limits< double >::min()),
-        yUR(std::numeric_limits< double >::min()) {}
-  void dump() { printf("%f : %f - %f : %f\n", xLL, yLL, xUR, yUR); }
+
+  rect();
+  void print(); 
 };
 
 struct site {
   std::string name;
   double width;                /* in microns */
   double height;               /* in microns */
-  std::string type;                 /* equivalent to class, I/O pad or CORE */
-  std::vector< std::string > symmetries; /* {X | Y | R90} */
+  
+  /* equivalent to class, I/O pad or CORE */
+  std::string type;                 
+  
+  /* {X | Y | R90} */
+  std::vector< std::string > symmetries; 
 
-  site() : name(""), width(0.0), height(0.0), type("") {}
-  site(const site& s)
-      : name(s.name),
-        width(s.width),
-        height(s.height),
-        type(s.type),
-        symmetries(s.symmetries) {}
+  site();
+  site(const site& s);
   void print();
 };
 
@@ -117,14 +113,15 @@ struct mincut {
   double length;
   double within;
   std::string direction;  // FROMABOVE or FROMBELOW
-  mincut() : via_num(0), width(0.0), length(0.0), within(0.0), direction("") {}
+  mincut();
 };
 
 struct space {
   int adj;
   std::string type;
   double min, max;
-  space() : adj(0), type(""), min(0), max(0) {}
+
+  space();
 };
 
 struct layer {
@@ -145,21 +142,9 @@ struct layer {
   double minEnclosedArea;
   std::vector< mincut > mincut_rule;
   std::vector< space > spacing_rule;
+
   // -------------
-  layer()
-      : name(""),
-        type(""),
-        direction(""),
-        xPitch(0.0),
-        yPitch(0.0),
-        xOffset(0.0),
-        yOffset(0.0),
-        width(0.0),
-        maxWidth(0.0),
-        spacing(""),
-        minStep(""),
-        area(0.0),
-        minEnclosedArea(0.0) {}
+  layer();
   void print();
 };
 
@@ -170,7 +155,7 @@ struct viaRule {
   std::vector< std::pair< double, double > > width;
   std::vector< std::pair< double, double > > spacing;
   rect viaRect;
-  viaRule() : name("") {}
+  viaRule();
 };
 
 struct via {
@@ -178,7 +163,7 @@ struct via {
   std::string viaRule;
   std::string property;
   std::vector< std::pair< layer*, rect > > obses;
-  via() : name(""), viaRule(""), property("") {}
+  via();
 };
 
 struct macro_pin {
@@ -209,21 +194,7 @@ struct macro {
   std::vector< rect > obses; /* keyword OBS for non-rectangular shapes in micros */
   power top_power;      // VDD = 0  VSS = 1 enum
 
-  macro()
-      : name(""),
-        type(""),
-        isFlop(false),
-        isMulti(false),
-        xOrig(0.0),
-        yOrig(0.0),
-        width(0.0),
-        height(0.0),
-        edgetypeLeft(0),
-        edgetypeRight(0) {
-#ifdef USE_GOOGLE_HASH
-    pins.set_empty_key(INITSTR);
-#endif
-  }
+  macro();
   void print();
 };
 
@@ -243,19 +214,7 @@ struct pin {
       y_offset; /* COG of VIA relative to the origin of a cell, (in DBU) */
   bool isFixed; /* is this node fixed? */
 
-  pin()
-      : name(""),
-        id(UINT_MAX),
-        owner(UINT_MAX),
-        net(UINT_MAX),
-        type(UINT_MAX),
-        isFlopInput(false),
-        isFlopCkPort(false),
-        x_coord(0.0),
-        y_coord(0.0),
-        x_offset(0.0),
-        y_offset(0.0),
-        isFixed(false) {}
+  pin();
   void print();
 };
 
@@ -281,33 +240,7 @@ struct cell {
   unsigned binId;
   double disp;
 
-  cell()
-      : name(""),
-        type(UINT_MAX),
-        id(UINT_MAX),
-        x_coord(0),
-        y_coord(0),
-        init_x_coord(0),
-        init_y_coord(0),
-        x_pos(INT_MAX),
-        y_pos(INT_MAX),
-        width(0.0),
-        height(0.0),
-        isFixed(false),
-        isPlaced(false),
-        inGroup(false),
-        hold(false),
-        region(UINT_MAX),
-        cellorient(""),
-        group(""),
-        dense_factor(0.0),
-        dense_factor_count(0),
-        binId(UINT_MAX),
-        disp(0.0) {
-#ifdef USE_GOOGLE_HASH
-    ports.set_empty_key(INITSTR);
-#endif
-  }
+  cell();
   void print();
 };
 
@@ -378,7 +311,7 @@ struct group {
   void dump(std::string temp_) {
     std::cout << temp_ << " name : " << name << " type : " << type
          << " tag : " << tag << " end line " << std::endl;
-    for(int i = 0; i < regions.size(); i++) regions[i].dump();
+    for(int i = 0; i < regions.size(); i++) regions[i].print();
   };
 };
 
