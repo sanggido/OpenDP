@@ -10,6 +10,8 @@
 #include "defrReader.hpp"
 #include "defiAlias.hpp"
 
+namespace opendp {
+
 class CircuitParser {
 protected:
   opendp::circuit* ckt_;
@@ -55,5 +57,6 @@ public:
   static int DefComponentWriteCbk(defrCallbackType_e c, defiComponent* co, defiUserData ud);
 
 };
+}
 
 #endif

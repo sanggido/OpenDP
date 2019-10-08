@@ -64,8 +64,6 @@
 #define OPENDP_HASH_MAP std::unordered_map
 #endif
 
-
-
 #define INIT false
 #define FINAL true
 
@@ -73,15 +71,9 @@
 #define PO_PIN 2
 #define NONPIO_PIN 3
 
-#define OPENDP_NAMESPACE_OPEN namespace opendp {
-#define OPENDP_NAMESPACE_CLOSE }
-
-OPENDP_NAMESPACE_OPEN
+namespace opendp {
 
 enum power { VDD, VSS };
-
-template < class T >
-using max_heap = std::priority_queue< T >;
 
 struct rect {
   double xLL, yLL;
@@ -173,7 +165,7 @@ struct macro_pin {
   std::vector< unsigned > layer;
 
   std::string shape;
-  macro_pin() : direction(""), shape(""), layer(0) {}
+  macro_pin();
 };
 
 struct macro {
@@ -253,14 +245,8 @@ struct pixel {
 
   cell* linked_cell;
   bool isValid;  // false for dummy place
-  pixel()
-      : name(""),
-        util(0.0),
-        x_pos(0.0),
-        y_pos(0.0),
-        group(UINT_MAX),
-        linked_cell(NULL),
-        isValid(true) {}
+
+  pixel();
 };
 
 struct net {
@@ -268,7 +254,7 @@ struct net {
   unsigned source;          /* input pin index to the net */
   std::vector< unsigned > sinks; /* sink pins indices of the net */
 
-  net() : name(""), source(UINT_MAX) {}
+  net();
   void print();
 };
 
@@ -286,15 +272,7 @@ struct row {
 
   std::vector< cell* > cell_list;
 
-  row()
-      : name(""),
-        site(UINT_MAX),
-        origX(0),
-        origY(0),
-        stepX(0),
-        stepY(0),
-        numSites(0),
-        siteorient("") {}
+  row();
   void print();
 };
 
@@ -307,12 +285,9 @@ struct group {
   std::vector< pixel* > pixels;
   rect boundary;
   double util;
-  group() : name(""), type(""), tag(""), util(0.0) {}
-  void dump(std::string temp_) {
-    std::cout << temp_ << " name : " << name << " type : " << type
-         << " tag : " << tag << " end line " << std::endl;
-    for(int i = 0; i < regions.size(); i++) regions[i].print();
-  };
+
+  group();
+  void print(std::string gName);
 };
 
 struct sub_region {
@@ -320,9 +295,7 @@ struct sub_region {
   int x_pos, y_pos;
   int width, height;
   std::vector< cell* > siblings;
-  sub_region() : x_pos(0), y_pos(0), width(0), height(0) {
-    siblings.reserve(8192);
-  }
+  sub_region();
 };
 
 struct density_bin {
@@ -343,7 +316,8 @@ struct track {
   unsigned num_track;
   unsigned step;
   std::vector< layer* > layers;
-  track() : axis(""), start(0), num_track(0), step(0) {}
+  track()
+  : axis(""), start(0), num_track(0), step(0) {}
 };
 
 class circuit {
@@ -586,11 +560,8 @@ void get_next_token(std::ifstream& is, std::string& token, const char* beginComm
 void get_next_n_tokens(std::ifstream& is, std::vector< std::string >& tokens, const unsigned n,
                        const char* beginComment);
 
-inline int IntConvert(double fp) {
-  return (int)(fp + 0.5f);
+int IntConvert(double fp);
+
 }
-
-
-OPENDP_NAMESPACE_CLOSE
 
 #endif

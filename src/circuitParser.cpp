@@ -1,24 +1,7 @@
 #include "circuitParser.h"
 #include <cfloat>
 
-using opendp::circuit;
-using opendp::cell;
-using opendp::row;
-using opendp::pixel;
-using opendp::rect;
-using opendp::pin;
-using opendp::macro;
-using opendp::net;
-using opendp::site;
-using opendp::layer;
-using opendp::via;
-using opendp::group;
-using opendp::density_bin;
-using opendp::macro_pin;
-using opendp::VDD;
-using opendp::VSS;
-using opendp::IntConvert;
-
+namespace opendp {
 
 using std::max;
 using std::min;
@@ -980,4 +963,6 @@ vector<opendp::row> GetNewRow(const circuit* ckt) {
     curOrient = (curOrient == "N")? "FS" : "N";
   }
   return retRow;
+}
+
 }

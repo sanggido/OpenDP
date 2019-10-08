@@ -4,7 +4,7 @@ using std::cout;
 using std::endl;
 using std::string;
 
-OPENDP_NAMESPACE_OPEN
+namespace opendp {
 
 rect::rect()
   : xLL(std::numeric_limits< double >::max()),
@@ -53,8 +53,10 @@ layer::layer()
     minEnclosedArea(0.0) {};
   
 viaRule::viaRule() : name("") {};
+
 via::via() : name(""), viaRule(""), property("") {};
-  
+
+macro_pin::macro_pin() : direction(""), shape(""), layer(0) {};
 
 macro::macro()
   : name(""),
@@ -144,6 +146,45 @@ cell::cell()
 #endif
 }
 
+
+pixel::pixel()
+  : name(""),
+    util(0.0),
+    x_pos(0.0),
+    y_pos(0.0),
+    group(UINT_MAX),
+    linked_cell(NULL),
+    isValid(true) {};
+
+net::net() 
+  : name(""), source(UINT_MAX) {};
+
+row::row()
+      : name(""),
+        site(UINT_MAX),
+        origX(0),
+        origY(0),
+        stepX(0),
+        stepY(0),
+        numSites(0),
+        siteorient("") {};
+
+group::group() : name(""), type(""), tag(""), util(0.0) {};
+
+void group::print(std::string gName) {
+  std::cout << gName << " name : " << name << " type : " << type
+       << " tag : " << tag << " end line " << std::endl;
+  for(int i = 0; i < regions.size(); i++) {
+    regions[i].print();
+  }
+};
+
+sub_region::sub_region()
+  : x_pos(0), y_pos(0), width(0), height(0) {
+  siblings.reserve(8192);
+}
+
+
   
 void layer::print() {
   cout << "|=== BEGIN LAYER ===|" << endl;
@@ -200,4 +241,8 @@ circuit::circuit()
 #endif
 };
 
-OPENDP_NAMESPACE_CLOSE
+int IntConvert(double fp) {
+  return (int)(fp + 0.5f);
+}
+
+}
