@@ -24,6 +24,10 @@ set(LEFLIB_HOME
 add_subdirectory(${DEFLIB_HOME})
 add_subdirectory(${LEFLIB_HOME})
 
+
+find_package(SWIG REQUIRED)
+find_package(TCL REQUIRED)
+
 set( OPENDP_SRC
   src/assign.cpp
   src/check_legal.cpp
@@ -39,11 +43,19 @@ set( OPENDP_SRC
   src/lefParser.cpp
 
   src/circuitParser.cpp
+  src/opendp_external.cpp
+  
+  src/opendp_wrap.cpp
 )
 
 set ( OPENDP_HEADER
   src/circuit.h
   src/mymeasure.h
+  src/opendp_external.h
+)
+
+set ( OPENDP_SWIG_FILES
+  src/opendp.i  
 )
 
 ############################################################
@@ -78,6 +90,12 @@ set_target_properties( opendplib
 # Executable setting 
 ############################################################
 
+add_custom_command(OUTPUT ${OPENDP_HOME}/src/opendp_wrap.cpp
+  COMMAND ${SWIG_EXECUTABLE} -tcl8 -c++ -o ${OPENDP_HOME}/src/opendp_wrap.cpp ${OPENDP_HOME}/src/opendp.i   
+  WORKING_DIRECTORY ${OPENDP_HOME}
+  DEPENDS ${OPENDP_SWIG_FILES}
+)
+
 add_executable( opendp
   ${OPENDP_SRC}
 )
@@ -92,6 +110,8 @@ target_link_libraries( opendp
   lefzlib
   clef
   clefzlib
+
+  ${TCL_LIBRARY}
 )
 
 add_dependencies( opendp def )

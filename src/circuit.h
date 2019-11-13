@@ -347,7 +347,11 @@ class circuit {
   OPENDP_HASH_MAP< std::string, unsigned > group2id; /* group between name -> index */
 
   double design_util;
+
+  // to report design info
   double sum_displacement;
+  double max_displacement;
+  double avg_displacement;
 
   unsigned num_fixed_nodes;
   double total_mArea; /* total movable cell area */
@@ -460,7 +464,7 @@ class circuit {
   /* read files for legalizer - parser.cpp */
   void print_usage();
   void read_files(int argc, char* argv[]);
-  void read_constraints(const std::string& input);
+  bool read_constraints(const std::string& input);
   void read_lef(const std::string& input);
   void read_tech_lef(const std::string& input);
   void read_cell_lef(const std::string& input);
@@ -481,7 +485,9 @@ class circuit {
 
 
   int ReadLef(const std::vector<std::string>& lefStor);
+  
 
+  void InitOpendpAfterParse();
 
   // utility.cpp - By SGD
   void power_mapping();
@@ -517,7 +523,7 @@ class circuit {
   std::pair< bool, cell* > nearest_cell(int x_coord, int y_coord);
 
   // place.cpp - By SGD
-  void simple_placement(CMeasure& measure);
+  void simple_placement(CMeasure* measure = nullptr);
   void non_group_cell_pre_placement();
   void group_cell_pre_placement();
   void non_group_cell_placement(std::string mode);

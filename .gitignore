@@ -3,6 +3,10 @@
 *.swd
 *.swp
 */**/*.o
+*.rpt
+test/**/exp
+src/opendp_wrap.cpp
+
 
 Makefile
 CMakeCache.txt

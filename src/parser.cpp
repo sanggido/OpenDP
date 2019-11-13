@@ -167,20 +167,22 @@ void circuit::read_files(int argc, char* argv[]) {
   cout << "-------------------------------------------------------------------"
        << endl;
 
-  // read_def shuld after read_lef
-//  read_def(defLoc, INIT);
-  
+  // read_def(defLoc, INIT);
   ReadDef(defLoc );
-//  exit(1);
 
   if(size != NULL) {
     string size_file = size;
     read_def_size(size_file);
   }
-  power_mapping();
 
   if(constraints != NULL) read_constraints(constraints_str);
 
+  InitOpendpAfterParse();
+}
+
+void circuit::InitOpendpAfterParse() {
+
+  power_mapping();
   // summary of benchmark
   calc_design_area_stats();
 
@@ -338,12 +340,13 @@ void circuit::calc_design_area_stats() {
   return;
 }
 
-void circuit::read_constraints(const string& input) {
+bool circuit::read_constraints(const string& input) {
   //    cout << " .constraints file : " << input << endl;
   ifstream dot_constraints(input.c_str());
   if(!dot_constraints.good()) {
     cerr << "read_constraints:: cannot open '" << input << "' for reading"
          << endl;
+    return true;
   }
 
   string context;
@@ -363,16 +366,15 @@ void circuit::read_constraints(const string& input) {
       max_disp_const = atoi(max_move.c_str());
     }
     else {
-#ifdef DEBUG
       cerr << "read_constraints:: unsupported keyword " << endl;
-#endif
+      return true;
     }
   }
 
   if(max_disp_const == 0.0) max_disp_const = rows.size();
 
   dot_constraints.close();
-  return;
+  return false;
 }
 
 void circuit::read_def(const string& input, bool mode) {

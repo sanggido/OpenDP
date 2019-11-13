@@ -36,8 +36,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "circuit.h"
-#include <time.h>
 #include "mymeasure.h"
+
+#include <time.h>
+#include <tcl.h>
+#include <string>
 
 using opendp::circuit;
 using opendp::cell;
@@ -48,21 +51,37 @@ using opendp::rect;
 using std::cout;
 using std::endl;
 using std::cerr;
+using std::string;
+
+
+extern "C" {
+  extern int Opendp_Init(Tcl_Interp *interp);
+}
+
+int 
+opendpTclAppInit(Tcl_Interp *interp) {
+  if( Tcl_Init(interp) == TCL_ERROR ) {
+    return TCL_ERROR;
+  }
+
+  if( Opendp_Init(interp) == TCL_ERROR) {
+    return TCL_ERROR;
+  }
+
+  string command = "";
+  command += "puts \"===========================================================================\"\n";
+  command += "puts \"   Open Source Mixed-Height Standard Cell Detail Placer < OpenDP_v1.0 >    \"\n";
+  command += "puts \"   Developers : SangGi Do, Mingyu Woo                                      \"\n";
+  command += "puts \"===========================================================================\"\n";
+  
+  Tcl_Eval(interp, command.c_str());
+  return TCL_OK;
+}
 
 int main(int argc, char* argv[]) {
-  cout << "===================================================================="
-          "======="
-       << endl;
-  cout << "   Open Source Mixed-Height Standard Cell Detail Placer < "
-          "OpenDP_v1.0 >    "
-       << endl;
-  cout << "   Developers : SangGi Do, Mingyu Woo                               "
-          "       "
-       << endl;
-  cout << "===================================================================="
-          "======="
-       << endl;
 
+  Tcl_Main(1, argv, opendpTclAppInit);
+/*
   CMeasure measure;
   measure.start_clock();
 
@@ -72,7 +91,7 @@ int main(int argc, char* argv[]) {
   ckt.read_files(argc, argv);
   measure.stop_clock("Parser");
 
-  ckt.simple_placement(measure);
+  ckt.simple_placement(&measure);
   ckt.calc_density_factor(4);
 
   measure.stop_clock("All");
@@ -86,5 +105,6 @@ int main(int argc, char* argv[]) {
   // CHECK LEGAL - check_legal.cpp
   ckt.check_legality();
   cout << " - - - - - < Program END > - - - - - " << endl;
+*/
   return 0;
 }

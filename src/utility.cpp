@@ -79,9 +79,9 @@ void circuit::power_mapping() {
 }
 
 void circuit::evaluation() {
-  double avg_displacement = 0;
-  double sum_displacement = 0;
-  double max_displacement = 0;
+  avg_displacement = 0;
+  sum_displacement = 0;
+  max_displacement = 0;
   int count_displacement = 0;
 
   cell* maxCell = NULL;
@@ -1050,11 +1050,8 @@ bool circuit::refine_move(cell* theCell, int x_coord, int y_coord) {
 
     double benefit = dist_benefit(theCell, myPixel.second->x_pos * wsite,
                                   myPixel.second->y_pos * rowHeight);
-    // if( benefit < 2001-sum_displacement/20 ) {
     if(benefit < 0) {
       // cout << " refine benefit : " << benefit << " : " << 2001 -
-      // sum_displacement/10 << endl;
-      sum_displacement++;
       erase_pixel(theCell);
       paint_pixel(theCell, myPixel.second->x_pos, myPixel.second->y_pos);
       // save_score();
