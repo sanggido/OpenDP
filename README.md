@@ -17,18 +17,10 @@
     $ make
     $ sudo make install    // or make install if you specified -DCMAKE_INSTALL_PREFIX
 
-### How To Execute (using script)
-    // unzip iccad2017 benchmarks
-    $ cd OpenDP/bench
-    $ tar -xvf benchmarks.tar.gz
-
-    // Check doc/ScriptUsage.md in detail
-    $ cd OpenDP/src
-    $ ./execute.py 1
-
-### How To Execute (using binary)
-    // Check doc/ScriptUsage.md in detail
-    $ ./opendp -lef <techLef> -lef <cellLef> ... -def <inputDef> -output_def <outputDef> [-options]
+### How To Execute using Tcl Interpreter. 
+    // Check doc/TclCommands.md in detail
+    $ cd OpenDP/test/nangate45-test-01
+    $ opendp < run_opendp.tcl
 
 ### Verified/supported Technologies
 * TSMC 65 (GP/LP)
@@ -36,8 +28,7 @@
 * TSMC 16 (9T)
 
 ### Manual
-* [doc/ScriptUsage.md](doc/ScriptUsage.md)
-* [doc/BinaryArguments.md](doc/BinaryArguments.md)
+* [doc/TclCommands.md](doc/TclCommands.md)
 
 ### License
 * BSD-3-clause License [[Link]](LICENSE)
@@ -48,6 +39,7 @@
 - Paper reference: S. Do, M. Woo and S. Kang, "Fence-Region-Aware Mixed-Height Standard Cell Legalization", Proc. Great Lakes Symposium on VLSI, 2019, pp. 259-262. [(link)](https://dl.acm.org/citation.cfm?id=3318012)
 
 ### Features
+- OpenDP has Tcl Interpreter using SWIG!
 - Commercial format supports. (Si2 LEF/DEF parser has been ported).
 - Fence region and multi-height legalization supports. (ICCAD 2017 Contest benchmarks)
 - Fragmented ROW supports.

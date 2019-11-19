@@ -17,7 +17,7 @@ void opendp_external::import_lef(const char* lef) {
 }
 
 void opendp_external::import_def(const char* def) {
-  def_file = def;
+  ckt.in_def_name = def_file = def;
 }
 
 void opendp_external::import_constraint(const char* constraint) {
