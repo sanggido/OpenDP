@@ -30,6 +30,6 @@ __Note that the following commands will work after init_opendp and legalize_plac
 * __get_legalized_hpwl__ : Returns HPWL after the legalized design. [float]
 
 ## Example TCL scripts
-* [gcd_td_test.tcl](../test/gcd_td_test.tcl), [wb_td_test.tcl](../test/wb_td_test.tcl)
+* [run_nangate45_gcd.tcl](../test/run_nangate45_gcd.tcl)
 
 FYI, All of the TCL commands are defined in the [opendp_external.h](../src/opendp_external.h) header files.
