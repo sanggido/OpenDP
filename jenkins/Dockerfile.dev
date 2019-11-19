@@ -12,7 +12,7 @@ ENV CC=/opt/rh/devtoolset-6/root/usr/bin/gcc \
 # Common development tools and libraries (kitchen sink approach)
 RUN yum groupinstall -y "Development Tools" "Development Libraries"
 
-RUN yum -y install wget zlib-devel
+RUN yum -y install wget zlib-devel tcl-devel tk-devel swig
 
 RUN wget https://cmake.org/files/v3.9/cmake-3.9.0-Linux-x86_64.sh && \
     chmod +x cmake-3.9.0-Linux-x86_64.sh  && \
