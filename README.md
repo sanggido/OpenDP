@@ -19,8 +19,9 @@
 
 ### How To Execute using Tcl Interpreter. 
     // Check doc/TclCommands.md in detail
-    $ cd OpenDP/test/nangate45-test-01
-    $ opendp < run_opendp.tcl
+    $ cd test/
+    $ opendp < run_nangate45_gcd.tcl
+
 
 ### Verified/supported Technologies
 * TSMC 65 (GP/LP)
