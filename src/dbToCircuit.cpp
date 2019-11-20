@@ -1,4 +1,4 @@
-#include "circuitParser.h"
+#include "circuit.h"
 #include <cfloat>
 
 namespace opendp {
@@ -8,24 +8,256 @@ using std::min;
 using std::pair;
 using std::cout;
 using std::cerr;
-using std::endl;
-using std::istream;
-using std::ifstream;
-using std::ofstream;
 using std::vector;
 using std::make_pair;
 using std::to_string;
 using std::string;
 using std::fixed;
 using std::numeric_limits;
+using std::ifstream;
+using std::ofstream;
+using std::endl;
 
-// static variable definition
-opendp::macro* CircuitParser::topMacro_ = 0;
+void
+circuit::db_to_circuit()
+{
+  make_layers();
+  for (auto db_lib : db->getLibs()) {
+    make_sites(db_lib);
+    make_macros(db_lib);
+  }
+}
+
+void
+circuit::make_layers()
+{
+  for (auto db_layer : db->getTech()->getLayers()) {
+    struct layer layer;
+    layer.db_layer = db_layer;
+    layer.name = db_layer->getConstName();
+    layer.type = db_layer->getType().getString();
+    layer.direction = db_layer->getDirection().getString();
+    layer.xPitch = layer.yPitch = db_layer->getPitch();
+    //myLayer->xPitch = la->pitchX(); 
+    //myLayer->yPitch = la->pitchY(); 
+    //layer.xOffset = layer.yOffset = db_layer->getOffset(); 
+    //myLayer->xOffset = la->offsetX();
+    //myLayer->yOffset = la->offsetY();
+    layer.width = db_layer->getWidth(); 
+    // max = min; WTF?? -cherry
+    // myLayer->maxWidth = la->minwidth();
+    layer.maxWidth = db_layer->getMaxWidth();
+    layers.push_back(layer);
+    db_layer_map[db_layer] = &layers.back();
+  }
+}
+
+void
+circuit::make_sites(dbLib *db_lib)
+{
+  for (auto db_site : db_lib->getSites()) {
+    struct site site;
+    site.db_site = db_site;
+    site.name = db_site->getConstName();
+    site.width = db_site->getWidth();
+    site.height = db_site->getHeight();
+    site.type = db_site->getClass().getString();
+    if (db_site->getSymmetryX())
+      site.symmetries.push_back("X");
+    if (db_site->getSymmetryY())
+      site.symmetries.push_back("Y");
+    if (db_site->getSymmetryR90())
+      site.symmetries.push_back("R90");
+    sites.push_back(site);
+    db_site_map[db_site] = &sites.back();
+  }
+}
+
+void
+circuit::make_macros(dbLib *db_lib)
+{
+  for (auto db_master : db_lib->getMasters()) {
+    struct macro macro;
+    macro.db_master = db_master;
+    macro.name = db_master->getConstName();
+    macro.type = db_master->getType().getString();
+
+    int x, y;
+    db_master->getOrigin(x, y);
+    macro.xOrig = x;
+    macro.yOrig = y;
+
+    macro.width = db_master->getWidth();
+    macro.height = db_master->getHeight();
+    struct site *site = db_site_map[db_master->getSite()];
+    int site_idx = site - &sites[0];
+    macro.sites.push_back(site_idx);
+
+    macros.push_back(macro);
+    struct macro *macro1 = &macros.back();
+    db_master_map[db_master] = macro1;
+
+    make_macro_pins(db_master, macro1);
+    make_macro_obstructions(db_master, macro1);
+    macro_define_top_power(macro1);
+  }
+}
+
+void
+circuit::make_macro_pins(dbMaster *db_master,
+			 struct macro *macro)
+{
+  for (auto db_mterm : db_master->getMTerms()) {
+    for (auto db_mpin : db_mterm->getMPins()) {
+      macro_pin pin;
+
+      pin.db_mpin = db_mpin;
+      string pinName = db_mterm->getConstName();
+      pin.direction = db_mterm->getIoType().getString();
+
+      for (auto db_box : db_mpin->getGeometry()) {
+	rect tmpRect;
+	tmpRect.xLL = db_box->xMin();
+	tmpRect.yLL = db_box->yMin();
+	tmpRect.xUR = db_box->xMax();
+	tmpRect.yUR = db_box->yMax();
+	pin.port.push_back(tmpRect);
+      }
+      macro->pins[pinName] = pin;
+    }
+  }
+}
+
+void
+circuit::make_macro_obstructions(dbMaster *db_master,
+				 struct macro *macro)
+{
+  for (auto db_box : db_master->getObstructions()) {
+    rect tmpRect;
+    tmpRect.xLL = db_box->xMin();
+    tmpRect.yLL = db_box->yMin();
+    tmpRect.xUR = db_box->xMax();
+    tmpRect.yUR = db_box->yMax();
+    macro->obses.push_back(tmpRect);
+  }
+}
+
+// - - - - - - - define multi row cell & define top power - - - - - - - - //
+void circuit::macro_define_top_power(macro* myMacro) {
+
+  bool isVddFound = false, isVssFound = false;
+  string vdd_str, vss_str;
+
+  auto pinPtr = myMacro->pins.find("vdd");
+  if(pinPtr != myMacro->pins.end()) {
+    vdd_str = "vdd";
+    isVddFound = true;
+  }
+  else if( pinPtr != myMacro->pins.find("VDD") ) {
+    vdd_str = "VDD";
+    isVddFound = true;
+  }
+
+  pinPtr = myMacro->pins.find("vss");
+  if( pinPtr != myMacro->pins.end()) {
+    vss_str = "vss";
+    isVssFound = true;
+  }
+  else if( pinPtr != myMacro->pins.find("VSS") ) {
+    vss_str = "VSS";
+    isVssFound = true;
+  }
+
+
+  if( isVddFound || isVssFound ) {
+    double max_vdd = 0;
+    double max_vss = 0;
+
+    macro_pin* pin_vdd = NULL;
+    if( isVddFound ) {
+      pin_vdd = &myMacro->pins.at(vdd_str);
+      for(int i = 0; i < pin_vdd->port.size(); i++) {
+        if(pin_vdd->port[i].yUR > max_vdd) {
+          max_vdd = pin_vdd->port[i].yUR;
+        } 
+      }
+    }
+   
+    macro_pin* pin_vss = NULL;
+    if( isVssFound ) {
+      pin_vss = &myMacro->pins.at(vss_str);
+      for(int j = 0; j < pin_vss->port.size(); j++) {
+        if(pin_vss->port[j].yUR > max_vss) {
+          max_vss = pin_vss->port[j].yUR;
+        }
+      }
+    }
+
+    if(max_vdd > max_vss)
+      myMacro->top_power = VDD;
+    else
+      myMacro->top_power = VSS;
+
+    if(pin_vdd && pin_vss) {
+      if (pin_vdd->port.size() + pin_vss->port.size() > 2) {
+        myMacro->isMulti = true;
+      } 
+      else if(pin_vdd->port.size() + pin_vss->port.size() < 2) {
+        cerr << "macro:: power num error, vdd + vss => "
+           << (pin_vdd->port.size() + pin_vss->port.size()) << endl;
+        exit(1);
+      }
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////
+#if 0
+
 opendp::group* CircuitParser::topGroup_ = 0;
 
-#if 0
-CircuitParser::CircuitParser(circuit* ckt )
-: ckt_(ckt) {};
+int circuit::ReadDef() {
+  CircuitParser cp(this);
+
+  // 
+  // CircuitCallBack 
+  //
+  defrSetDesignCbk(cp.DefDesignCbk);
+  defrSetUnitsCbk(cp.DefUnitsCbk);
+  defrSetDieAreaCbk((defrBoxCbkFnType)cp.DefDieAreaCbk);
+ 
+  // rows 
+  defrSetRowCbk((defrRowCbkFnType)cp.DefRowCbk);
+  
+  defrSetComponentStartCbk(cp.DefStartCbk);
+  defrSetNetStartCbk(cp.DefStartCbk);
+  defrSetSNetStartCbk(cp.DefStartCbk);
+  defrSetStartPinsCbk(cp.DefStartCbk);
+
+  defrSetSNetEndCbk(cp.DefEndCbk);
+
+  // Components
+  defrSetComponentCbk(cp.DefComponentCbk);
+  
+  // pins
+  defrSetPinCbk((defrPinCbkFnType)cp.DefPinCbk);
+
+  // Nets
+  defrSetNetCbk(cp.DefNetCbk);
+  defrSetSNetCbk(cp.DefSNetCbk);
+  defrSetAddPathToNet();
+
+  // Regions
+  defrSetRegionCbk((defrRegionCbkFnType)cp.DefRegionCbk);
+
+  // Groups
+  defrSetGroupNameCbk((defrStringCbkFnType)cp.DefGroupNameCbk);
+  defrSetGroupMemberCbk((defrStringCbkFnType)cp.DefGroupMemberCbk);
+
+  // End Design
+  defrSetDesignEndCbk(cp.DefEndCbk);
+  return 0;
+}
 
 // orient coordinate shift 
 inline static std::pair<double, double> 
@@ -100,284 +332,6 @@ GetOrientSize( double w, double h, int orient ) {
 // LEF Parsing Cbk Functions
 //
 
-// Layer Parsing
-// No need to parse all data
-int 
-CircuitParser::LefLayerCbk(
-    lefrCallbackType_e c,
-    lefiLayer* la, 
-    lefiUserData ud ) {
-  circuit* ckt = (circuit*) ud;
-  layer* myLayer = ckt->locateOrCreateLayer( la->name() );
-
-  if( la->hasType() ) { myLayer->type = la->type(); }
-  if( la->hasDirection() ) { myLayer->direction = la->direction(); }
-
-  if( la->hasPitch() ) { 
-    myLayer->xPitch = myLayer->yPitch = la->pitch(); 
-  }
-  else if( la->hasXYPitch() ) { 
-    myLayer->xPitch = la->pitchX(); 
-    myLayer->yPitch = la->pitchY(); 
-  }
-
-  if( la->hasOffset() ) {
-    myLayer->xOffset = myLayer->yOffset = la->offset(); 
-  }
-  else if( la->hasXYOffset() ) {
-    myLayer->xOffset = la->offsetX();
-    myLayer->yOffset = la->offsetY();
-  }
-
-  if( la->hasWidth() ) {
-    myLayer->width = la->width(); 
-  }
-  if( la->hasMaxwidth() ) {
-    myLayer->maxWidth = la->minwidth();
-  }
-  return 0;
-}
-
-// SITE parsing
-int
-CircuitParser::LefSiteCbk(
-    lefrCallbackType_e c,
-    lefiSite* si, 
-    lefiUserData ud ) {
-
-  circuit* ckt = (circuit*) ud;
-  site* mySite = ckt->locateOrCreateSite( si->name() );
-  if( si->hasSize() ) {
-    mySite->width = si->sizeX();
-    mySite->height = si->sizeY();
-  }
-
-  if( si->hasClass() ) {
-    mySite->type = si->siteClass();
-  }
-
-  if( si->hasXSymmetry() ) {
-    mySite->symmetries.push_back("X");
-  }
-  if( si->hasYSymmetry() ) {
-    mySite->symmetries.push_back("Y");
-  }
-  if( si->has90Symmetry() ) {
-    mySite->symmetries.push_back("R90");
-  }
-  return 0;
-}
-
-
-
-// MACRO parsing
-//
-// Begin Call back
-// Set topMacro_ pointer
-int 
-CircuitParser::LefStartCbk(
-    lefrCallbackType_e c,
-    const char* name, 
-    lefiUserData ud ) {
-  circuit* ckt = (circuit*) ud;
-  switch(c) {
-    case lefrMacroBeginCbkType:
-      // Fill topMacro_'s pointer
-      topMacro_ = ckt->locateOrCreateMacro(name);
-      break;
-    default:
-      break;
-  }
-  return 0;
-}
-
-int
-CircuitParser::LefMacroCbk(
-    lefrCallbackType_e c,
-    lefiMacro* ma, 
-    lefiUserData ud ) {
-  circuit* ckt = (circuit*) ud;
-//  cout << "MacroCB Start " << topMacro_ << " " << ma->name() << endl;
-
-  // Need to extract EDGETYPE vallues from cell macro lef
-  //
-  if( ma->numProperties() > 0 ) {
-    for(int i=0; i<ma->numProperties(); i++) {
-      if( ma->propValue(i) ) {
-//        cout << ma->propName(i) << " val: " << ma->propValue(i) << endl;
-//        printf("%s val: %s\n", ma->propName(i),  ma->propValue(i));
-      }
-      else {
-//        cout << ma->propName(i) << " num: " << ma->propNum(i) << endl;
-      }
-    }
-  }
-
-  if( ma->hasClass() ) {
-    topMacro_->type = ma->macroClass();
-  }
-
-  if( ma->hasOrigin() ) {
-    topMacro_->xOrig = ma -> originX();
-    topMacro_->yOrig = ma -> originY();
-  }
-
-  if( ma->hasSize() ) {
-    topMacro_->width = ma->sizeX();
-    topMacro_->height = ma->sizeY();
-  }
-
-  if( ma->hasSiteName() ) {
-    site* mySite = ckt->locateOrCreateSite(ma->siteName());
-    topMacro_->sites.push_back( ckt->site2id.find(mySite->name)->second );
-  }
-
-  
-  return 0;
-}
-
-// Set macro's pin 
-int 
-CircuitParser::LefMacroPinCbk(
-    lefrCallbackType_e c,
-    lefiPin* pi, 
-    lefiUserData ud ) {
-  circuit* ckt = (circuit*) ud;
-
-  macro_pin myPin;
-
-  string pinName = pi->name();
-  if( pi->hasDirection() ) {
-    myPin.direction = pi->direction();
-  }
-
-  if( pi->hasShape() ) {
-    myPin.shape = pi->shape(); 
-  }
-
-  layer* curLayer = NULL;
-  for(int i=0; i<pi->numPorts(); i++) {
-    lefiGeometries* geom = pi->port(i);
-    lefiGeomRect* lrect = NULL;
-    lefiGeomPolygon* lpoly = NULL;
-    double polyLx = DBL_MAX, polyLy = DBL_MAX;
-    double polyUx = DBL_MIN, polyUy = DBL_MAX;
-
-    opendp::rect tmpRect;
-
-    for(int j=0; j<geom->numItems(); j++) {
-      switch(geom->itemType(j)) {
-        // when meets Layer .
-        case lefiGeomLayerE:
-          curLayer = ckt->locateOrCreateLayer( geom->getLayer(j) );
-          break;
-        
-        // when meets Rect
-        case lefiGeomRectE:
-          lrect = geom->getRect(j);
-          tmpRect.xLL = lrect->xl;
-          tmpRect.yLL = lrect->yl;
-          tmpRect.xUR = lrect->xh;
-          tmpRect.yUR = lrect->yh;
-          myPin.port.push_back(tmpRect);
-          break;
-
-        // when meets Polygon 
-        case lefiGeomPolygonE:
-          lpoly = geom->getPolygon(j);
-
-          polyLx = DBL_MAX;
-          polyLy = DBL_MAX;
-          polyUx = DBL_MIN;
-          polyUy = DBL_MIN;
-
-          for(int k=0; k<lpoly->numPoints; k++) {
-            polyLx = min(polyLx, lpoly->x[k]); 
-            polyLy = min(polyLy, lpoly->y[k]);
-            polyUx = max(polyUx, lpoly->x[k]);
-            polyUy = max(polyUy, lpoly->y[k]);
-          }
-         
-          tmpRect.xLL = polyLx;
-          tmpRect.yLL = polyLy;
-          tmpRect.xUR = polyUx;
-          tmpRect.yUR = polyUy; 
-          myPin.port.push_back(tmpRect);
-
-        default:
-          break;
-      }
-    }
-  }
- 
-  topMacro_->pins[pinName] = myPin;
-
-  return 0; 
-}
-
-// Set macro's Obs
-int 
-CircuitParser::LefMacroObsCbk(
-    lefrCallbackType_e c,
-    lefiObstruction* obs,
-    lefiUserData ud ) {
-  circuit* ckt = (circuit*) ud;
-  lefiGeometries* geom = obs->geometries();
-
-  bool isMeetMetalLayer1 = false;
-  for(int i=0; i<geom->numItems(); i++) {
-    lefiGeomRect* lrect = NULL;
-    opendp::rect tmpRect;
-
-    switch(geom->itemType(i)) {
-      // when meets metal1 segments.
-      case lefiGeomLayerE:
-        // HARD CODE
-        // Need to be replaced layer. (metal1 name)
-        isMeetMetalLayer1 = 
-          (strcmp(geom->getLayer(i), "metal1") == 0)? true : false;
-      break;
-      // only metal1's obs should be pushed.
-      case lefiGeomRectE:
-        if(!isMeetMetalLayer1){ 
-          break;
-        }
-
-        lrect = geom->getRect(i);
-        tmpRect.xLL = lrect->xl;
-        tmpRect.yLL = lrect->yl;
-        tmpRect.xUR = lrect->xh;
-        tmpRect.yUR = lrect->yh;
-  
-        topMacro_->obses.push_back(tmpRect);
-        break;
-      default: 
-        break;    
-    }
-  }
-
-//  cout << "obs: " << topMacro_->obses.size() << endl;
-  return 0;
-}
-
-int 
-CircuitParser::LefEndCbk(
-    lefrCallbackType_e c,
-    const char* name, 
-    lefiUserData ud ) {
-  circuit* ckt = (circuit*) ud;
-  switch(c) {
-    case lefrMacroEndCbkType:
-//      cout << "Macro: " << topMacro_->name << " is undergoing test" << endl;
-      ckt->read_lef_macro_define_top_power(topMacro_);
-      // reset topMacro_'s pointer
-      topMacro_ = 0;
-      break;
-    default:
-      break;
-  }
-  return 0;
-}
 
 
 // Row Sort Function
@@ -886,6 +840,6 @@ vector<opendp::row> GetNewRow(const circuit* ckt) {
   }
   return retRow;
 }
-
 #endif
+
 }

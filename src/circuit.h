@@ -35,8 +35,8 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef EVALUATE_H
-#define EVALUATE_H
+#ifndef OPENDP_CIRCUIT_H
+#define OPENDP_CIRCUIT_H
 
 #include <iostream>
 #include <fstream>
@@ -52,6 +52,7 @@
 #include <assert.h>
 #include <queue>
 #include "mymeasure.h"
+#include "opendb/db.h"
 
 // hashmap settings
 #ifdef USE_GOOGLE_HASH
@@ -72,6 +73,13 @@
 
 namespace opendp {
 
+using odb::dbDatabase;
+using odb::dbLib;
+using odb::dbTechLayer;
+using odb::dbSite;
+using odb::dbMaster;
+using odb::dbMPin;
+
 enum power { VDD, VSS };
 
 struct rect {
@@ -83,6 +91,7 @@ struct rect {
 };
 
 struct site {
+  dbSite *db_site;
   std::string name;
   double width;                /* in microns */
   double height;               /* in microns */
@@ -116,6 +125,7 @@ struct space {
 };
 
 struct layer {
+  dbTechLayer *db_layer;
   std::string name;
   std::string type;
   std::string direction;
@@ -158,16 +168,17 @@ struct via {
 };
 
 struct macro_pin {
+  dbMPin *db_mpin;
   std::string direction;
 
   std::vector< rect > port;
   std::vector< unsigned > layer;
 
-  std::string shape;
   macro_pin();
 };
 
 struct macro {
+  dbMaster *db_master;
   std::string name;
   std::string type;        /* equivalent to class, I/O pad or CORE */
   bool isFlop;        /* clocked element or not */
@@ -324,6 +335,11 @@ class circuit {
   bool GROUP_IGNORE;
 
   void init_large_cell_stor();
+
+  std::map<dbTechLayer*, layer*> db_layer_map;
+  std::map<dbSite*, site*> db_site_map;
+  std::map<dbMaster*, macro*> db_master_map;
+
   OPENDP_HASH_MAP< std::string, unsigned >
       macro2id; /* OPENDP_HASH_MAP between macro name and ID */
   OPENDP_HASH_MAP< std::string, unsigned >
@@ -372,9 +388,6 @@ class circuit {
   int max_cell_height;
   unsigned num_cpu;
 
-  std::string out_def_name;
-  std::string in_def_name;
-
   /* benchmark generation */
   std::string benchmark; /* benchmark name */
 
@@ -384,25 +397,14 @@ class circuit {
   std::vector< sub_region > sub_regions;
   std::vector< track > tracks;
 
-  // used for LEF file
-  std::string LEFVersion;
-  std::string LEFNamesCaseSensitive;
-  std::string LEFDelimiter;
-  std::string LEFBusCharacters;
-  double LEFManufacturingGrid;
-
   unsigned MAXVIASTACK;
   layer* minLayer;
   layer* maxLayer;
 
-  // used for DEF file
-  std::string DEFVersion;
-  std::string DEFDelimiter;
-  std::string DEFBusCharacters;
-  std::string design_name;
   unsigned DEFdist2Microns;
   std::vector< std::pair< unsigned, unsigned > > dieArea;
 
+  dbDatabase *db;
   std::vector< site > sites;   /* site list */
   std::vector< layer > layers; /* layer list */
   std::vector< macro > macros; /* macro list */
@@ -420,40 +422,32 @@ class circuit {
   std::vector< std::pair< double, cell* > > large_cell_stor;
 
   /* locateOrCreate helper functions - parser_helper.cpp */
-  macro* locateOrCreateMacro(const std::string& macroName);
   cell* locateOrCreateCell(const std::string& cellName);
   net* locateOrCreateNet(const std::string& netName);
   pin* locateOrCreatePin(const std::string& pinName);
   row* locateOrCreateRow(const std::string& rowName);
-  site* locateOrCreateSite(const std::string& siteName);
-  layer* locateOrCreateLayer(const std::string& layerName);
   via* locateOrCreateVia(const std::string& viaName);
   group* locateOrCreateGroup(const std::string& groupName);
   void print();
 
-  /* IO helpers for LEF - parser.cpp */
-  void read_lef_site(std::ifstream& is);
-  void read_lef_property(std::ifstream& is);
-  void read_lef_layer(std::ifstream& is);
-  void read_lef_via(std::ifstream& is);
-  void read_lef_viaRule(std::ifstream& is);
-  void read_lef_macro(std::ifstream& is);
-  void read_lef_macro_site(std::ifstream& is, macro* myMacro);
-  void read_lef_macro_pin(std::ifstream& is, macro* myMacro);
-  // priv func
-  void read_lef_macro_define_top_power(macro* myMacro);
-
   circuit();
+
+  // Make circuit structs from db.
+  void db_to_circuit();
+  void make_layers();
+  void make_sites(dbLib *db_lib);
+  void make_macros(dbLib *db_lib);
+  void make_macro_pins(dbMaster *db_master,
+		       struct macro *macro);
+  void macro_define_top_power(macro* myMacro);
+  void make_macro_obstructions(dbMaster *db_master,
+			       struct macro *macro);
 
   /* read files for legalizer - parser.cpp */
   bool read_constraints(const std::string& input);
   void copy_init_to_final();
   void calc_design_area_stats();
 
-
-  // Si2 parsing engine
-  int ReadDef();
-  int ReadLef();
   void InitOpendpAfterParse();
 
   // utility.cpp - By SGD

@@ -56,7 +56,7 @@ viaRule::viaRule() : name("") {};
 
 via::via() : name(""), viaRule(""), property("") {};
 
-macro_pin::macro_pin() : direction(""), shape(""), layer(0) {};
+macro_pin::macro_pin() : direction(""), layer(0) {};
 
 macro::macro()
   : name(""),
@@ -202,10 +202,6 @@ circuit::circuit()
   : GROUP_IGNORE(false),
     num_fixed_nodes(0),
     num_cpu(1),
-    DEFVersion(""),
-    DEFDelimiter("/"),
-    DEFBusCharacters("[]"),
-    design_name(""),
     DEFdist2Microns(0),
     sum_displacement(0.0),
     displacement(400.0),

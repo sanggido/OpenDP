@@ -96,19 +96,6 @@ cell *circuit::locateOrCreateCell(const string &cellName) {
     return &cells[it->second];
 }
 
-macro *circuit::locateOrCreateMacro(const string &macroName) {
-  OPENDP_HASH_MAP< string, unsigned >::iterator it = macro2id.find(macroName);
-  if(it == macro2id.end()) {
-    macro theMacro;
-    theMacro.name = macroName;
-    macro2id.insert(make_pair(theMacro.name, macros.size()));
-    macros.push_back(theMacro);
-    return &macros[macros.size() - 1];
-  }
-  else
-    return &macros[it->second];
-}
-
 net *circuit::locateOrCreateNet(const string &netName) {
   OPENDP_HASH_MAP< string, unsigned >::iterator it = net2id.find(netName);
   if(it == net2id.end()) {
@@ -133,32 +120,6 @@ row *circuit::locateOrCreateRow(const string &rowName) {
   }
   else
     return &prevrows[it->second];
-}
-
-site *circuit::locateOrCreateSite(const string &siteName) {
-  OPENDP_HASH_MAP< string, unsigned >::iterator it = site2id.find(siteName);
-  if(it == site2id.end()) {
-    site theSite;
-    theSite.name = siteName;
-    site2id.insert(make_pair(theSite.name, sites.size()));
-    sites.push_back(theSite);
-    return &sites[sites.size() - 1];
-  }
-  else
-    return &sites[it->second];
-}
-
-layer *circuit::locateOrCreateLayer(const string &layerName) {
-  OPENDP_HASH_MAP< string, unsigned >::iterator it = layer2id.find(layerName);
-  if(it == layer2id.end()) {
-    layer theLayer;
-    theLayer.name = layerName;
-    layer2id.insert(make_pair(theLayer.name, layers.size()));
-    layers.push_back(theLayer);
-    return &layers[layers.size() - 1];
-  }
-  else
-    return &layers[it->second];
 }
 
 via *circuit::locateOrCreateVia(const string &viaName) {

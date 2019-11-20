@@ -1,13 +1,18 @@
 %module opendp
  
 %{
-#include "opendp_external.h"
+#include "openroad/OpenRoad.hh"
+#include "opendp/opendp_external.h"
 %}
 
-%include <stl.i>
-%include <typemaps.i>
-%include <std_string.i>
-%include <std_vector.i>
-%include <std_pair.i>
+%include "opendp/opendp_external.h"
 
-%include "opendp_external.h"
+%inline %{
+
+opendp::opendp_external *
+get_opendp()
+{
+  return ord::OpenRoad::openRoad()->getOpendp();
+}
+
+%} // inline

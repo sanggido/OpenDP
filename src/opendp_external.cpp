@@ -1,24 +1,41 @@
-#include "opendp_external.h"
+#include "opendp/opendp_external.h"
 
 using std::cout;
 using std::endl;
 
+namespace sta {
+// Tcl files encoded into strings.
+extern const char *opendp_tcl_inits[];
+}
+
+namespace opendp {
+
+extern "C" {
+extern int Opendp_Init(Tcl_Interp *interp);
+}
+
 opendp_external::opendp_external() 
-: constraint_file(""), is_evaluated(false) {};
+: is_evaluated(false) {};
 
 opendp_external::~opendp_external() {};
 
-bool opendp_external::init_opendp() {
-  if( constraint_file != "" && ckt.read_constraints(constraint_file)) {
-    return false;
-  }
+void opendp_external::init(Tcl_Interp *tcl_interp,
+			   odb::dbDatabase *db) {
+  // Define swig TCL commands.
+  Opendp_Init(tcl_interp);
 
-  ckt.InitOpendpAfterParse();
+  ckt.db = db;
+}
 
-  return true;
+void
+opendp_external::read_constraints(std::string constraint_file) {
+  ckt.read_constraints(constraint_file);
 }
 
 bool opendp_external::legalize_place() {
+  ckt.db_to_circuit();
+  ckt.InitOpendpAfterParse();
+
   ckt.simple_placement(nullptr);
   ckt.calc_density_factor(4);
   return true;
@@ -63,3 +80,5 @@ double opendp_external::get_original_hpwl() {
 double opendp_external::get_legalized_hpwl() {
   return ckt.HPWL("");
 }
+
+} // namespace
