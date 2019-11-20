@@ -213,8 +213,8 @@ circuit::circuit()
     max_utilization(100.0),
     wsite(0),
     max_cell_height(1),
-    rowHeight(0.0f), 
-    fileOut(0) {
+    rowHeight(0.0f)
+{
 
   macros.reserve(128);
   layers.reserve(32);

@@ -1,16 +1,12 @@
+*~
 *.log
 *.swo
 *.swd
 *.swp
 */**/*.o
 *.rpt
-test/**/exp
-src/opendp_wrap.cpp
+test/*/exp
+TAGS
 
-
-Makefile
-CMakeCache.txt
-*.cmake
-CMakeFiles
 install_manifest.txt
 build

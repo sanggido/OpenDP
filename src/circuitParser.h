@@ -4,12 +4,6 @@
 
 #include "circuit.h"
 
-// lef Reader modules
-#include "lefrReader.hpp"
-// def Reader modules
-#include "defrReader.hpp"
-#include "defiAlias.hpp"
-
 namespace opendp {
 
 class CircuitParser {
@@ -21,7 +15,7 @@ protected:
 public:
 	CircuitParser(opendp::circuit* ckt_);
   opendp::circuit* Circuit() { return ckt_; };
-
+#if 0
   // LEF CallBacks.
   static int LefLayerCbk( lefrCallbackType_e c, lefiLayer* la, lefiUserData ud );
   static int LefSiteCbk( lefrCallbackType_e c, lefiSite* si, lefiUserData ud );
@@ -55,7 +49,7 @@ public:
 
   // DEF writing function
   static int DefComponentWriteCbk(defrCallbackType_e c, defiComponent* co, defiUserData ud);
-
+#endif
 };
 }
 

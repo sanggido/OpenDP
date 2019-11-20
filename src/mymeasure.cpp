@@ -80,8 +80,8 @@ void CMeasure::process_mem_usage() {
   resident_set = rss * page_size_kb;
 
   // cout<<comm<<endl;
-  printf("virtual memory size : %d\n", vm_usage);
-  printf("resident Set Size   : %d\n", resident_set);
+  printf("virtual memory size : %f\n", vm_usage);
+  printf("resident Set Size   : %f\n", resident_set);
   printf("----------------------------------------");
   fflush(stdout);
 }

@@ -1064,7 +1064,7 @@ bool circuit::refine_move(cell* theCell, int x_coord, int y_coord) {
     return false;
 }
 
-pixel* circuit::get_pixel(int x_pos, int y_pos) {}
+pixel* circuit::get_pixel(int x_pos, int y_pos) { return nullptr; }
 
 pair< bool, cell* > circuit::nearest_cell(int x_coord, int y_coord) {
   bool found = false;

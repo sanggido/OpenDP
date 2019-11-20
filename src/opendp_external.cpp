@@ -4,38 +4,11 @@ using std::cout;
 using std::endl;
 
 opendp_external::opendp_external() 
-: def_file(""), constraint_file(""), is_evaluated(false) {};
+: constraint_file(""), is_evaluated(false) {};
 
 opendp_external::~opendp_external() {};
 
-void opendp_external::help() {
-  cout << "help message will be printed" << endl;
-}
-
-void opendp_external::import_lef(const char* lef) {
-  lef_stor.push_back(lef);
-}
-
-void opendp_external::import_def(const char* def) {
-  ckt.in_def_name = def_file = def;
-}
-
-void opendp_external::import_constraint(const char* constraint) {
-  constraint_file = constraint;
-}
-
-void opendp_external::export_def(const char* def) {
-  ckt.write_def(def);
-}
-
 bool opendp_external::init_opendp() {
-  if( ckt.ReadLef(lef_stor)) {
-    return false;
-  }
-  if( ckt.ReadDef(def_file) ) {
-    return false;
-  }
-
   if( constraint_file != "" && ckt.read_constraints(constraint_file)) {
     return false;
   }
@@ -48,6 +21,7 @@ bool opendp_external::init_opendp() {
 bool opendp_external::legalize_place() {
   ckt.simple_placement(nullptr);
   ckt.calc_density_factor(4);
+  return true;
 }
 
 bool opendp_external::check_legality() {

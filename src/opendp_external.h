@@ -10,13 +10,6 @@ public:
   opendp_external();
   ~opendp_external();
 
-  void help();
-
-  void import_lef(const char* lef);
-  void import_def(const char* def);
-  void import_constraint(const char* constraint);
-  void export_def(const char* def);
-
   bool init_opendp();
   bool legalize_place();
   bool check_legality();
@@ -30,10 +23,8 @@ public:
 
 private:
   opendp::circuit ckt;
-  std::vector<std::string> lef_stor;
-  std::string def_file;
   std::string constraint_file;
   bool is_evaluated;
-}; 
+};
 
 #endif

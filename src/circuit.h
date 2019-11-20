@@ -51,7 +51,6 @@
 #include <limits>
 #include <assert.h>
 #include <queue>
-#include <omp.h>
 #include "mymeasure.h"
 
 // hashmap settings
@@ -444,49 +443,17 @@ class circuit {
   // priv func
   void read_lef_macro_define_top_power(macro* myMacro);
 
-  /* IO helpers for DEF - parser.cpp */
-  void read_init_def_components(std::ifstream& is);
-  void read_final_def_components(std::ifstream& is);
-  void read_def_vias(std::ifstream& is);
-  void read_def_pins(std::ifstream& is);
-  void read_def_special_nets(std::ifstream& is);
-  void read_def_nets(std::ifstream& is);
-  void read_def_regions(std::ifstream& is);
-  void read_def_groups(std::ifstream& is);
-  void write_def(const std::string& output);
-
-  void WriteDefComponents(const std::string& inputDef);
-
-  FILE* fileOut;
-
   circuit();
 
   /* read files for legalizer - parser.cpp */
-  void print_usage();
-  void read_files(int argc, char* argv[]);
   bool read_constraints(const std::string& input);
-  void read_lef(const std::string& input);
-  void read_tech_lef(const std::string& input);
-  void read_cell_lef(const std::string& input);
-  void read_def(const std::string& input, bool init_or_final);
-  void read_def_size(const std::string& input);
   void copy_init_to_final();
   void calc_design_area_stats();
 
 
   // Si2 parsing engine
-  int ReadDef(const std::string& input);
-  // int DefVersionCbk(defrCallbackType_e c, const char* versionName, defiUserData ud);
-  // int DefDividerCbk(defrCallbackType_e c, const char* h, defiUserData ud);
-  // int DefDesignCbk(defrCallbackType_e c, const char* std::string, defiUserData ud);
-  // int DefUnitsCbk(defrCallbackType_e c, double d, defiUserData ud);
-  // int DefDieAreaCbk(defrCallbackType_e c, defiBox* box, defiUserData ud);  
-  // int DefRowCbk(defrCallbackType_e c, defiRow* row, defiUserData ud);
-
-
-  int ReadLef(const std::vector<std::string>& lefStor);
-  
-
+  int ReadDef();
+  int ReadLef();
   void InitOpendpAfterParse();
 
   // utility.cpp - By SGD

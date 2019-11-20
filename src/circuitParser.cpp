@@ -23,6 +23,7 @@ using std::numeric_limits;
 opendp::macro* CircuitParser::topMacro_ = 0;
 opendp::group* CircuitParser::topGroup_ = 0;
 
+#if 0
 CircuitParser::CircuitParser(circuit* ckt )
 : ckt_(ckt) {};
 
@@ -611,20 +612,6 @@ int CircuitParser::DefComponentWriteCbk(
     defiComponent* co, 
     defiUserData ud) {
 
-  circuit* ckt = (circuit*) ud;
-  // get FilePointer from ckt class
-  FILE* fout = ckt->fileOut;
-    
-  int i;
-  //  missing GENERATE, FOREIGN
-  fprintf(fout, "- %s %s ", co->id(), co->name());
-  //    co->changeIdAndName("idName", "modelName");
-  //    fprintf(fout, "%s %s ", co->id(),
-  //            co->name());
-  if(co->hasNets()) {
-    for(i = 0; i < co->numNets(); i++) fprintf(fout, "%s ", co->net(i));
-  }
-
   // get Cell Object
   cell* theCell = ckt->locateOrCreateCell(co->id());
   int placeX = IntConvert(theCell->x_coord + ckt->core.xLL);
@@ -647,71 +634,6 @@ int CircuitParser::DefComponentWriteCbk(
         placeX, placeY, orientStr.c_str());
     }
   }
-  if(co->hasSource()) fprintf(fout, "+ SOURCE %s ", co->source());
-  if(co->hasGenerate()) {
-    fprintf(fout, "+ GENERATE %s ", co->generateName());
-    if(co->macroName() && *(co->macroName()))
-      fprintf(fout, "%s ", co->macroName());
-  }
-  if(co->hasWeight()) fprintf(fout, "+ WEIGHT %d ", co->weight());
-  if(co->hasEEQ()) fprintf(fout, "+ EEQMASTER %s ", co->EEQ());
-  if(co->hasRegionName()) fprintf(fout, "+ REGION %s ", co->regionName());
-  if(co->hasRegionBounds()) {
-    int *xl, *yl, *xh, *yh;
-    int size;
-    co->regionBounds(&size, &xl, &yl, &xh, &yh);
-    for(i = 0; i < size; i++) {
-      fprintf(fout, "+ REGION %d %d %d %d \n", xl[i], yl[i], xh[i], yh[i]);
-    }
-  }
-  if(co->maskShiftSize()) {
-    fprintf(fout, "+ MASKSHIFT ");
-
-    for(int i = co->maskShiftSize() - 1; i >= 0; i--) {
-      fprintf(fout, "%d", co->maskShift(i));
-    }
-    fprintf(fout, "\n");
-  }
-  if(co->hasHalo()) {
-    int left, bottom, right, top;
-    (void)co->haloEdges(&left, &bottom, &right, &top);
-    fprintf(fout, "+ HALO ");
-    if(co->hasHaloSoft()) fprintf(fout, "SOFT ");
-    fprintf(fout, "%d %d %d %d\n", left, bottom, right, top);
-  }
-  if(co->hasRouteHalo()) {
-    fprintf(fout, "+ ROUTEHALO %d %s %s\n", co->haloDist(), co->minLayer(),
-        co->maxLayer());
-  }
-  if(co->hasForeignName()) {
-    fprintf(fout, "+ FOREIGN %s %d %d %s %d ", co->foreignName(),
-        co->foreignX(), co->foreignY(), co->foreignOri(),
-        co->foreignOrient());
-  }
-  if(co->numProps()) {
-    for(i = 0; i < co->numProps(); i++) {
-      fprintf(fout, "+ PROPERTY %s %s ", co->propName(i), co->propValue(i));
-      switch(co->propType(i)) {
-        case 'R':
-          fprintf(fout, "REAL ");
-          break;
-        case 'I':
-          fprintf(fout, "INTEGER ");
-          break;
-        case 'S':
-          fprintf(fout, "STRING ");
-          break;
-        case 'Q':
-          fprintf(fout, "QUOTESTRING ");
-          break;
-        case 'N':
-          fprintf(fout, "NUMBER ");
-          break;
-      }
-    }
-  }
-  fprintf(fout, ";\n");
-
   return 0;
 }
 
@@ -965,4 +887,5 @@ vector<opendp::row> GetNewRow(const circuit* ckt) {
   return retRow;
 }
 
+#endif
 }

@@ -20,7 +20,8 @@ def NangateRun(curList):
       if cFile.endswith(".tcl") == False:
         continue
       print ( "  " + cFile )
-      cmd = "cd %s && ../opendp < %s |& tee exp/%s.log" % (curCase, cFile, cFile) 
+#      cmd = "cd %s && opendp < %s |& tee exp/%s.log" % (curCase, cFile, cFile) 
+      cmd = "cd %s && ../opendp < %s | tee exp/%s.log" % (curCase, cFile, cFile) 
       if useValgrind: 
         ExecuteCommand("cd %s && valgrind --log-fd=1 ../opendp < %s |& tee exp/%s_valgrind.log" % (curCase, cFile, cFile) )
       elif useScreen:
