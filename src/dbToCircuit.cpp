@@ -43,14 +43,14 @@ circuit::db_to_circuit()
 
   // DBUs are nanometers.
   DEFdist2Microns = 1000;
+  block = db->getChip()->getBlock();
   adsRect die_area;
-  db->getChip()->getBlock()->getDieArea(die_area);
+  block->getDieArea(die_area);
   lx = die.xLL = die_area.xMin();
   by = die.yLL = die_area.yMin();
   rx = die.xUR = die_area.xMax();
   ty = die.yUR = die_area.yMax();
 
-  block = db->getChip()->getBlock();
   make_rows();
   make_cells();
 
@@ -132,12 +132,11 @@ circuit::make_macro_pins(dbMaster *db_master,
 {
   for (auto db_mterm : db_master->getMTerms()) {
     for (auto db_mpin : db_mterm->getMPins()) {
-      macro_pin pin;
+      string pinName = db_mterm->getConstName();
+      macro_pin &pin = macro.pins[pinName];
 
       pin.db_mpin = db_mpin;
-      string pinName = db_mterm->getConstName();
       pin.direction = db_mterm->getIoType().getString();
-
       for (auto db_box : db_mpin->getGeometry()) {
 	rect tmpRect;
 	tmpRect.xLL = db_box->xMin();
@@ -146,7 +145,7 @@ circuit::make_macro_pins(dbMaster *db_master,
 	tmpRect.yUR = db_box->yMax();
 	pin.port.push_back(tmpRect);
       }
-      macro.pins[pinName] = pin;
+      
     }
   }
 }
@@ -223,7 +222,8 @@ void circuit::macro_define_top_power(macro* myMacro) {
 
     if(pin_vdd && pin_vss) {
       if (pin_vdd->port.size() + pin_vss->port.size() > 2) {
-        myMacro->isMulti = true;
+	// This fails when a polygon is converted into muliple rects.
+	//        myMacro->isMulti = true;
       } 
       else if(pin_vdd->port.size() + pin_vss->port.size() < 2) {
         cerr << "macro:: power num error, vdd + vss => "
@@ -332,12 +332,15 @@ static vector<opendp::row> GetNewRow(const circuit* ckt) {
 void
 circuit::make_cells()
 {
-  for (auto db_inst : block->getInsts()) {
+  auto db_insts = block->getInsts();
+  cells.reserve(db_insts.size());
+  for (auto db_inst : db_insts) {
     cells.push_back(cell());
     struct cell &cell = cells.back();
     cell.db_inst = db_inst;
     db_inst_map[db_inst] = &cell;
 
+    cell.name = db_inst->getConstName();
     dbMaster *master = db_inst->getMaster();
     auto miter = db_master_map.find(master);
     if (miter != db_master_map.end()) {
@@ -345,7 +348,7 @@ circuit::make_cells()
       int macro_idx = macro - &macros[0];
       cell.type = macro_idx;
    
-      dbOrientType orient = db_inst->getOrient().getString();
+      dbOrientType orient = db_inst->getOrient();
       pair<double, double> orientSize 
 	= GetOrientSize( macro->width, macro->height, orient);
 
@@ -357,17 +360,17 @@ circuit::make_cells()
       // Shift by core.xLL and core.yLL
       int x, y;
       db_inst->getLocation(x, y);
-      cell.init_x_coord = std::max(0.0, (dbuToMicrons(x) - core.xLL)); 
-      cell.init_y_coord = std::max(0.0, (dbuToMicrons(y) - core.yLL));
+      cell.init_x_coord = std::max(0.0, x - core.xLL);
+      cell.init_y_coord = std::max(0.0, y - core.yLL);
 
       // fixed cells
       if( cell.isFixed ) {
 	// Shift by core.xLL and core.yLL
-	cell.x_coord = dbuToMicrons(x) - core.xLL;
-	cell.y_coord = dbuToMicrons(y) - core.yLL;
+	cell.x_coord = x - core.xLL;
+	cell.y_coord = y - core.yLL;
 	cell.isPlaced = true;
       }
-      cell.cellorient = orient;
+      cell.cellorient = orient.getString();
     }
   }
 }
@@ -376,28 +379,15 @@ circuit::make_cells()
 static std::pair<double, double> 
 GetOrientSize( double w, double h, dbOrientType orient ) {
   switch(orient) {
-    // The directions refered to below do not map to the indices
-    // used in the case statment. See opendb/definTypes.h.
-
-    // East, West, FlipEast, FlipWest
-    //  case 1:
-    //  case 3:
-    //  case 5:
-    //  case 7:
-  case dbOrientType::R180:
   case dbOrientType::R90:
-  case dbOrientType::MX:
   case dbOrientType::MXR90:
-    return std::make_pair(h, w);
-    // otherwise 
-    // case 0:
-    // case 2:
-    // case 4:
-    // case 6:
-  case dbOrientType::R0:
   case dbOrientType::R270:
-  case dbOrientType::MY:
   case dbOrientType::MYR90:
+    return std::make_pair(h, w);
+  case dbOrientType::R0:
+  case dbOrientType::R180:
+  case dbOrientType::MY:
+  case dbOrientType::MX:
     return std::make_pair(w, h); 
   }
 }

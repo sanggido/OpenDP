@@ -51,6 +51,7 @@ using std::pair;
 using std::cout;
 using std::endl;
 using std::cerr;
+using std::round;
 
 // Fixed cell handle on parser ( no need to use this function during placement)
 // //
@@ -400,8 +401,8 @@ void circuit::erase_pixel(cell* theCell) {
 bool circuit::paint_pixel(cell* theCell, int x_pos, int y_pos) {
   assert(theCell->isPlaced == false);
   macro* theMacro = &macros[theCell->type];
-  int x_step = (int)ceil(theCell->width / wsite);
-  int y_step = (int)ceil(theCell->height / rowHeight);
+  int x_step = round(theCell->width / wsite);
+  int y_step = round(theCell->height / rowHeight);
 
   theCell->x_pos = x_pos;
   theCell->y_pos = y_pos;

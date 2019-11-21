@@ -57,6 +57,9 @@ using std::vector;
 using std::make_pair;
 using std::to_string;
 using std::string;
+using std::ceil;
+using std::floor;
+using std::round;
 
 
 void circuit::power_mapping() {
@@ -198,8 +201,8 @@ double circuit::HPWL(string mode) {
 
 double circuit::calc_density_factor(double unit) {
   double gridUnit = unit * rowHeight;
-  int x_gridNum = (int)ceil((rx - lx) / gridUnit);
-  int y_gridNum = (int)ceil((ty - by) / gridUnit);
+  int x_gridNum = ceil((rx - lx) / gridUnit);
+  int y_gridNum = ceil((ty - by) / gridUnit);
   int numBins = x_gridNum * y_gridNum;
 
   // Initialize density map
@@ -538,8 +541,8 @@ pair< bool, pair< int, int > > circuit::bin_search(int x_pos, cell* theCell,
   if(theMacro->edgetypeLeft == 1) edge_left = 2;
   if(theMacro->edgetypeRight == 1) edge_right = 2;
 
-  int x_step = (int)ceil(theCell->width / wsite) + edge_left + edge_right;
-  int y_step = (int)ceil(theCell->height / rowHeight);
+  int x_step = round(theCell->width / wsite) + edge_left + edge_right;
+  int y_step = round(theCell->height / rowHeight);
 
   // IF y is out of border
   if(y + y_step > (die.yUR / rowHeight)) return make_pair(false, pos);
@@ -556,7 +559,6 @@ pair< bool, pair< int, int > > circuit::bin_search(int x_pos, cell* theCell,
   cout << " target x : " << x << endl;
   cout << " target y : " << y << endl;
 #endif
-
   if(x_pos > x) {
     for(int i = 9; i > -1; i--) {
       // check all grids are empty
@@ -671,8 +673,7 @@ pair< bool, pixel* > circuit::diamond_search(cell* theCell, int x_coord,
             (int)floor(rx / wsite) - (int)floor(theCell->width / wsite + 0.5));
     y_start = max(y_pos - (int)displacement, 0);
     y_end = min(y_pos + (int)displacement,
-                (int)floor(ty / rowHeight) -
-                    (int)floor(theCell->height / rowHeight + 0.5));
+                (int)(round(ty / rowHeight) - round(theCell->height / rowHeight)));
   }
 #ifdef DEBUG
   cout << " == Start Diamond Search ==  " << endl;
@@ -781,12 +782,11 @@ bool circuit::direct_move(cell* theCell, string mode) {
 
 bool circuit::direct_move(cell* theCell, int x_coord, int y_coord) {
   pixel* myPixel = NULL;
-  pair< bool, pair< int, int > > found;
-  int x_pos = (int)floor(x_coord / wsite + 0.5);
-  int y_pos = (int)floor(y_coord / rowHeight + 0.5);
+  int x_pos = round(x_coord / wsite);
+  int y_pos = round(y_coord / rowHeight);
 
-  int x_step = (int)ceil(theCell->width / wsite);
-  int y_step = (int)ceil(theCell->height / rowHeight);
+  int x_step = ceil(theCell->width / wsite);
+  int y_step = ceil(theCell->height / rowHeight);
   int x_end = x_pos + x_step;
   int y_end = y_pos + y_step;
 
