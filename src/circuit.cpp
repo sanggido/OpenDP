@@ -29,22 +29,7 @@ site::site(const site& s)
     type(s.type),
     symmetries(s.symmetries) {};
   
-layer::layer()
-  : name(""),
-    type(""),
-    direction(""),
-    xPitch(0.0),
-    yPitch(0.0),
-    xOffset(0.0),
-    yOffset(0.0),
-    width(0.0),
-    maxWidth(0.0),
-    spacing(""),
-    minStep(""),
-    area(0.0),
-    minEnclosedArea(0.0) {};
-  
-macro_pin::macro_pin() : direction(""), layer(0) {};
+macro_pin::macro_pin() : direction("") {};
 
 macro::macro()
   : name(""),
@@ -169,20 +154,6 @@ sub_region::sub_region()
   siblings.reserve(8192);
 }
 
-
-  
-void layer::print() {
-  cout << "|=== BEGIN LAYER ===|" << endl;
-  cout << "name:               " << name << endl;
-  cout << "type:               " << type << endl;
-  cout << "direction:          " << direction << endl;
-  cout << "[xPitch,yPitch]:    " << xPitch << ", " << yPitch << endl;
-  cout << "[xOffset,yOffset]:  " << xOffset << ", " << yOffset << endl;
-  cout << "width:              " << width << endl;
-  cout << "|===  END  LAYER ===|" << endl;
-}
-
-
 circuit::circuit() 
   : GROUP_IGNORE(false),
     num_fixed_nodes(0),
@@ -198,7 +169,6 @@ circuit::circuit()
 {
 
   macros.reserve(128);
-  layers.reserve(32);
   rows.reserve(4096);
   sub_regions.reserve(100);
 

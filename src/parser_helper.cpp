@@ -45,7 +45,6 @@ using opendp::rect;
 using opendp::pin;
 using opendp::macro;
 using opendp::site;
-using opendp::layer;
 using opendp::group;
 using opendp::density_bin;
 

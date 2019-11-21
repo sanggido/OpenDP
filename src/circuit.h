@@ -76,7 +76,6 @@ namespace opendp {
 using odb::dbDatabase;
 using odb::dbBlock;
 using odb::dbLib;
-using odb::dbTechLayer;
 using odb::dbSite;
 using odb::dbMaster;
 using odb::dbMPin;
@@ -110,35 +109,11 @@ struct site {
   void print();
 };
 
-struct layer {
-  dbTechLayer *db_layer;
-  std::string name;
-  std::string type;
-  std::string direction;
-  double xPitch;  /* in microns */
-  double yPitch;  /* in microns */
-  double xOffset; /* in microns */
-  double yOffset; /* in microns */
-  double width;   /* in microns */
-
-  // added by SGD
-  double maxWidth;
-  std::string spacing;
-  std::string minStep;
-  double area;
-  double minEnclosedArea;
-
-  // -------------
-  layer();
-  void print();
-};
-
 struct macro_pin {
   dbMPin *db_mpin;
   std::string direction;
 
   std::vector< rect > port;
-  std::vector< unsigned > layer;
 
   macro_pin();
 };
@@ -285,7 +260,6 @@ class circuit {
 
   void init_large_cell_stor();
 
-  std::map<dbTechLayer*, layer*> db_layer_map;
   std::map<dbSite*, site*> db_site_map;
   std::map<dbMaster*, macro*> db_master_map;
   std::map<dbInst*, cell*> db_inst_map;
@@ -330,17 +304,12 @@ class circuit {
   cell dummy_cell;
   std::vector< sub_region > sub_regions;
 
-  unsigned MAXVIASTACK;
-  layer* minLayer;
-  layer* maxLayer;
-
   unsigned DEFdist2Microns;
   std::vector< std::pair< unsigned, unsigned > > dieArea;
 
   dbDatabase *db;
   dbBlock *block;
   std::vector< site > sites;   /* site list */
-  std::vector< layer > layers; /* layer list */
   std::vector< macro > macros; /* macro list */
   std::vector< cell > cells;   /* cell list */
   std::vector< pin > pins;     /* pin list */
@@ -356,7 +325,6 @@ class circuit {
 
   // Make circuit structs from db.
   void db_to_circuit();
-  void make_layers();
   void make_sites(dbLib *db_lib);
   void make_macros(dbLib *db_lib);
   void make_macro_pins(dbMaster *db_master,

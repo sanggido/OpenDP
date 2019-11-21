@@ -36,7 +36,6 @@ void
 circuit::db_to_circuit()
 {
   // LEF
-  make_layers();
   for (auto db_lib : db->getLibs()) {
     make_sites(db_lib);
     make_macros(db_lib);
@@ -70,32 +69,6 @@ circuit::db_to_circuit()
   core.print();
   cout << "DieArea: " << endl;
   die.print();
-}
-
-void
-circuit::make_layers()
-{
-  for (auto db_layer : db->getTech()->getLayers()) {
-    layers.push_back(layer());
-    struct layer &layer = layers.back();
-    layers.push_back(layer);
-    db_layer_map[db_layer] = &layer;
-
-    layer.db_layer = db_layer;
-    layer.name = db_layer->getConstName();
-    layer.type = db_layer->getType().getString();
-    layer.direction = db_layer->getDirection().getString();
-    layer.xPitch = layer.yPitch = dbuToMicrons(db_layer->getPitch());
-    //myLayer->xPitch = la->pitchX(); 
-    //myLayer->yPitch = la->pitchY(); 
-    //layer.xOffset = layer.yOffset = db_layer->getOffset(); 
-    //myLayer->xOffset = la->offsetX();
-    //myLayer->yOffset = la->offsetY();
-    layer.width = dbuToMicrons(db_layer->getWidth());
-    // max = min; WTF?? -cherry
-    // myLayer->maxWidth = la->minwidth();
-    layer.maxWidth = dbuToMicrons(db_layer->getMaxWidth());
-  }
 }
 
 void
