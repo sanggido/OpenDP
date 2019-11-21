@@ -200,12 +200,15 @@ int IntConvert(double fp) {
 void
 circuit::update_db_inst_locations()
 {
-#if 0
-  cell* theCell = ckt->locateOrCreateCell(co->id());
-  int placeX = IntConvert(theCell->x_coord + ckt->core.xLL);
-  int placeY = IntConvert(theCell->y_coord + ckt->core.yLL);
-  string orientStr = theCell->cellorient;
-#endif
+  for(int i = 0; i < cells.size(); i++) {
+    struct cell* cell = &cells[i];
+    int x = IntConvert(cell->x_coord + core.xLL);
+    int y = IntConvert(cell->y_coord + core.yLL);
+    string orientStr = cell->cellorient;
+    dbInst *db_inst = cell->db_inst;
+    db_inst->setOrigin(x, y);
+    db_inst->setOrient(odb::dbOrientType(orientStr.c_str()));
+  }
 }
 
 }

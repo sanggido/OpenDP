@@ -17,7 +17,7 @@ public:
   void init(Tcl_Interp *tcl_interp,
 	    odb::dbDatabase *db);
   void read_constraints(std::string constraint_file);
-  bool legalize_place();
+  void legalize_place();
   bool check_legality();
 
   double get_utilization();

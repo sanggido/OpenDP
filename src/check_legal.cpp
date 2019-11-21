@@ -341,6 +341,9 @@ void circuit::edge_check(ofstream& log) {
       macro* right_macro = &macros[cell_list[k + 1]->type];
       if(left_macro->edgetypeRight == 0 || right_macro->edgetypeLeft == 0)
         continue;
+      // The following statement cannot be executed anymore because the
+      // edge_spacing map was hard coded in the obsolete LEF reader that
+      // predated the Si2 LEF reader.
       int space =
           (int)floor(edge_spacing[make_pair(left_macro->edgetypeRight,
                                             right_macro->edgetypeLeft)] /

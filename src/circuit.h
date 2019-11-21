@@ -264,10 +264,9 @@ class circuit {
   std::map<dbMaster*, macro*> db_master_map;
   std::map<dbInst*, cell*> db_inst_map;
 
-  OPENDP_HASH_MAP< std::string, unsigned > via2id;
-  std::map< std::pair< int, int >, double > edge_spacing; /* spacing OPENDP_HASH_MAP
-                                                   between edges  1 to 1 , 1 to
-                                                   2, 2 to 2 */
+  /* spacing between edges  1 to 1 , 1 to 2, 2 to 2 */
+  std::map< std::pair< int, int >, double > edge_spacing; 
+
   OPENDP_HASH_MAP< std::string, unsigned > group2id; /* group between name -> index */
 
   double design_util;
@@ -403,7 +402,6 @@ class circuit {
   void erase_pixel(cell* theCell);
   bool paint_pixel(cell* theCell, int x_pos, int y_pos);
 
-  // check_legal.cpp - By SGD
   bool check_legality();
   void local_density_check(double unit, double target_Ut);
   void row_check(std::ofstream& os);

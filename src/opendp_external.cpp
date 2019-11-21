@@ -32,9 +32,8 @@ opendp_external::read_constraints(std::string constraint_file) {
   ckt.read_constraints(constraint_file);
 }
 
-  
-bool opendp_external::legalize_place() {
-  // insert row check in top level command -cherry
+void opendp_external::legalize_place() {
+  // insert row check in top level command, not here -cherry
   //  if( ckt->prevrows.size() <= 0)
   //    cerr << "  ERROR: rowSize is 0. Please define at least one ROW in DEF" << endl;
 
@@ -44,7 +43,6 @@ bool opendp_external::legalize_place() {
   ckt.simple_placement(nullptr);
   ckt.calc_density_factor(4);
   ckt.update_db_inst_locations();
-  return true;
 }
 
 bool opendp_external::check_legality() {
