@@ -109,19 +109,6 @@ net *circuit::locateOrCreateNet(const string &netName) {
     return &nets[it->second];
 }
 
-row *circuit::locateOrCreateRow(const string &rowName) {
-  OPENDP_HASH_MAP< string, unsigned >::iterator it = row2id.find(rowName);
-  if(it == row2id.end()) {
-    row theRow;
-    theRow.name = rowName;
-    row2id.insert(make_pair(theRow.name, prevrows.size()));
-    prevrows.push_back(theRow);
-    return &prevrows[prevrows.size() - 1];
-  }
-  else
-    return &prevrows[it->second];
-}
-
 via *circuit::locateOrCreateVia(const string &viaName) {
   OPENDP_HASH_MAP< string, unsigned >::iterator it = via2id.find(viaName);
   if(it == via2id.end()) {

@@ -36,7 +36,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "circuit.h"
-#include <iomanip>
+#include <cmath>
+//#include <iomanip>
 
 #define _DEBUG
 
@@ -84,8 +85,8 @@ void circuit::InitOpendpAfterParse() {
   int site_offset = rows[0].origX;
 
   // construct pixel grid
-  int row_num = ty / rowHeight;
-  int col = rx / wsite;
+  int row_num = std::round(ty / rowHeight);
+  int col = std::round(rx / wsite);
   grid = new pixel*[row_num];
   for(int i = 0; i < row_num; i++) {
     grid[i] = new pixel[col];
@@ -119,20 +120,6 @@ void circuit::InitOpendpAfterParse() {
       }
     }
   }
-
-  /* 
-  for(int i = 0; i < rows.size(); i++) {
-    // original rows : Fragmented ROWS
-    row* myRow = &rows[i];
-
-    int col_size = myRow->numSites;
-    for(int j = 0; j < col_size; j++) {
-      int y_pos = (myRow->origY-core.yLL) / rowHeight;
-      int x_pos = j + (myRow->origX-core.xLL) / wsite;
-      grid[y_pos][x_pos].isValid = true;
-    }
-  }
-  */
 
   // fixed cell marking
   fixed_cell_assign();
@@ -224,8 +211,6 @@ void circuit::calc_design_area_stats() {
     cout << "        Please double check your input files!" << endl;
     exit(1); 
   }
-
-  return;
 }
 
 bool circuit::read_constraints(const string& input) {

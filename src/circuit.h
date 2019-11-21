@@ -79,6 +79,7 @@ using odb::dbTechLayer;
 using odb::dbSite;
 using odb::dbMaster;
 using odb::dbMPin;
+using odb::dbRow;
 
 enum power { VDD, VSS };
 
@@ -269,6 +270,7 @@ struct net {
 };
 
 struct row {
+  dbRow *db_row;
   /* from DEF file */
   std::string name;
   unsigned site;
@@ -341,8 +343,6 @@ class circuit {
   std::map<dbMaster*, macro*> db_master_map;
 
   OPENDP_HASH_MAP< std::string, unsigned >
-      macro2id; /* OPENDP_HASH_MAP between macro name and ID */
-  OPENDP_HASH_MAP< std::string, unsigned >
       cell2id; /* OPENDP_HASH_MAP between cell  name and ID */
   OPENDP_HASH_MAP< std::string, unsigned >
       pin2id; /* OPENDP_HASH_MAP between pin   name and ID */
@@ -373,8 +373,7 @@ class circuit {
   double total_fArea; /* total fixed cell area (excluding terminal NIs) */
   double designArea;  /* total placeable area (excluding row blockages) */
   double rowHeight;
-  double lx, rx, by,
-      ty; /* placement image's left/right/bottom/top end coordintes */
+  double lx, rx, by, ty; /* placement image's left/right/bottom/top end coordintes */
   rect die;
   rect core; // COREAREA
 
@@ -425,7 +424,6 @@ class circuit {
   cell* locateOrCreateCell(const std::string& cellName);
   net* locateOrCreateNet(const std::string& netName);
   pin* locateOrCreatePin(const std::string& pinName);
-  row* locateOrCreateRow(const std::string& rowName);
   via* locateOrCreateVia(const std::string& viaName);
   group* locateOrCreateGroup(const std::string& groupName);
   void print();
@@ -442,6 +440,8 @@ class circuit {
   void macro_define_top_power(macro* myMacro);
   void make_macro_obstructions(dbMaster *db_master,
 			       struct macro *macro);
+  void make_rows();
+  double dbuToMicrons(int dbu) { return dbu * 1E-3; }
 
   /* read files for legalizer - parser.cpp */
   bool read_constraints(const std::string& input);

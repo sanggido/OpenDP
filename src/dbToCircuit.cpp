@@ -18,14 +18,49 @@ using std::ifstream;
 using std::ofstream;
 using std::endl;
 
+using odb::dbRowDir;
+using odb::adsRect;
+
+static bool SortByRowCoordinate(const row& lhs,
+				const row& rhs);
+static vector<opendp::row> GetNewRow(const circuit* ckt);
+
 void
 circuit::db_to_circuit()
 {
+  // LEF
   make_layers();
   for (auto db_lib : db->getLibs()) {
     make_sites(db_lib);
     make_macros(db_lib);
   }
+
+  // DBUs are nanometers.
+  DEFdist2Microns = 1000;
+  adsRect die_area;
+  db->getChip()->getBlock()->getDieArea(die_area);
+  lx = die.xLL = die_area.xMin();
+  by = die.yLL = die_area.yMin();
+  rx = die.xUR = die_area.xMax();
+  ty = die.yUR = die_area.yMax();
+
+  make_rows();
+
+  // bizzare. -cherry
+  lx = die.xLL = 0.0;
+  by = die.yLL = 0.0;
+  rx = die.xUR = core.xUR - core.xLL;
+  ty = die.yUR = core.yUR - core.yLL;
+
+  // sort ckt->rows
+  sort(prevrows.begin(), prevrows.end(), SortByRowCoordinate);
+  // change ckt->rows as CoreArea;
+  rows = GetNewRow(this);
+
+  cout << "CoreArea: " << endl;
+  core.print();
+  cout << "DieArea: " << endl;
+  die.print();
 }
 
 void
@@ -37,16 +72,16 @@ circuit::make_layers()
     layer.name = db_layer->getConstName();
     layer.type = db_layer->getType().getString();
     layer.direction = db_layer->getDirection().getString();
-    layer.xPitch = layer.yPitch = db_layer->getPitch();
+    layer.xPitch = layer.yPitch = dbuToMicrons(db_layer->getPitch());
     //myLayer->xPitch = la->pitchX(); 
     //myLayer->yPitch = la->pitchY(); 
     //layer.xOffset = layer.yOffset = db_layer->getOffset(); 
     //myLayer->xOffset = la->offsetX();
     //myLayer->yOffset = la->offsetY();
-    layer.width = db_layer->getWidth(); 
+    layer.width = dbuToMicrons(db_layer->getWidth());
     // max = min; WTF?? -cherry
     // myLayer->maxWidth = la->minwidth();
-    layer.maxWidth = db_layer->getMaxWidth();
+    layer.maxWidth = dbuToMicrons(db_layer->getMaxWidth());
     layers.push_back(layer);
     db_layer_map[db_layer] = &layers.back();
   }
@@ -59,8 +94,8 @@ circuit::make_sites(dbLib *db_lib)
     struct site site;
     site.db_site = db_site;
     site.name = db_site->getConstName();
-    site.width = db_site->getWidth();
-    site.height = db_site->getHeight();
+    site.width = dbuToMicrons(db_site->getWidth());
+    site.height = dbuToMicrons(db_site->getHeight());
     site.type = db_site->getClass().getString();
     if (db_site->getSymmetryX())
       site.symmetries.push_back("X");
@@ -84,11 +119,11 @@ circuit::make_macros(dbLib *db_lib)
 
     int x, y;
     db_master->getOrigin(x, y);
-    macro.xOrig = x;
-    macro.yOrig = y;
+    macro.xOrig = dbuToMicrons(x);
+    macro.yOrig = dbuToMicrons(y);
 
-    macro.width = db_master->getWidth();
-    macro.height = db_master->getHeight();
+    macro.width = dbuToMicrons(db_master->getWidth());
+    macro.height = dbuToMicrons(db_master->getHeight());
     struct site *site = db_site_map[db_master->getSite()];
     int site_idx = site - &sites[0];
     macro.sites.push_back(site_idx);
@@ -209,6 +244,98 @@ void circuit::macro_define_top_power(macro* myMacro) {
       }
     }
   }
+}
+
+void
+circuit::make_rows()
+{
+  for (auto db_row : db->getChip()->getBlock()->getRows()) {
+    struct row row;
+    row.db_row = db_row;
+    const char *row_name = db_row->getConstName();
+    row.name = row_name;
+    site *site = db_site_map[db_row->getSite()];
+    int site_idx = site - &sites[0];
+    row.site = site_idx;
+    int x, y;
+    db_row->getOrigin(x, y);
+    row.origX = x;
+    row.origY = y;
+    row.siteorient = db_row->getOrient().getString();
+    row.numSites = db_row->getSiteCount();
+    switch (db_row->getDirection()) {
+    case dbRowDir::HORIZONTAL:
+      row.stepX = db_row->getSpacing();
+      row.stepY = 0;
+      break;
+    case dbRowDir::VERTICAL:
+      row.stepX = 0;
+      row.stepY = db_row->getSpacing();
+      break;
+    }
+    row2id.insert(make_pair(row_name, prevrows.size()));
+    prevrows.push_back(row);
+
+    // initialize rowHeight variable (double)
+    if( fabs(rowHeight - 0.0f) <= DBL_EPSILON ) {
+      rowHeight = sites[ row.site ].height * DEFdist2Microns;
+    }
+
+    // initialize wsite variable (int)
+    if( wsite == 0 ) {
+      wsite = int(sites[row.site].width * DEFdist2Microns + 0.5f);
+    }
+  
+    core.xLL = min(1.0*row.origX, core.xLL);
+    core.yLL = min(1.0*row.origY, core.yLL);
+    core.xUR = max(1.0*row.origX + row.numSites * wsite, core.xUR);
+    core.yUR = max(1.0*row.origY + rowHeight, core.yUR);
+  }
+}
+
+// Y first and X second
+// First row should be in the first index to get orient
+static bool SortByRowCoordinate (const row& lhs,
+				 const row& rhs) {
+  if( lhs.origY < rhs.origY ) {
+    return true;
+  }
+  if( lhs.origY > rhs.origY ) {
+    return false;
+  }
+
+  return ( lhs.origX < rhs.origX );
+}
+
+// Generate New Row Based on CoreArea
+static vector<opendp::row> GetNewRow(const circuit* ckt) {
+  // Return Row Vectors
+  vector<opendp::row> retRow;
+
+  // calculation X and Y from CoreArea
+  int rowCntX = IntConvert((ckt->core.xUR - ckt->core.xLL)/ckt->wsite);
+  int rowCntY = IntConvert((ckt->core.yUR - ckt->core.yLL)/ckt->rowHeight);
+
+  unsigned siteIdx = ckt->prevrows[0].site;
+  string curOrient = ckt->prevrows[0].siteorient;
+
+  for(int i=0; i<rowCntY; i++) {
+    opendp::row myRow;
+    myRow.site = siteIdx;
+    myRow.origX = IntConvert(ckt->core.xLL);
+    myRow.origY = IntConvert(ckt->core.yLL + i * ckt->rowHeight);
+
+    myRow.stepX = ckt->wsite;
+    myRow.stepY = 0;
+
+    myRow.numSites = rowCntX;
+    myRow.siteorient = curOrient;
+    retRow.push_back(myRow);
+
+    // curOrient is flipping. e.g. N -> FS -> N -> FS -> ...
+    curOrient = (curOrient == "N")? "FS" : "N";
+  }
+  return retRow;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -358,26 +485,6 @@ CircuitParser::DefDieAreaCbk(
   return 0;
 }
 
-int CircuitParser::DefDesignCbk(
-    defrCallbackType_e c, 
-    const char* string, 
-    defiUserData ud) { 
-  circuit* ckt = (circuit*) ud;
-
-  ckt->design_name = string;
-  return 0;
-}
-
-int CircuitParser::DefUnitsCbk(
-    defrCallbackType_e c, 
-    double d, 
-    defiUserData ud) {
-  circuit* ckt = (circuit*) ud;
-
-  ckt->DEFdist2Microns = d;
-  return 0;
-}
-
 // DEF's Start callback to reserve memories
 int CircuitParser::DefStartCbk(
     defrCallbackType_e c,
@@ -446,49 +553,6 @@ int CircuitParser::DefEndCbk(
     default:
       break;
   }
-  return 0;
-}
-
-// DEF's ROW parsing
-int CircuitParser::DefRowCbk(
-    defrCallbackType_e c, 
-    defiRow* ro,
-    defiUserData ud) {
-
-  circuit* ckt = (circuit*) ud;
-  row* myRow = ckt->locateOrCreateRow( ro->name() );
-
-  myRow->site = ckt->site2id.at( ro->macro() );
-  myRow->origX = ro->x();
-  myRow->origY = ro->y();
-  myRow->siteorient = ro->orientStr();
-
-
-  if( ro->hasDo() ){
-    myRow->numSites = ro->xNum();
-  }
-
-  if( ro->hasDoStep() ) {
-    myRow->stepX = ro->xStep();
-    myRow->stepY = ro->yStep();
-  }
-
-  // initialize rowHeight variable (double)
-  if( fabs(ckt->rowHeight - 0.0f) <= DBL_EPSILON ) {
-    ckt->rowHeight = ckt->sites[ myRow->site ].height * ckt->DEFdist2Microns;
-  }
-
-  // initialize wsite variable (int)
-  if( ckt->wsite == 0 ) {
-    ckt->wsite = int(ckt->sites[myRow->site].width * ckt->DEFdist2Microns + 0.5f);
-  }
-  
-  ckt->core.xLL = min(1.0*myRow->origX, ckt->core.xLL);
-  ckt->core.yLL = min(1.0*myRow->origY, ckt->core.yLL);
-  ckt->core.xUR = max(1.0*myRow->origX + myRow->numSites * ckt->wsite, 
-      ckt->core.xUR);
-  ckt->core.yUR = max(1.0*myRow->origY + ckt->rowHeight, ckt->core.yUR);
-
   return 0;
 }
 
