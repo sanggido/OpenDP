@@ -333,7 +333,7 @@ class circuit {
 			       struct macro &macro);
   void make_rows();
   void make_cells();
-  double dbuToMicrons(int dbu) { return dbu * 1E-3; }
+  double dbuToMicrons(int dbu) { return dbu / double(DEFdist2Microns); }
   void update_db_inst_locations();
 
   /* read files for legalizer - parser.cpp */
@@ -347,7 +347,7 @@ class circuit {
   void power_mapping();
   void evaluation();
   double Disp();
-  double HPWL(std::string mode);
+  double HPWL(bool initial);
   double calc_density_factor(double unit);
 
   void group_analyze();

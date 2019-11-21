@@ -78,11 +78,11 @@ double opendp_external::get_max_displacement() {
 }
 
 double opendp_external::get_original_hpwl() {
-  return ckt.HPWL("INIT");
+  return ckt.HPWL(true);
 }
 
 double opendp_external::get_legalized_hpwl() {
-  return ckt.HPWL("");
+  return ckt.HPWL(false);
 }
 
 } // namespace

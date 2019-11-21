@@ -45,6 +45,13 @@ using opendp::row;
 using opendp::pixel;
 using opendp::rect;
 
+using odb::dbMTerm;
+using odb::dbBox;
+using odb::adsRect;
+using odb::dbITerm;
+using odb::dbMPin;
+using odb::dbPlacementStatus;
+
 using std::max;
 using std::min;
 using std::pair;
@@ -60,7 +67,6 @@ using std::string;
 using std::ceil;
 using std::floor;
 using std::round;
-
 
 void circuit::power_mapping() {
   for(int i = 0; i < rows.size(); i++) {
@@ -113,14 +119,14 @@ void circuit::evaluation() {
   cout << " SUM_displacement : " << sum_displacement << endl;
   cout << " MAX_displacement : " << max_displacement << endl;
   cout << " - - - - - - - - - - - - - - - - " << endl;
-  cout << " GP HPWL          : " << HPWL("INIT") << endl;
-  cout << " HPWL             : " << HPWL("") << endl;
+  double hpwl_initial = HPWL("INIT");
+  double hpwl_final = HPWL("");
+  cout << " GP HPWL          : " << hpwl_initial << endl;
+  cout << " HPWL             : " << hpwl_final << endl;
   cout << " avg_Disp_site    : " << Disp() / cells.size() / wsite << endl;
   cout << " avg_Disp_row     : " << Disp() / cells.size() / rowHeight << endl;
   cout << " delta_HPWL       : "
-       << (HPWL("") - HPWL("INIT")) / HPWL("INIT") * 100 << endl;
-
-  return;
+       << (hpwl_final - hpwl_initial) / hpwl_initial * 100 << endl;
 }
 
 double circuit::Disp() {
@@ -134,69 +140,87 @@ double circuit::Disp() {
   return result;
 }
 
-double circuit::HPWL(string mode) {
-  double hpwl = 0;
-#if 0
-  DOUBLE x_coord = 0;
-  double y_coord = 0;
+double circuit::HPWL(bool initial) {
+  double hpwl = 0.0;
 
-  for(int i = 0; i < nets.size(); i++) {
-    rect box;
-    net* theNet = &nets[i];
-    // cout << " net name : " << theNet->name << endl;
-    pin* source = &pins[theNet->source];
+  for (auto net : block->getNets()) {
+    adsRect box;
+    box.mergeInit();
 
-    if(source->type == NONPIO_PIN) {
-      cell* theCell = &cells[source->owner];
-      if(mode == "INIT") {
-        x_coord = theCell->init_x_coord;
-        y_coord = theCell->init_y_coord;
+    for (auto iterm : net->getITerms()) {
+      dbInst *inst = iterm->getInst();
+      cell *cell = db_inst_map[inst];
+      int x, y;
+      if (initial) {
+	x = cell->init_x_coord;
+	y = cell->init_y_coord;
       }
       else {
-        x_coord = theCell->x_coord;
-        y_coord = theCell->y_coord;
+	x = cell->x_coord;
+	y = cell->y_coord;
       }
-      box.xLL = box.xUR = x_coord + source->x_offset * DEFdist2Microns;
-      box.yLL = box.yUR = y_coord + source->y_offset * DEFdist2Microns;
-    }
-    else {
-      box.xLL = box.xUR = source->x_coord;
-      box.yLL = box.yUR = source->y_coord;
-    }
-      
-    for(int j = 0; j < theNet->sinks.size(); j++) {
-      pin* sink = &pins[theNet->sinks[j]];
-      // cout << " sink name : " << sink->name << endl;
-      if(sink->type == NONPIO_PIN) {
-        cell* theCell = &cells[sink->owner];
-        if(mode == "INIT") {
-          x_coord = theCell->init_x_coord;
-          y_coord = theCell->init_y_coord;
-        }
-        else {
-          x_coord = theCell->x_coord;
-          y_coord = theCell->y_coord;
-        }
-        box.xLL = min(box.xLL, x_coord + sink->x_offset * DEFdist2Microns);
-        box.xUR = max(box.xUR, x_coord + sink->x_offset * DEFdist2Microns);
-        box.yLL = min(box.yLL, y_coord + sink->y_offset * DEFdist2Microns);
-        box.yUR = max(box.yUR, y_coord + sink->y_offset * DEFdist2Microns);
+      // Use inst center if no mpins.
+      adsRect iterm_rect(x, y, x, y);
+      dbMTerm *mterm = iterm->getMTerm();
+      auto mpins = mterm->getMPins();
+      if (mpins.size()) {
+	// Pick a pin, any pin.
+	dbMPin *pin = *mpins.begin();
+	auto geom = pin->getGeometry();
+	if (geom.size()) {
+	  dbBox *pin_box = *geom.begin();
+	  adsRect pin_rect;
+	  pin_box->getBox(pin_rect);
+	  int center_x = (pin_rect.xMin() + pin_rect.xMax()) / 2;
+	  int center_y = (pin_rect.yMin() + pin_rect.yMax()) / 2;
+	  iterm_rect = adsRect(x + center_x, y + center_y,
+			       x + center_x, y + center_y);
+	}
       }
-      else {
-        box.xLL = min(box.xLL, sink->x_coord);
-        box.xUR = max(box.xUR, sink->x_coord);
-        box.yLL = min(box.yLL, sink->y_coord);
-        box.yUR = max(box.yUR, sink->y_coord);
-      }
+      box.merge(iterm_rect);
     }
-    
 
-    double box_boundary = (box.xUR - box.xLL + box.yUR - box.yLL);
-
-    hpwl += box_boundary;
+    for (auto bterm : net->getBTerms()) {
+      for (auto bpin : bterm->getBPins()) {
+	dbPlacementStatus status = bpin->getPlacementStatus();
+	if (status.isPlaced()) {
+	  dbBox *pin_box = bpin->getBox();
+	  adsRect pin_rect;
+	  pin_box->getBox(pin_rect);
+	  int center_x = (pin_rect.xMin() + pin_rect.xMax()) / 2;
+	  int center_y = (pin_rect.yMin() + pin_rect.yMax()) / 2;
+	  int core_center_x = center_x - core.xLL;
+	  int core_center_y = center_y - core.yLL;
+	  adsRect pin_center(core_center_x, core_center_y,
+			     core_center_x, core_center_y);
+	  box.merge(pin_center);
+	}
+      }
+    }
+    double perimeter = box.dx() + box.dy();
+    hpwl += perimeter;
   }
-#endif
   return hpwl / static_cast< double >(DEFdist2Microns);
+}
+
+static void
+itermPinOffset(dbITerm *iterm,
+	       int &x_offset,
+	       int &y_offset)
+{
+  x_offset = y_offset = 0;
+  dbMTerm *mterm = iterm->getMTerm();
+  auto mpins = mterm->getMPins();
+  if (mpins.size()) {
+    // Pick a pin, any pin.
+    dbMPin *pin = *mpins.begin();
+    auto geom = pin->getGeometry();
+    if (geom.size()) {
+      dbBox *pin_box = *geom.begin();
+      x_offset = (pin_box->xMin() + pin_box->xMax()) / 2;
+      y_offset = (pin_box->yMin() + pin_box->yMax()) / 2;
+    }
+  }
 }
 
 double circuit::calc_density_factor(double unit) {

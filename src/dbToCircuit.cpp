@@ -36,13 +36,12 @@ void
 circuit::db_to_circuit()
 {
   // LEF
+  DEFdist2Microns = db->getTech()->getDbUnitsPerMicron();
   for (auto db_lib : db->getLibs()) {
     make_sites(db_lib);
     make_macros(db_lib);
   }
 
-  // DBUs are nanometers.
-  DEFdist2Microns = 1000;
   block = db->getChip()->getBlock();
   adsRect die_area;
   block->getDieArea(die_area);
