@@ -20,10 +20,17 @@ using std::endl;
 
 using odb::dbRowDir;
 using odb::adsRect;
+using odb::dbOrientType;
+using odb::dbPlacementStatus;
+using odb::dbOrientType;
 
+// Row Sort Function
 static bool SortByRowCoordinate(const row& lhs,
 				const row& rhs);
+// Row Generation Function
 static vector<opendp::row> GetNewRow(const circuit* ckt);
+static std::pair<double, double> 
+GetOrientSize( double w, double h, dbOrientType orient );
 
 void
 circuit::db_to_circuit()
@@ -44,7 +51,9 @@ circuit::db_to_circuit()
   rx = die.xUR = die_area.xMax();
   ty = die.yUR = die_area.yMax();
 
+  block = db->getChip()->getBlock();
   make_rows();
+  make_cells();
 
   // bizzare. -cherry
   lx = die.xLL = 0.0;
@@ -111,8 +120,13 @@ circuit::make_sites(dbLib *db_lib)
 void
 circuit::make_macros(dbLib *db_lib)
 {
-  for (auto db_master : db_lib->getMasters()) {
-    struct macro macro;
+  auto db_masters = db_lib->getMasters();
+  macros.reserve(db_masters.size());
+  for (auto db_master : db_masters) {
+    macros.push_back(macro());
+    struct macro &macro = macros.back();
+    db_master_map[db_master] = &macro;
+
     macro.db_master = db_master;
     macro.name = db_master->getConstName();
     macro.type = db_master->getType().getString();
@@ -128,19 +142,15 @@ circuit::make_macros(dbLib *db_lib)
     int site_idx = site - &sites[0];
     macro.sites.push_back(site_idx);
 
-    macros.push_back(macro);
-    struct macro *macro1 = &macros.back();
-    db_master_map[db_master] = macro1;
-
-    make_macro_pins(db_master, macro1);
-    make_macro_obstructions(db_master, macro1);
-    macro_define_top_power(macro1);
+    make_macro_pins(db_master, macro);
+    make_macro_obstructions(db_master, macro);
+    macro_define_top_power(&macro);
   }
 }
 
 void
 circuit::make_macro_pins(dbMaster *db_master,
-			 struct macro *macro)
+			 struct macro &macro)
 {
   for (auto db_mterm : db_master->getMTerms()) {
     for (auto db_mpin : db_mterm->getMPins()) {
@@ -158,14 +168,14 @@ circuit::make_macro_pins(dbMaster *db_master,
 	tmpRect.yUR = db_box->yMax();
 	pin.port.push_back(tmpRect);
       }
-      macro->pins[pinName] = pin;
+      macro.pins[pinName] = pin;
     }
   }
 }
 
 void
 circuit::make_macro_obstructions(dbMaster *db_master,
-				 struct macro *macro)
+				 struct macro &macro)
 {
   for (auto db_box : db_master->getObstructions()) {
     rect tmpRect;
@@ -173,7 +183,7 @@ circuit::make_macro_obstructions(dbMaster *db_master,
     tmpRect.yLL = db_box->yMin();
     tmpRect.xUR = db_box->xMax();
     tmpRect.yUR = db_box->yMax();
-    macro->obses.push_back(tmpRect);
+    macro.obses.push_back(tmpRect);
   }
 }
 
@@ -249,7 +259,7 @@ void circuit::macro_define_top_power(macro* myMacro) {
 void
 circuit::make_rows()
 {
-  for (auto db_row : db->getChip()->getBlock()->getRows()) {
+  for (auto db_row : block->getRows()) {
     struct row row;
     row.db_row = db_row;
     const char *row_name = db_row->getConstName();
@@ -338,24 +348,84 @@ static vector<opendp::row> GetNewRow(const circuit* ckt) {
   return retRow;
 }
 
+
+void
+circuit::make_cells()
+{
+  for (auto db_inst : block->getInsts()) {
+    struct cell cell;
+    dbMaster *master = db_inst->getMaster();
+    auto miter = db_master_map.find(master);
+    if (miter != db_master_map.end()) {
+      macro *macro = miter->second;
+      int macro_idx = macro - &macros[0];
+      cell.type = macro_idx;
+   
+      dbOrientType orient = db_inst->getOrient().getString();
+      pair<double, double> orientSize 
+	= GetOrientSize( macro->width, macro->height, orient);
+
+      cell.width = orientSize.first * static_cast<double> (DEFdist2Microns);
+      cell.height = orientSize.second * static_cast<double> (DEFdist2Microns);
+
+      cell.isFixed = (db_inst->getPlacementStatus() == dbPlacementStatus::FIRM);
+  
+      // Shift by core.xLL and core.yLL
+      int x, y;
+      db_inst->getLocation(x, y);
+      cell.init_x_coord = std::max(0.0, (dbuToMicrons(x) - core.xLL)); 
+      cell.init_y_coord = std::max(0.0, (dbuToMicrons(y) - core.yLL));
+
+      // fixed cells
+      if( cell.isFixed ) {
+	// Shift by core.xLL and core.yLL
+	cell.x_coord = dbuToMicrons(x) - core.xLL;
+	cell.y_coord = dbuToMicrons(y) - core.yLL;
+	cell.isPlaced = true;
+      }
+      cell.cellorient = orient;
+      cells.push_back(cell);
+    }
+  }
+}
+
+// orient coordinate shift 
+static std::pair<double, double> 
+GetOrientSize( double w, double h, dbOrientType orient ) {
+  switch(orient) {
+    // The directions refered to below do not map to the indices
+    // used in the case statment. See opendb/definTypes.h.
+
+    // East, West, FlipEast, FlipWest
+    //  case 1:
+    //  case 3:
+    //  case 5:
+    //  case 7:
+  case dbOrientType::R180:
+  case dbOrientType::R90:
+  case dbOrientType::MX:
+  case dbOrientType::MXR90:
+    return std::make_pair(h, w);
+    // otherwise 
+    // case 0:
+    // case 2:
+    // case 4:
+    // case 6:
+  case dbOrientType::R0:
+  case dbOrientType::R270:
+  case dbOrientType::MY:
+  case dbOrientType::MYR90:
+    return std::make_pair(w, h); 
+  }
+}
+
 ////////////////////////////////////////////////////////////////
 #if 0
 
 opendp::group* CircuitParser::topGroup_ = 0;
 
 int circuit::ReadDef() {
-  CircuitParser cp(this);
 
-  // 
-  // CircuitCallBack 
-  //
-  defrSetDesignCbk(cp.DefDesignCbk);
-  defrSetUnitsCbk(cp.DefUnitsCbk);
-  defrSetDieAreaCbk((defrBoxCbkFnType)cp.DefDieAreaCbk);
- 
-  // rows 
-  defrSetRowCbk((defrRowCbkFnType)cp.DefRowCbk);
-  
   defrSetComponentStartCbk(cp.DefStartCbk);
   defrSetNetStartCbk(cp.DefStartCbk);
   defrSetSNetStartCbk(cp.DefStartCbk);
@@ -434,56 +504,9 @@ GetOrientLowerLeftPoint( double lx, double ly, double ux, double uy,
 }
 
 
-// orient coordinate shift 
-inline static std::pair<double, double> 
-GetOrientSize( double w, double h, int orient ) {
-  switch(orient) {
-    // East, West, FlipEast, FlipWest
-    case 1:
-    case 3:
-    case 5:
-    case 7:
-      return std::make_pair(h, w);
-    // otherwise 
-    case 0:
-    case 2:
-    case 4:
-    case 6:
-      return std::make_pair(w, h); 
-  }
-}
-
-// for Saving verilog information
-
-//////////////////////////////////////////////////
-// LEF Parsing Cbk Functions
-//
-
-
-
-// Row Sort Function
-bool SortByRowCoordinate(const opendp::row& lhs,
-    const opendp::row& rhs);
-// Row Generation Function
-vector<opendp::row> GetNewRow(const circuit* ckt);
-
 //////////////////////////////////////////////////
 // DEF Parsing Cbk Functions
 //
-
-int 
-CircuitParser::DefDieAreaCbk(
-    defrCallbackType_e c, 
-    defiBox* box, 
-    defiUserData ud ) {
-  circuit* ckt = (circuit*) ud;
-
-  ckt->lx = ckt->die.xLL = box->xl();
-  ckt->by = ckt->die.yLL = box->yl();
-  ckt->rx = ckt->die.xUR = box->xh();
-  ckt->ty = ckt->die.yUR = box->yh();
-  return 0;
-}
 
 // DEF's Start callback to reserve memories
 int CircuitParser::DefStartCbk(
@@ -526,32 +549,6 @@ int CircuitParser::DefEndCbk(
       }
       break;
   
-    case defrDesignEndCbkType:
-      // Newly update DIEAREA information
-      ckt->lx = ckt->die.xLL = 0.0;
-      ckt->by = ckt->die.yLL = 0.0;
-      ckt->rx = ckt->die.xUR = ckt->core.xUR - ckt->core.xLL;
-      ckt->ty = ckt->die.yUR = ckt->core.yUR - ckt->core.yLL;
-
-      cout << "CoreArea: " << endl;
-      ckt->core.print();
-      cout << "DieArea: " << endl;
-      ckt->die.print();
- 
-      if( ckt->prevrows.size() <= 0) {
-        cerr << "  ERROR: rowSize is 0. Please define at least one ROW in DEF" << endl;
-        exit(1);
-      }
-
-      // sort ckt->rows
-      sort(ckt->prevrows.begin(), ckt->prevrows.end(), SortByRowCoordinate);
-
-      // change ckt->rows as CoreArea;
-      ckt->rows = GetNewRow(ckt);
-      
-      break;
-    default:
-      break;
   }
   return 0;
 }
@@ -576,82 +573,6 @@ int CircuitParser::DefPinCbk(
   myPin->x_coord = pi->placementX() - ckt->core.xLL;
   myPin->y_coord = pi->placementY() - ckt->core.yLL;
 
-  return 0;
-}
-
-// DEF's COMPONENT parsing
-int CircuitParser::DefComponentCbk(
-    defrCallbackType_e c,
-    defiComponent* co, 
-    defiUserData ud) {
-
-  circuit* ckt = (circuit*) ud;
-  cell* myCell = NULL;
-  
-
-  // newly inserted cells
-  if( ckt->cell2id.find( co->id() ) == ckt->cell2id.end() ) {
-    myCell = ckt->locateOrCreateCell( co->id() );
-    myCell->type = ckt->macro2id[ co->name() ];
-  }
-  else {
-    myCell = ckt->locateOrCreateCell( co->id() );
-  }
-   
-//  cout << "co->id: " << co->id() << endl; 
-  macro* myMacro = &ckt->macros[ ckt->macro2id[ co->name() ]];
-  pair<double, double> orientSize 
-    = GetOrientSize( myMacro->width, myMacro->height, co->placementOrient());
-
-  myCell->width = orientSize.first * static_cast<double> (ckt->DEFdist2Microns);
-  myCell->height = orientSize.second * static_cast<double> (ckt->DEFdist2Microns);
-
-  myCell->isFixed = co->isFixed();
-  
-  // Shift by core.xLL and core.yLL
-  myCell->init_x_coord = max(0.0, (co->placementX() - ckt->core.xLL)); 
-  myCell->init_y_coord = max(0.0, (co->placementY() - ckt->core.yLL));
-
-  // fixed cells
-  if( myCell->isFixed ) {
-    // Shift by core.xLL and core.yLL
-    myCell->x_coord = (co->placementX() - ckt->core.xLL);
-    myCell->y_coord = (co->placementY() - ckt->core.yLL);
-    myCell->isPlaced = true;
-  }
-  myCell->cellorient = co->placementOrientStr();
-
-  return 0;
-}
-
-// DEF's COMPONENT parsing
-int CircuitParser::DefComponentWriteCbk(
-    defrCallbackType_e c,
-    defiComponent* co, 
-    defiUserData ud) {
-
-  // get Cell Object
-  cell* theCell = ckt->locateOrCreateCell(co->id());
-  int placeX = IntConvert(theCell->x_coord + ckt->core.xLL);
-  int placeY = IntConvert(theCell->y_coord + ckt->core.yLL);
-  string orientStr = theCell->cellorient;
-
-  if(co->isFixed())
-    fprintf(fout, "+ FIXED ( %d %d ) %s ", 
-        placeX, placeY, orientStr.c_str());
-  if(co->isCover())
-    fprintf(fout, "+ COVER ( %d %d ) %s ", 
-        placeX, placeY, orientStr.c_str());
-  if(co->isPlaced())
-    fprintf(fout, "+ PLACED ( %d %d ) %s ", 
-        placeX, placeY, orientStr.c_str());
-  if(co->isUnplaced()) {
-    fprintf(fout, "+ UNPLACED ");
-    if((placeX != -1) || (placeY != -1)) {
-      fprintf(fout, "( %d %d ) %s ", 
-        placeX, placeY, orientStr.c_str());
-    }
-  }
   return 0;
 }
 

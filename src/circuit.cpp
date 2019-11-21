@@ -237,8 +237,20 @@ circuit::circuit()
 #endif
 };
 
+// this is brain damage. it should be using std::round -cherry
 int IntConvert(double fp) {
   return (int)(fp + 0.5f);
+}
+
+void
+circuit::update_db_inst_locations()
+{
+#if 0
+  cell* theCell = ckt->locateOrCreateCell(co->id());
+  int placeX = IntConvert(theCell->x_coord + ckt->core.xLL);
+  int placeY = IntConvert(theCell->y_coord + ckt->core.yLL);
+  string orientStr = theCell->cellorient;
+#endif
 }
 
 }

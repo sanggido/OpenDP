@@ -129,7 +129,6 @@ void circuit::InitOpendpAfterParse() {
   group_pixel_assign();
 
   init_large_cell_stor();
-  return;
 }
 
 void circuit::calc_design_area_stats() {

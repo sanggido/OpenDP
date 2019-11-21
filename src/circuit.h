@@ -74,6 +74,7 @@
 namespace opendp {
 
 using odb::dbDatabase;
+using odb::dbBlock;
 using odb::dbLib;
 using odb::dbTechLayer;
 using odb::dbSite;
@@ -404,6 +405,7 @@ class circuit {
   std::vector< std::pair< unsigned, unsigned > > dieArea;
 
   dbDatabase *db;
+  dbBlock *block;
   std::vector< site > sites;   /* site list */
   std::vector< layer > layers; /* layer list */
   std::vector< macro > macros; /* macro list */
@@ -436,12 +438,14 @@ class circuit {
   void make_sites(dbLib *db_lib);
   void make_macros(dbLib *db_lib);
   void make_macro_pins(dbMaster *db_master,
-		       struct macro *macro);
+		       struct macro &macro);
   void macro_define_top_power(macro* myMacro);
   void make_macro_obstructions(dbMaster *db_master,
-			       struct macro *macro);
+			       struct macro &macro);
   void make_rows();
+  void make_cells();
   double dbuToMicrons(int dbu) { return dbu * 1E-3; }
+  void update_db_inst_locations();
 
   /* read files for legalizer - parser.cpp */
   bool read_constraints(const std::string& input);
