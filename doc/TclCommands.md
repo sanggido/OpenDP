@@ -1,21 +1,12 @@
-# Usage with TCL Interpreter
+# Internal TCL commands
 
-OpenDP has internal TCL Interpreter. The following line will create opendb_external objects.
-
-    opendp_external odp 
+    set opb [get_opendp]
     
 After having a opendp_external object, a user can type any TCL commands after one spacing from the object name(e.g. rep).
 
-    odp [tcl_command]
+    $odp [tcl_command]
 
-
-## File I/O Commands
-* __import_lef__ [file_name] : \*.lef location (Multiple lef files supported. __Technology LEF must be ahead of other LEFs.__)
-* __import_def__ [file_name] : \*.def location (Required due to FloorPlan information)
-* __export_def__ [file_name] : Output DEF location
-   
 ## Flow Control
-* __init_opendp__ : Initialize OpenDP's structure based on LEF and DEF.
 * __legalize_place__ : Legalize placed cells.
 * __check_legality__ : Report overlaps between each cell.
 
@@ -29,7 +20,5 @@ __Note that the following commands will work after init_opendp and legalize_plac
 * __get_original_hpwl__ : Returns HPWL from the given design. [float]
 * __get_legalized_hpwl__ : Returns HPWL after the legalized design. [float]
 
-## Example TCL scripts
+## Example TCL script
 * [run_nangate45_gcd.tcl](../test/run_nangate45_gcd.tcl)
-
-FYI, All of the TCL commands are defined in the [opendp_external.h](../src/opendp_external.h) header files.

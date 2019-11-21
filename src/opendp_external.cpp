@@ -1,4 +1,5 @@
 #include "opendp/opendp_external.h"
+#include "StaMain.hh"
 
 using std::cout;
 using std::endl;
@@ -23,6 +24,8 @@ void opendp_external::init(Tcl_Interp *tcl_interp,
 			   odb::dbDatabase *db) {
   // Define swig TCL commands.
   Opendp_Init(tcl_interp);
+  // Eval encoded sta TCL sources.
+  sta::evalTclInit(tcl_interp, sta::opendp_tcl_inits);
 
   ckt.db = db;
 }
