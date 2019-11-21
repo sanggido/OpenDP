@@ -203,26 +203,6 @@ double circuit::HPWL(bool initial) {
   return hpwl / static_cast< double >(DEFdist2Microns);
 }
 
-static void
-itermPinOffset(dbITerm *iterm,
-	       int &x_offset,
-	       int &y_offset)
-{
-  x_offset = y_offset = 0;
-  dbMTerm *mterm = iterm->getMTerm();
-  auto mpins = mterm->getMPins();
-  if (mpins.size()) {
-    // Pick a pin, any pin.
-    dbMPin *pin = *mpins.begin();
-    auto geom = pin->getGeometry();
-    if (geom.size()) {
-      dbBox *pin_box = *geom.begin();
-      x_offset = (pin_box->xMin() + pin_box->xMax()) / 2;
-      y_offset = (pin_box->yMin() + pin_box->yMax()) / 2;
-    }
-  }
-}
-
 double circuit::calc_density_factor(double unit) {
   double gridUnit = unit * rowHeight;
   int x_gridNum = ceil((rx - lx) / gridUnit);
