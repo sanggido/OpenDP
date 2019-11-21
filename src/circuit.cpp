@@ -63,34 +63,6 @@ void macro::print() {
   cout << "|=== BEGIN MACRO ===|" << endl;
 }
 
-
-pin::pin() 
-  : name(""),
-    id(UINT_MAX),
-    owner(UINT_MAX),
-    net(UINT_MAX),
-    type(UINT_MAX),
-    isFlopInput(false),
-    isFlopCkPort(false),
-    x_coord(0.0),
-    y_coord(0.0),
-    x_offset(0.0),
-    y_offset(0.0),
-    isFixed(false) {};
-
-void pin::print() {
-  cout << "|=== BEGIN PIN ===|  " << endl;
-  cout << "name:                " << name << endl;
-  cout << "id:                  " << id << endl;
-  cout << "type:                " << type << endl;
-  cout << "net:                 " << net << endl;
-  cout << "pin owner:           " << owner << endl;
-  cout << "isFixed?             " << (isFixed ? "yes" : "no") << endl;
-  cout << "(x_coord,y_coord):   " << x_coord << ", " << y_coord << endl;
-  cout << "(x_offset,y_offset): " << x_offset << ", " << y_offset << endl;
-  cout << "|===  END  PIN ===|  " << endl;
-}
-  
 cell::cell()
       : name(""),
         type(UINT_MAX),

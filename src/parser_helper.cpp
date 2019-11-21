@@ -42,7 +42,6 @@ using opendp::cell;
 using opendp::row;
 using opendp::pixel;
 using opendp::rect;
-using opendp::pin;
 using opendp::macro;
 using opendp::site;
 using opendp::group;

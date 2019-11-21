@@ -141,26 +141,6 @@ struct macro {
   void print();
 };
 
-struct pin {
-  // from verilog
-  std::string name; /* Name of pins : instance name + "_" + port_name */
-  unsigned id;
-  unsigned owner; /* The owners of PIs or POs are UINT_MAX */
-  unsigned net;
-  unsigned type;    /* 1=PI_PIN, 2=PO_PIN, 3=others */
-  bool isFlopInput; /* is this pin an input  of a clocked element? */
-  bool isFlopCkPort;
-
-  // from .def
-  double x_coord, y_coord; /* (in DBU) */
-  double x_offset,
-      y_offset; /* COG of VIA relative to the origin of a cell, (in DBU) */
-  bool isFixed; /* is this node fixed? */
-
-  pin();
-  void print();
-};
-
 struct cell {
   dbInst *db_inst;
   std::string name;
@@ -311,8 +291,6 @@ class circuit {
   std::vector< site > sites;   /* site list */
   std::vector< macro > macros; /* macro list */
   std::vector< cell > cells;   /* cell list */
-  std::vector< pin > pins;     /* pin list */
-  
   std::vector< row > prevrows;     // fragmented row list
   std::vector< row > rows;     /* row list */
 
