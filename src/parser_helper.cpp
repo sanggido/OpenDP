@@ -44,7 +44,6 @@ using opendp::pixel;
 using opendp::rect;
 using opendp::pin;
 using opendp::macro;
-using opendp::net;
 using opendp::site;
 using opendp::layer;
 using opendp::via;
@@ -66,76 +65,6 @@ using std::to_string;
 using std::string;
 using std::fixed;
 using std::numeric_limits;
-
-// requires full name, e.g., cell_instance/pin
-pin *circuit::locateOrCreatePin(const string &pinName) {
-  OPENDP_HASH_MAP< string, unsigned >::iterator it = pin2id.find(pinName);
-  if(it == pin2id.end()) {
-    pin thePin;
-    thePin.name = pinName;
-    thePin.id = pins.size();
-    pin2id.insert(make_pair(pinName, thePin.id));
-    pins.push_back(thePin);
-    return &pins[pins.size() - 1];
-  }
-  else
-    return &pins[it->second];
-}
-
-cell *circuit::locateOrCreateCell(const string &cellName) {
-  OPENDP_HASH_MAP< string, unsigned >::iterator it = cell2id.find(cellName);
-  if(it == cell2id.end()) {
-    cell theCell;
-    theCell.name = cellName;
-    theCell.id = cells.size();
-    cell2id.insert(make_pair(theCell.name, cells.size()));
-    cells.push_back(theCell);
-    return &cells[cells.size() - 1];
-  }
-  else
-    return &cells[it->second];
-}
-
-net *circuit::locateOrCreateNet(const string &netName) {
-  OPENDP_HASH_MAP< string, unsigned >::iterator it = net2id.find(netName);
-  if(it == net2id.end()) {
-    net theNet;
-    theNet.name = netName;
-    net2id.insert(make_pair(theNet.name, nets.size()));
-    nets.push_back(theNet);
-    return &nets[nets.size() - 1];
-  }
-  else
-    return &nets[it->second];
-}
-
-via *circuit::locateOrCreateVia(const string &viaName) {
-  OPENDP_HASH_MAP< string, unsigned >::iterator it = via2id.find(viaName);
-  if(it == via2id.end()) {
-    via theVia;
-    theVia.name = viaName;
-    via2id.insert(make_pair(theVia.name, vias.size()));
-    vias.push_back(theVia);
-    return &vias[vias.size() - 1];
-  }
-  else
-    return &vias[it->second];
-}
-
-group *circuit::locateOrCreateGroup(const string &groupName) {
-  OPENDP_HASH_MAP< string, unsigned >::iterator it = group2id.find(groupName);
-  if(it == group2id.end()) {
-    group theGroup;
-    theGroup.name = groupName;
-
-    group2id.insert(make_pair(theGroup.name, groups.size()));
-    groups.push_back(theGroup);
-
-    return &groups[groups.size() - 1];
-  }
-  else
-    return &groups[it->second];
-}
 
 /* generic helper functions */
 bool opendp::is_special_char(char c) {
@@ -228,15 +157,6 @@ void cell::print() {
   cout << "|===  END  CELL ===|" << endl;
 }
 
-void net::print() {
-  cout << "|=== BEGIN NET ===|" << endl;
-  cout << "name:              " << name << endl;
-  cout << "source pin:        " << source << endl;
-  for(unsigned i = 0; i < sinks.size(); ++i)
-    cout << "sink pin [" << i << "]:      " << sinks[i] << endl;
-  cout << "|===  END  NET ===|" << endl;
-}
-
 void row::print() {
   cout << "|=== BEGIN ROW ===|" << endl;
   cout << "name:              " << name << endl;
@@ -270,13 +190,4 @@ void density_bin::print() {
   cout << " overflow :    " << overflow << endl;
   cout << " density limit:" << density_limit << endl;
   cout << "|===  END  DENSITY_BIN ===|" << endl;
-}
-
-void circuit::print() {
-  for(unsigned i = 0; i < layers.size(); ++i) layers[i].print();
-  for(unsigned i = 0; i < sites.size(); ++i) sites[i].print();
-  for(unsigned i = 0; i < rows.size(); ++i) rows[i].print();
-  for(unsigned i = 0; i < pins.size(); ++i) pins[i].print();
-  for(unsigned i = 0; i < cells.size(); ++i) cells[i].print();
-  for(unsigned i = 0; i < nets.size(); ++i) nets[i].print();
 }

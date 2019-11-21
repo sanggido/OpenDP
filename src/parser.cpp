@@ -184,8 +184,8 @@ void circuit::calc_design_area_stats() {
   cout << "  total cells              : " << cells.size() << endl;
   cout << "  multi cells              : " << multi_num << endl;
   cout << "  fixed cells              : " << num_fixed_nodes << endl;
-  cout << "  total nets               : " << nets.size() << endl;
-  ;
+  cout << "  total nets               : " << block->getNets().size() << endl;
+
   cout << "  design area              : " << designArea << endl;
   cout << "  total f_area             : " << total_fArea << endl;
   cout << "  total m_area             : " << total_mArea << endl;

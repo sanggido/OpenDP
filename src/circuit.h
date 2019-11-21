@@ -81,6 +81,7 @@ using odb::dbSite;
 using odb::dbMaster;
 using odb::dbMPin;
 using odb::dbRow;
+using odb::dbInst;
 
 enum power { VDD, VSS };
 
@@ -223,6 +224,7 @@ struct pin {
 };
 
 struct cell {
+  dbInst *db_inst;
   std::string name;
   unsigned id;
   unsigned type;                  /* index to some predefined macro */
@@ -259,15 +261,6 @@ struct pixel {
   bool isValid;  // false for dummy place
 
   pixel();
-};
-
-struct net {
-  std::string name;
-  unsigned source;          /* input pin index to the net */
-  std::vector< unsigned > sinks; /* sink pins indices of the net */
-
-  net();
-  void print();
 };
 
 struct row {
@@ -342,19 +335,7 @@ class circuit {
   std::map<dbTechLayer*, layer*> db_layer_map;
   std::map<dbSite*, site*> db_site_map;
   std::map<dbMaster*, macro*> db_master_map;
-
-  OPENDP_HASH_MAP< std::string, unsigned >
-      cell2id; /* OPENDP_HASH_MAP between cell  name and ID */
-  OPENDP_HASH_MAP< std::string, unsigned >
-      pin2id; /* OPENDP_HASH_MAP between pin   name and ID */
-  OPENDP_HASH_MAP< std::string, unsigned >
-      net2id; /* OPENDP_HASH_MAP between net   name and ID */
-  OPENDP_HASH_MAP< std::string, unsigned >
-      row2id; /* OPENDP_HASH_MAP between row   name and ID */
-  OPENDP_HASH_MAP< std::string, unsigned >
-      site2id; /* OPENDP_HASH_MAP between site  name and ID */
-  OPENDP_HASH_MAP< std::string, unsigned >
-      layer2id; /* OPENDP_HASH_MAP between layer name and ID */
+  std::map<dbInst*, cell*> db_inst_map;
 
   OPENDP_HASH_MAP< std::string, unsigned > via2id;
   std::map< std::pair< int, int >, double > edge_spacing; /* spacing OPENDP_HASH_MAP
@@ -410,7 +391,6 @@ class circuit {
   std::vector< layer > layers; /* layer list */
   std::vector< macro > macros; /* macro list */
   std::vector< cell > cells;   /* cell list */
-  std::vector< net > nets;     /* net list */
   std::vector< pin > pins;     /* pin list */
   
   std::vector< row > prevrows;     // fragmented row list
@@ -421,14 +401,6 @@ class circuit {
   std::vector< group > groups; /* group list from .def */
 
   std::vector< std::pair< double, cell* > > large_cell_stor;
-
-  /* locateOrCreate helper functions - parser_helper.cpp */
-  cell* locateOrCreateCell(const std::string& cellName);
-  net* locateOrCreateNet(const std::string& netName);
-  pin* locateOrCreatePin(const std::string& pinName);
-  via* locateOrCreateVia(const std::string& viaName);
-  group* locateOrCreateGroup(const std::string& groupName);
-  void print();
 
   circuit();
 

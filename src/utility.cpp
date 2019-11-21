@@ -133,8 +133,8 @@ double circuit::Disp() {
 
 double circuit::HPWL(string mode) {
   double hpwl = 0;
-
-  double x_coord = 0;
+#if 0
+  DOUBLE x_coord = 0;
   double y_coord = 0;
 
   for(int i = 0; i < nets.size(); i++) {
@@ -192,6 +192,7 @@ double circuit::HPWL(string mode) {
 
     hpwl += box_boundary;
   }
+#endif
   return hpwl / static_cast< double >(DEFdist2Microns);
 }
 

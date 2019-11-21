@@ -76,7 +76,11 @@ void
 circuit::make_layers()
 {
   for (auto db_layer : db->getTech()->getLayers()) {
-    struct layer layer;
+    layers.push_back(layer());
+    struct layer &layer = layers.back();
+    layers.push_back(layer);
+    db_layer_map[db_layer] = &layer;
+
     layer.db_layer = db_layer;
     layer.name = db_layer->getConstName();
     layer.type = db_layer->getType().getString();
@@ -91,17 +95,20 @@ circuit::make_layers()
     // max = min; WTF?? -cherry
     // myLayer->maxWidth = la->minwidth();
     layer.maxWidth = dbuToMicrons(db_layer->getMaxWidth());
-    layers.push_back(layer);
-    db_layer_map[db_layer] = &layers.back();
   }
 }
 
 void
 circuit::make_sites(dbLib *db_lib)
 {
-  for (auto db_site : db_lib->getSites()) {
-    struct site site;
+  auto db_sites = db_lib->getSites();
+  sites.reserve(db_sites.size());
+  for (auto db_site : db_sites) {
+    sites.push_back(site());
+    struct site &site = sites.back();
+    db_site_map[db_site] = &site;
     site.db_site = db_site;
+
     site.name = db_site->getConstName();
     site.width = dbuToMicrons(db_site->getWidth());
     site.height = dbuToMicrons(db_site->getHeight());
@@ -112,8 +119,6 @@ circuit::make_sites(dbLib *db_lib)
       site.symmetries.push_back("Y");
     if (db_site->getSymmetryR90())
       site.symmetries.push_back("R90");
-    sites.push_back(site);
-    db_site_map[db_site] = &sites.back();
   }
 }
 
@@ -259,8 +264,12 @@ void circuit::macro_define_top_power(macro* myMacro) {
 void
 circuit::make_rows()
 {
-  for (auto db_row : block->getRows()) {
-    struct row row;
+  auto db_rows = block->getRows();
+  rows.reserve(db_rows.size());
+  for (auto db_row : db_rows) {
+    prevrows.push_back(row());
+    struct row &row = prevrows.back();
+
     row.db_row = db_row;
     const char *row_name = db_row->getConstName();
     row.name = row_name;
@@ -283,8 +292,6 @@ circuit::make_rows()
       row.stepY = db_row->getSpacing();
       break;
     }
-    row2id.insert(make_pair(row_name, prevrows.size()));
-    prevrows.push_back(row);
 
     // initialize rowHeight variable (double)
     if( fabs(rowHeight - 0.0f) <= DBL_EPSILON ) {
@@ -353,7 +360,11 @@ void
 circuit::make_cells()
 {
   for (auto db_inst : block->getInsts()) {
-    struct cell cell;
+    cells.push_back(cell());
+    struct cell &cell = cells.back();
+    cell.db_inst = db_inst;
+    db_inst_map[db_inst] = &cell;
+
     dbMaster *master = db_inst->getMaster();
     auto miter = db_master_map.find(master);
     if (miter != db_master_map.end()) {
@@ -384,7 +395,6 @@ circuit::make_cells()
 	cell.isPlaced = true;
       }
       cell.cellorient = orient;
-      cells.push_back(cell);
     }
   }
 }
@@ -440,7 +450,6 @@ int circuit::ReadDef() {
   defrSetPinCbk((defrPinCbkFnType)cp.DefPinCbk);
 
   // Nets
-  defrSetNetCbk(cp.DefNetCbk);
   defrSetSNetCbk(cp.DefSNetCbk);
   defrSetAddPathToNet();
 
@@ -520,9 +529,6 @@ int CircuitParser::DefStartCbk(
       break;
     case defrStartPinsCbkType:
       ckt->pins.reserve(num);
-      break;
-    case defrNetStartCbkType:
-      ckt->nets.reserve(num);
       break;
     case defrSNetStartCbkType:
       ckt->minVddCoordiY = DBL_MAX;

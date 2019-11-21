@@ -156,9 +156,6 @@ pixel::pixel()
     linked_cell(NULL),
     isValid(true) {};
 
-net::net() 
-  : name(""), source(UINT_MAX) {};
-
 row::row()
       : name(""),
         site(UINT_MAX),
