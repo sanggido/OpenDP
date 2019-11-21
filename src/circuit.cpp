@@ -29,14 +29,6 @@ site::site(const site& s)
     type(s.type),
     symmetries(s.symmetries) {};
   
-mincut::mincut()
-  : via_num(0), width(0.0), length(0.0), 
-    within(0.0), direction("") {};
-  
-space::space() 
-  : adj(0), type(""), min(0), max(0) {};
-
-  
 layer::layer()
   : name(""),
     type(""),
@@ -52,10 +44,6 @@ layer::layer()
     area(0.0),
     minEnclosedArea(0.0) {};
   
-viaRule::viaRule() : name("") {};
-
-via::via() : name(""), viaRule(""), property("") {};
-
 macro_pin::macro_pin() : direction(""), layer(0) {};
 
 macro::macro()

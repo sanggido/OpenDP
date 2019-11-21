@@ -110,23 +110,6 @@ struct site {
   void print();
 };
 
-struct mincut {
-  int via_num;
-  double width;
-  double length;
-  double within;
-  std::string direction;  // FROMABOVE or FROMBELOW
-  mincut();
-};
-
-struct space {
-  int adj;
-  std::string type;
-  double min, max;
-
-  space();
-};
-
 struct layer {
   dbTechLayer *db_layer;
   std::string name;
@@ -144,30 +127,10 @@ struct layer {
   std::string minStep;
   double area;
   double minEnclosedArea;
-  std::vector< mincut > mincut_rule;
-  std::vector< space > spacing_rule;
 
   // -------------
   layer();
   void print();
-};
-
-struct viaRule {
-  std::string name;
-  std::vector< layer* > layers;
-  std::vector< std::pair< double, double > > enclosure;
-  std::vector< std::pair< double, double > > width;
-  std::vector< std::pair< double, double > > spacing;
-  rect viaRect;
-  viaRule();
-};
-
-struct via {
-  std::string name;
-  std::string viaRule;
-  std::string property;
-  std::vector< std::pair< layer*, rect > > obses;
-  via();
 };
 
 struct macro_pin {
@@ -316,16 +279,6 @@ struct density_bin {
   void print();
 };
 
-struct track {
-  std::string axis;  // X or Y
-  unsigned start;
-  unsigned num_track;
-  unsigned step;
-  std::vector< layer* > layers;
-  track()
-  : axis(""), start(0), num_track(0), step(0) {}
-};
-
 class circuit {
  public:
   bool GROUP_IGNORE;
@@ -376,7 +329,6 @@ class circuit {
   pixel** grid;
   cell dummy_cell;
   std::vector< sub_region > sub_regions;
-  std::vector< track > tracks;
 
   unsigned MAXVIASTACK;
   layer* minLayer;
@@ -396,8 +348,6 @@ class circuit {
   std::vector< row > prevrows;     // fragmented row list
   std::vector< row > rows;     /* row list */
 
-  std::vector< via > vias;
-  std::vector< viaRule > viaRules;
   std::vector< group > groups; /* group list from .def */
 
   std::vector< std::pair< double, cell* > > large_cell_stor;
