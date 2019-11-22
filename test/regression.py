@@ -5,6 +5,12 @@ import subprocess as sp
 useValgrind = False 
 useScreen = False 
 
+test_path = os.path.realpath(__file__)
+test_dir = os.path.dirname(test_path)
+opendp_dir = os.path.dirname(test_path)
+openroad_dir = os.path.dirname(os.path.dirname(os.path.dirname(opendp_dir)))
+prog = os.path.join(openroad_dir, "build", "src", "openroad")
+
 def ExecuteCommand( cmd ):
   print( cmd )
   sp.call( cmd, shell=True )
@@ -20,8 +26,8 @@ def NangateRun(curList):
       if cFile.endswith(".tcl") == False:
         continue
       print ( "  " + cFile )
-#      cmd = "cd %s && opendp < %s |& tee exp/%s.log" % (curCase, cFile, cFile) 
-      cmd = "cd %s && ../opendp < %s | tee exp/%s.log" % (curCase, cFile, cFile) 
+      cmd1 = "cd %s && " + prog + " -no_init < %s | Tee ../exp/%s.log"
+      cmd = cmd1 % (curCase, cFile, cFile) 
       if useValgrind: 
         ExecuteCommand("cd %s && valgrind --log-fd=1 ../opendp < %s |& tee exp/%s_valgrind.log" % (curCase, cFile, cFile) )
       elif useScreen:
@@ -45,8 +51,9 @@ for cdir in sorted(dirList):
   if os.path.isdir(cdir) == False:
     continue
 
-  if "iccad17-test" in cdir:
-    iccadList.append(cdir)
+# disable lef5.8 tests
+#  if "iccad17-test" in cdir:
+#    iccadList.append(cdir)
   if "nangate45-test" in cdir:
     nangateList.append(cdir)
 

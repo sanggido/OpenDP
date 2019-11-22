@@ -3,11 +3,10 @@ set design gcd
 
 set TIME_start [clock clicks -milliseconds]
 
-opendp_external odp
-odp import_lef ../nangate45-bench/tech/NangateOpenCellLibrary.lef
-odp import_def ../nangate45-bench/${design}/${design}_replace.def
+read_lef ../nangate45-bench/tech/NangateOpenCellLibrary.lef
+read_def ../nangate45-bench/${design}/${design}_replace.def
 
-odp init_opendp
+opendp_external odp
 odp legalize_place
 
 set TIME_taken [expr [clock clicks -milliseconds] - $TIME_start]

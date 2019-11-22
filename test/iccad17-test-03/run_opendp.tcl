@@ -3,12 +3,12 @@ set design pci_bridge32_b_md3
 
 set TIME_start [clock clicks -milliseconds]
 
-opendp_external odp
-odp import_lef ../iccad17-bench/${design}/tech.lef
-odp import_lef ../iccad17-bench/${design}/cells_modified.lef
-odp import_def ../iccad17-bench/${design}/placed.def
-odp import_constraint ../iccad17-bench/${design}/placement.constraints
+read_lef -tech ../iccad17-bench/${design}/tech.lef
+read_lef ../iccad17-bench/${design}/cells_modified.lef
+read_def ../iccad17-bench/${design}/placed.def
 
+opendp_external odp
+odp import_constraint ../iccad17-bench/${design}/placement.constraints
 odp init_opendp
 odp legalize_place
 
