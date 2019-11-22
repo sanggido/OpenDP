@@ -9,11 +9,11 @@ namespace sta {
 extern const char *opendp_tcl_inits[];
 }
 
-namespace ord {
-
 extern "C" {
 extern int Opendp_Init(Tcl_Interp *interp);
 }
+
+namespace ord {
 
 opendp::opendp_external *
 makeOpendp()
