@@ -1,34 +1,11 @@
 #include "opendp/opendp_external.h"
-#include "StaMain.hh"
-
-using std::cout;
-using std::endl;
-
-namespace sta {
-// Tcl files encoded into strings.
-extern const char *opendp_tcl_inits[];
-}
 
 namespace opendp {
-
-extern "C" {
-extern int Opendp_Init(Tcl_Interp *interp);
-}
 
 opendp_external::opendp_external() 
 : is_evaluated(false) {};
 
 opendp_external::~opendp_external() {};
-
-void opendp_external::init(Tcl_Interp *tcl_interp,
-			   odb::dbDatabase *db) {
-  // Define swig TCL commands.
-  Opendp_Init(tcl_interp);
-  // Eval encoded sta TCL sources.
-  sta::evalTclInit(tcl_interp, sta::opendp_tcl_inits);
-
-  ckt.db = db;
-}
 
 void
 opendp_external::read_constraints(std::string constraint_file) {
@@ -36,10 +13,6 @@ opendp_external::read_constraints(std::string constraint_file) {
 }
 
 void opendp_external::legalize_place() {
-  // insert row check in top level command, not here -cherry
-  //  if( ckt->prevrows.size() <= 0)
-  //    cerr << "  ERROR: rowSize is 0. Please define at least one ROW in DEF" << endl;
-
   ckt.db_to_circuit();
   ckt.InitOpendpAfterParse();
 

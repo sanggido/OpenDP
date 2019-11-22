@@ -1,11 +1,11 @@
 #ifndef __OPENDP_EXTERNAL__
 #define __OPENDP_EXTERNAL__
 
-#include <tcl.h>
 #include "circuit.h"
 #include <vector>
 #include <string>
 #include "openroad/OpenRoad.hh"
+#include "opendp/MakeOpendp.h"
 
 namespace opendp {
 
@@ -14,8 +14,6 @@ public:
   opendp_external();
   ~opendp_external();
 
-  void init(Tcl_Interp *tcl_interp,
-	    odb::dbDatabase *db);
   void read_constraints(std::string constraint_file);
   void legalize_place();
   bool check_legality();
@@ -28,8 +26,10 @@ public:
   double get_legalized_hpwl();
 
 private:
-  opendp::circuit ckt;
+  circuit ckt;
   bool is_evaluated;
+
+  friend void ord::initOpendp(ord::OpenRoad *);
 };
 
 } // namespace
