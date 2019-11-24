@@ -43,7 +43,6 @@ circuit::db_to_circuit()
   // LEF
   DEFdist2Microns = db->getTech()->getDbUnitsPerMicron();
   for (auto db_lib : db->getLibs()) {
-    make_sites(db_lib);
     make_macros(db_lib);
   }
 
@@ -66,35 +65,13 @@ circuit::db_to_circuit()
 
   // sort ckt->rows
   sort(prevrows.begin(), prevrows.end(), SortByRowCoordinate);
-  // change ckt->rows as CoreArea;
-  rows = GetNewRow(this);
+  // make rows in CoreArea;
+  make_core_rows();
 
   cout << "CoreArea: " << endl;
   core.print();
   cout << "DieArea: " << endl;
   die.print();
-}
-
-void
-circuit::make_sites(dbLib *db_lib)
-{
-  auto db_sites = db_lib->getSites();
-  sites.reserve(db_sites.size());
-  for (auto db_site : db_sites) {
-    sites.push_back(site());
-    struct site &site = sites.back();
-    db_site_map[db_site] = &site;
-    site.db_site = db_site;
-
-    site.width = dbuToMicrons(db_site->getWidth());
-    site.height = dbuToMicrons(db_site->getHeight());
-    if (db_site->getSymmetryX())
-      site.symmetries.push_back("X");
-    if (db_site->getSymmetryY())
-      site.symmetries.push_back("Y");
-    if (db_site->getSymmetryR90())
-      site.symmetries.push_back("R90");
-  }
 }
 
 void
@@ -116,9 +93,6 @@ circuit::make_macros(dbLib *db_lib)
 
     macro.width = dbuToMicrons(db_master->getWidth());
     macro.height = dbuToMicrons(db_master->getHeight());
-    struct site *site = db_site_map[db_master->getSite()];
-    int site_idx = site - &sites[0];
-    macro.sites.push_back(site_idx);
 
     make_macro_obstructions(db_master, macro);
     macro_define_top_power(&macro);
@@ -190,9 +164,7 @@ circuit::make_rows()
     row.db_row = db_row;
     const char *row_name = db_row->getConstName();
     row.name = row_name;
-    site *site = db_site_map[db_row->getSite()];
-    int site_idx = site - &sites[0];
-    row.site = site_idx;
+    row.site = db_row->getSite();
     int x, y;
     db_row->getOrigin(x, y);
     row.origX = x;
@@ -212,12 +184,12 @@ circuit::make_rows()
 
     // initialize rowHeight variable (double)
     if( fabs(rowHeight - 0.0f) <= DBL_EPSILON ) {
-      rowHeight = sites[ row.site ].height * DEFdist2Microns;
+      rowHeight = row.site->getHeight();
     }
 
     // initialize wsite variable (int)
     if( wsite == 0 ) {
-      wsite = int(sites[row.site].width * DEFdist2Microns + 0.5f);
+      wsite = row.site->getWidth();
     }
   
     core.xLL = min(1.0*row.origX, core.xLL);
@@ -241,37 +213,37 @@ static bool SortByRowCoordinate (const row& lhs,
   return ( lhs.origX < rhs.origX );
 }
 
-// Generate New Row Based on CoreArea
-static vector<opendp::row> GetNewRow(const circuit* ckt) {
-  // Return Row Vectors
-  vector<opendp::row> retRow;
-
+// Generate new rows based on CoreArea
+void
+circuit::make_core_rows() {
   // calculation X and Y from CoreArea
-  int rowCntX = IntConvert((ckt->core.xUR - ckt->core.xLL)/ckt->wsite);
-  int rowCntY = IntConvert((ckt->core.yUR - ckt->core.yLL)/ckt->rowHeight);
+  int rowCntX = IntConvert((core.xUR - core.xLL)/wsite);
+  int rowCntY = IntConvert((core.yUR - core.yLL)/rowHeight);
 
-  unsigned siteIdx = ckt->prevrows[0].site;
-  dbOrientType curOrient = ckt->prevrows[0].siteorient;
+  dbSite *site = prevrows[0].site;
+  dbOrientType curOrient = prevrows[0].siteorient;
 
+  rows.reserve(rowCntY);
+  rows.clear();
   for(int i=0; i<rowCntY; i++) {
     opendp::row myRow;
-    myRow.site = siteIdx;
-    myRow.origX = IntConvert(ckt->core.xLL);
-    myRow.origY = IntConvert(ckt->core.yLL + i * ckt->rowHeight);
+    myRow.name = prevrows[i].name;
+    myRow.db_row = prevrows[i].db_row;
+    myRow.site = site;
+    myRow.origX = IntConvert(core.xLL);
+    myRow.origY = IntConvert(core.yLL + i * rowHeight);
 
-    myRow.stepX = ckt->wsite;
+    myRow.stepX = wsite;
     myRow.stepY = 0;
 
     myRow.numSites = rowCntX;
     myRow.siteorient = curOrient;
-    retRow.push_back(myRow);
+    rows.push_back(myRow);
 
     // curOrient is flipping. e.g. R0 -> MX -> R0 -> MX -> ...
     curOrient = (curOrient == dbOrientType::R0)? dbOrientType::MX : dbOrientType::R0;
   }
-  return retRow;
 }
-
 
 void
 circuit::make_cells()

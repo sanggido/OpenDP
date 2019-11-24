@@ -18,15 +18,6 @@ void rect::print() {
   fflush(stdout); 
 }
 
-  
-site::site() 
-  : width(0.0), height(0.0) {};
-
-site::site(const site& s)
-  : width(s.width),
-    height(s.height),
-    symmetries(s.symmetries) {};
-  
 macro::macro()
   : isMulti(false),
     xOrig(0.0),
@@ -42,9 +33,6 @@ void macro::print() {
   cout << "name:                " << db_master->getConstName() << endl;
   cout << "(xOrig,yOrig):       " << xOrig << ", " << yOrig << endl;
   cout << "[width,height]:      " << width << ", " << height << endl;
-  for(unsigned i = 0; i < sites.size(); ++i) {
-    cout << "sites[" << i << "]: " << sites[i] << endl;
-  }
   cout << "|=== BEGIN MACRO ===|" << endl;
 }
 
@@ -86,13 +74,13 @@ pixel::pixel()
 
 row::row()
       : name(""),
-        site(UINT_MAX),
-        origX(0),
+        site(nullptr),
+	origX(0),
         origY(0),
         stepX(0),
         stepY(0),
         numSites(0),
-        siteorient("") {};
+        siteorient(dbOrientType::R0) {};
 
 group::group() : name(""), type(""), tag(""), util(0.0) {};
 

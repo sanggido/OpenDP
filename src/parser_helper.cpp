@@ -43,7 +43,6 @@ using opendp::row;
 using opendp::pixel;
 using opendp::rect;
 using opendp::macro;
-using opendp::site;
 using opendp::group;
 using opendp::density_bin;
 
@@ -143,9 +142,6 @@ void cell::print() {
   cout << "name:               " << name << endl;
   cout << "type:               " << type << endl;
   cout << "isFixed?            " << (isFixed ? "true" : "false") << endl;
-  for(OPENDP_HASH_MAP< string, unsigned >::iterator it = ports.begin();
-      it != ports.end(); it++)
-    cout << "port: " << (*it).first << " - " << (*it).second << endl;
   cout << "(init_x,  init_y):  " << init_x_coord << ", " << init_y_coord
        << endl;
   cout << "(x_coord,y_coord):  " << x_coord << ", " << y_coord << endl;
@@ -163,18 +159,6 @@ void row::print() {
   cout << "orientation:       " << siteorient << endl;
   cout << "|===  END  ROW ===|" << endl;
 }
-
-void site::print() {
-  cout << "|=== BEGIN SITE ===|" << endl;
-  cout << "name:               " << db_site->getConstName() << endl;
-  cout << "width:              " << width << endl;
-  cout << "height:             " << height << endl;
-  for(vector< string >::iterator it = symmetries.begin();
-      it != symmetries.end(); ++it)
-    cout << "symmetries:         " << *it << endl;
-  cout << "|===  END  SITE ===|" << endl;
-}
-
 
 void density_bin::print() {
   cout << "|=== BEGIN DENSITY_BIN ===|" << endl;

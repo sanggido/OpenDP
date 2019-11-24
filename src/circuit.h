@@ -94,19 +94,6 @@ struct rect {
   void print(); 
 };
 
-struct site {
-  dbSite *db_site;
-  double width;                /* in microns */
-  double height;               /* in microns */
-  
-  /* {X | Y | R90} */
-  std::vector< std::string > symmetries; 
-
-  site();
-  site(const site& s);
-  void print();
-};
-
 struct macro {
   dbMaster *db_master;
   bool isMulti;       /* single row = false , multi row = true */
@@ -116,7 +103,6 @@ struct macro {
   double height;      /* in microns */
   int edgetypeLeft;   // 1 or 2
   int edgetypeRight;  // 1 or 2
-  std::vector< unsigned > sites;
 
   std::vector< rect > obses; /* keyword OBS for non-rectangular shapes in micros */
   power top_power;      // VDD = 0  VSS = 1 enum
@@ -139,7 +125,6 @@ struct cell {
   bool inGroup;
   bool hold;
   unsigned region;
-  OPENDP_HASH_MAP< std::string, unsigned > ports; /* <port name, index to the pin> */
   std::string group;
 
   double dense_factor;
@@ -168,7 +153,7 @@ struct row {
   dbRow *db_row;
   /* from DEF file */
   std::string name;
-  unsigned site;
+  dbSite *site;
   int origX; /* (in DBU) */
   int origY; /* (in DBU) */
   int stepX; /* (in DBU) */
@@ -223,7 +208,6 @@ class circuit {
 
   void init_large_cell_stor();
 
-  std::map<dbSite*, site*> db_site_map;
   std::map<dbMaster*, macro*> db_master_map;
   std::map<dbInst*, cell*> db_inst_map;
 
@@ -271,7 +255,6 @@ class circuit {
 
   dbDatabase *db;
   dbBlock *block;
-  std::vector< site > sites;   /* site list */
   std::vector< macro > macros; /* macro list */
   std::vector< cell > cells;   /* cell list */
   std::vector< row > prevrows;     // fragmented row list
@@ -293,6 +276,7 @@ class circuit {
   void make_macro_obstructions(dbMaster *db_master,
 			       struct macro &macro);
   void make_rows();
+  void make_core_rows();
   void make_cells();
   double dbuToMicrons(int dbu) { return dbu / double(DEFdist2Microns); }
   void update_db_inst_locations();
