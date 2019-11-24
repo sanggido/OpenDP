@@ -39,11 +39,7 @@
 #define _DEBUG
 #define _DEBUG2
 
-using opendp::circuit;
-using opendp::cell;
-using opendp::row;
-using opendp::pixel;
-using opendp::rect;
+namespace opendp {
 
 using std::max;
 using std::min;
@@ -447,3 +443,5 @@ bool circuit::paint_pixel(cell* theCell, int x_pos, int y_pos) {
   }
   return true;
 }
+
+} // namespace
