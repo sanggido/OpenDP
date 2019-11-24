@@ -219,13 +219,13 @@ void circuit::non_group_cell_placement(string mode) {
     cell* theCell = cell_list[i];
     macro* theMacro = theCell->cell_macro;
     if(theMacro->isMulti == true)
-      if(map_move(theCell, mode) == false) shift_move(theCell, mode);
+      if(!map_move(theCell, mode)) shift_move(theCell, mode);
   }
   for(int i = 0; i < cell_list.size(); i++) {
     cell* theCell = cell_list[i];
     macro* theMacro = theCell->cell_macro;
-    if(theMacro->isMulti == false)
-      if(map_move(theCell, mode) == false) shift_move(theCell, mode);
+    if(!theMacro->isMulti)
+      if(!map_move(theCell, mode)) shift_move(theCell, mode);
   }
 }
 
