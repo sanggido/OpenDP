@@ -65,8 +65,6 @@ using std::fixed;
 using std::setprecision;
 using std::numeric_limits;
 
-const char* FFClkPortName = "ck";
-
 inline bool operator<(const row& a, const row& b) {
   return (a.origY < b.origY) || (a.origY == b.origY && a.origX < b.origX);
 }
