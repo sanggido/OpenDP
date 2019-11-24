@@ -282,9 +282,9 @@ double circuit::calc_density_factor(double unit) {
       for(int k = lcol; k <= rcol; k++) {
         unsigned binId = j * x_gridNum + k;
 
-        if(theCell->inGroup)
+        if(theCell->inGroup())
           bins[binId].density_limit = max(
-              bins[binId].density_limit, groups[group2id[theCell->group]].util);
+              bins[binId].density_limit, theCell->cell_group->util);
 
         /* get intersection */
         double lx = max(bins[binId].lx, (double)theCell->init_x_coord);
@@ -579,18 +579,18 @@ pair< bool, pair< int, int > > circuit::bin_search(int x_pos, cell* theCell,
               break;
             }
             // check group regions
-            if(theCell->inGroup == true) {
-              if(grid[k][l].group != group2id[theCell->group])
+            if(theCell->inGroup()) {
+              if(grid[k][l].pixel_group != theCell->cell_group)
                 available = false;
             }
             else {
-              if(grid[k][l].group != UINT_MAX) available = false;
+              if(grid[k][l].pixel_group != nullptr) available = false;
             }
           }
-          if(available == false) break;
+          if(!available) break;
         }
       }
-      if(available == true) {
+      if(available) {
         if(edge_left == 0)
           pos = make_pair(y, x + i);
         else
@@ -615,18 +615,18 @@ pair< bool, pair< int, int > > circuit::bin_search(int x_pos, cell* theCell,
               break;
             }
             // check group regions
-            if(theCell->inGroup == true) {
-              if(grid[k][l].group != group2id[theCell->group])
+            if(theCell->inGroup()) {
+              if(grid[k][l].pixel_group != theCell->cell_group)
                 available = false;
             }
             else {
-              if(grid[k][l].group != UINT_MAX) available = false;
+              if(grid[k][l].pixel_group != nullptr) available = false;
             }
           }
-          if(available == false) break;
+          if(!available) break;
         }
       }
-      if(available == true) {
+      if(available) {
 #ifdef DEBUG
         cout << " found pos x - y : " << x << " - " << y << " Finish Search "
              << endl;
@@ -657,8 +657,8 @@ pair< bool, pixel* > circuit::diamond_search(cell* theCell, int x_coord,
   int y_end = 0;
 
   // set search boundary max / min
-  if(theCell->inGroup == true) {
-    group* theGroup = &groups[group2id[theCell->group]];
+  if(theCell->inGroup()) {
+    group* theGroup = theCell->cell_group;
     x_start = max(x_pos - (int)(displacement * 5),
                   (int)floor(theGroup->boundary.xLL / wsite));
     x_end = min(x_pos + (int)(displacement * 5),
@@ -826,7 +826,7 @@ bool circuit::shift_move(cell* theCell, int x, int y) {
   // erase region cells
   for(int i = 0; i < overlap_region_cells.size(); i++) {
     cell* around_cell = overlap_region_cells[i];
-    if(theCell->inGroup == around_cell->inGroup) {
+    if(theCell->inGroup() == around_cell->inGroup()) {
       // assert ( check_inside(around_cell,&theRect,"coord") == true );
       erase_pixel(around_cell);
     }
@@ -842,7 +842,7 @@ bool circuit::shift_move(cell* theCell, int x, int y) {
   // rebuild erased cells
   for(int i = 0; i < overlap_region_cells.size(); i++) {
     cell* around_cell = overlap_region_cells[i];
-    if(theCell->inGroup == around_cell->inGroup) {
+    if(theCell->inGroup() == around_cell->inGroup()) {
       if(map_move(around_cell, around_cell->init_x_coord,
                   around_cell->init_y_coord) == false) {
 #ifdef DEBUG

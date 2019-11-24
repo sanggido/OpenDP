@@ -98,11 +98,11 @@ void circuit::print_pixels() {
       // cout << grid[i][j].util << " ";
       if(grid[i][j].util > 0.00001) {
         cout << grid[i][j].util << " ";
-        if(grid[i][j].group == UINT_MAX) {
+        if(grid[i][j].pixel_group == nullptr) {
           cout << " no_group ";
         }
         else {
-          cout << groups[grid[i][j].group].name << " ";
+          cout << grid[i][j].pixel_group->name << " ";
         }
       }
     }
@@ -120,9 +120,9 @@ void circuit::group_cell_region_assign() {
     double area = 0;
     for(int j = 0; j < rows.size(); j++) {
       for(int k = 0; k < rows[j].numSites; k++) {
-        if(grid[j][k].group != UINT_MAX) {
+        if(grid[j][k].pixel_group != nullptr) {
           if(grid[j][k].isValid == true) {
-            if(groups[grid[j][k].group].name == theGroup->name)
+            if(grid[j][k].pixel_group == theGroup)
               area += wsite * rowHeight;
           }
         }
@@ -166,7 +166,7 @@ void circuit::non_group_cell_region_assign() {
       fixed_cell_count++;
       continue;
     }
-    if(theCell->inGroup == false) non_group_cell_count++;
+    if(!theCell->inGroup()) non_group_cell_count++;
   }
 
   unsigned group_num = non_group_cell_count / 5000;
@@ -193,7 +193,7 @@ void circuit::non_group_cell_region_assign() {
 
     for(int k = 0; k < cells.size(); k++) {
       cell* theCell = &cells[k];
-      if(theCell->isFixed || theCell->inGroup) continue;
+      if(theCell->isFixed || theCell->inGroup()) continue;
       if(theCell->init_x_coord >= j * x_step &&
          theCell->init_x_coord < (j + 1) * x_step) {
 #ifdef DEBUG2
@@ -347,7 +347,7 @@ void circuit::group_pixel_assign() {
         // assig groupid to each pixel ( grid )
         for(int l = col_start; l < col_end; l++) {
           if(abs(grid[k][l].util - 1.0) < 1e-6) {
-            grid[k][l].group = group2id[theGroup->name];
+            grid[k][l].pixel_group = theGroup;
             grid[k][l].linked_cell = NULL;
             grid[k][l].isValid = true;
             grid[k][l].util = 1.0;
@@ -417,7 +417,7 @@ bool circuit::paint_pixel(cell* theCell, int x_pos, int y_pos) {
     for(int j = x_pos; j < x_pos + x_step; j++) {
       if(grid[i][j].linked_cell != NULL) {
         cerr << " Can't paint grid [" << i << "][" << j << "] !!!" << endl;
-        cerr << " group name : " << groups[grid[i][j].group].name << endl;
+        cerr << " group name : " << grid[i][j].pixel_group->name << endl;
         cerr << " Cell name : " << grid[i][j].linked_cell->db_inst->getConstName()
              << " already occupied grid" << endl;
         exit(2);

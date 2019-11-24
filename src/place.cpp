@@ -153,12 +153,12 @@ void circuit::non_group_cell_pre_placement() {
     bool inGroup = false;
     rect* target;
     pair< int, int > coord;
-    if(theCell->inGroup == true || theCell->isPlaced == true) continue;
+    if(theCell->inGroup() || theCell->isPlaced) continue;
     for(int j = 0; j < groups.size(); j++) {
       group* theGroup = &groups[j];
       for(int k = 0; k < theGroup->regions.size(); k++) {
         rect* theRect = &theGroup->regions[k];
-        if(check_overlap(theCell, theRect, "init_coord") == true) {
+        if(check_overlap(theCell, theRect, "init_coord")) {
           inGroup = true;
           target = theRect;
         }
@@ -209,7 +209,7 @@ void circuit::non_group_cell_placement(string mode) {
 
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
-    if(theCell->isFixed || theCell->inGroup || theCell->isPlaced) continue;
+    if(theCell->isFixed || theCell->inGroup() || theCell->isPlaced) continue;
 
     cell_list.push_back(theCell);
   }
@@ -252,11 +252,11 @@ void circuit::group_cell_placement(string mode, string mode2) {
     for(int j = 0; j < cell_list.size(); j++) {
       cell* theCell = cell_list[j];
       if(theCell->isFixed || theCell->isPlaced) continue;
-      assert(theCell->inGroup == true);
+      assert(theCell->inGroup());
       macro* theMacro = theCell->cell_macro;
-      if(theMacro->isMulti == true) {
+      if(theMacro->isMulti) {
         multi_pass = map_move(theCell, mode);
-        if(multi_pass == false) {
+        if(!multi_pass) {
           cout << "map_move fail" << endl;
           break;
         }
@@ -270,9 +270,9 @@ void circuit::group_cell_placement(string mode, string mode2) {
       for(int j = 0; j < cell_list.size(); j++) {
         cell* theCell = cell_list[j];
         if(theCell->isFixed || theCell->isPlaced) continue;
-        assert(theCell->inGroup == true);
+        assert(theCell->inGroup());
         macro* theMacro = theCell->cell_macro;
-        if(theMacro->isMulti == false) {
+        if(!theMacro->isMulti) {
           single_pass = map_move(theCell, mode);
           if(single_pass == false) {
             //						cout << "map_move fail" <<
@@ -475,7 +475,7 @@ int circuit::non_group_refine() {
 
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
-    if(theCell->isFixed || theCell->hold || theCell->inGroup) continue;
+    if(theCell->isFixed || theCell->hold || theCell->inGroup()) continue;
     sort_by_disp.push_back(make_pair(disp(theCell), theCell));
   }
   sort(sort_by_disp.begin(), sort_by_disp.end(),

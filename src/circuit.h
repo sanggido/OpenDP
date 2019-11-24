@@ -101,6 +101,8 @@ struct macro {
   void print();
 };
 
+struct group;
+
 struct cell {
   dbInst *db_inst;
   unsigned id;
@@ -111,10 +113,10 @@ struct cell {
   double width, height;           /* (in DBU) */
   bool isFixed;                   /* fixed cell or not */
   bool isPlaced;
-  bool inGroup;
+  bool inGroup() { return cell_group != nullptr; }
   bool hold;
   unsigned region; // group rect index
-  std::string group;
+  group *cell_group;
 
   double dense_factor;
   int dense_factor_count;
@@ -130,7 +132,7 @@ struct pixel {
   double util;
   int x_pos;
   int y_pos;
-  unsigned group;  // group id
+  group *pixel_group;
 
   cell* linked_cell;
   bool isValid;  // false for dummy place
@@ -202,8 +204,6 @@ class circuit {
 
   /* spacing between edges  1 to 1 , 1 to 2, 2 to 2 */
   std::map< std::pair< int, int >, double > edge_spacing; 
-
-  OPENDP_HASH_MAP< std::string, unsigned > group2id; /* group between name -> index */
 
   double design_util;
 

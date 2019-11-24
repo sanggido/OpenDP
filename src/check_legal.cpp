@@ -356,7 +356,7 @@ void circuit::power_line_check(ofstream& log) {
       continue;
 
     // should removed later
-    if(theCell->inGroup == false) continue;
+     if(!theCell->inGroup()) continue;
 
     macro* theMacro = theCell->cell_macro;
     int y_size = (int)floor(theCell->height / rowHeight + 0.5);

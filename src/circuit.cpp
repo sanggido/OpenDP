@@ -43,10 +43,9 @@ cell::cell()
         height(0.0),
         isFixed(false),
         isPlaced(false),
-        inGroup(false),
         hold(false),
         region(UINT_MAX),
-        group(""),
+        cell_group(nullptr),
         dense_factor(0.0),
         dense_factor_count(0),
         binId(UINT_MAX),
@@ -61,7 +60,7 @@ pixel::pixel()
     util(0.0),
     x_pos(0.0),
     y_pos(0.0),
-    group(UINT_MAX),
+    pixel_group(nullptr),
     linked_cell(NULL),
     isValid(true) {};
 
@@ -122,7 +121,6 @@ circuit::circuit()
   layer2id.set_empty_key(
       INITSTR); /* OPENDP_HASH_MAP between layer name and ID */
   via2id.set_empty_key(INITSTR);
-  group2id.set_empty_key(INITSTR); /* group between name -> index */
 #endif
 };
 
