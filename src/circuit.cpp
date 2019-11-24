@@ -20,8 +20,6 @@ void rect::print() {
 
 macro::macro()
   : isMulti(false),
-    xOrig(0.0),
-    yOrig(0.0),
     width(0.0),
     height(0.0),
     edgetypeLeft(0),
@@ -31,7 +29,6 @@ macro::macro()
 void macro::print() {
   cout << "|=== BEGIN MACRO ===|" << endl;
   cout << "name:                " << db_master->getConstName() << endl;
-  cout << "(xOrig,yOrig):       " << xOrig << ", " << yOrig << endl;
   cout << "[width,height]:      " << width << ", " << height << endl;
   cout << "|=== BEGIN MACRO ===|" << endl;
 }

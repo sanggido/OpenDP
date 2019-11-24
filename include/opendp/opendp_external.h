@@ -17,6 +17,7 @@ public:
   void read_constraints(std::string constraint_file);
   void legalize_place();
   bool check_legality();
+  void report_evaluation();
 
   double get_utilization();
   double get_sum_displacement();

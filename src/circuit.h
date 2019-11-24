@@ -67,10 +67,6 @@
 #define INIT false
 #define FINAL true
 
-#define PI_PIN 1
-#define PO_PIN 2
-#define NONPIO_PIN 3
-
 namespace opendp {
 
 using odb::dbDatabase;
@@ -97,8 +93,6 @@ struct rect {
 struct macro {
   dbMaster *db_master;
   bool isMulti;       /* single row = false , multi row = true */
-  double xOrig;       /* in microns */
-  double yOrig;       /* in microns */
   double width;       /* in microns */
   double height;      /* in microns */
   int edgetypeLeft;   // 1 or 2

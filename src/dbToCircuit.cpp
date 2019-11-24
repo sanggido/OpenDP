@@ -86,11 +86,6 @@ circuit::make_macros(dbLib *db_lib)
 
     macro.db_master = db_master;
 
-    int x, y;
-    db_master->getOrigin(x, y);
-    macro.xOrig = dbuToMicrons(x);
-    macro.yOrig = dbuToMicrons(y);
-
     macro.width = dbuToMicrons(db_master->getWidth());
     macro.height = dbuToMicrons(db_master->getHeight());
 

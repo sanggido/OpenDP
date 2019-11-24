@@ -29,6 +29,11 @@ double opendp_external::get_utilization() {
   return ckt.design_util; 
 }
 
+void opendp_external::report_evaluation() {
+  ckt.evaluation();
+  is_evaluated = true;
+}
+
 double opendp_external::get_sum_displacement() {
   if( !is_evaluated ) {
     ckt.evaluation();
