@@ -113,7 +113,7 @@ struct cell {
   bool isPlaced;
   bool inGroup;
   bool hold;
-  unsigned region;
+  unsigned region; // group rect index
   std::string group;
 
   double dense_factor;
