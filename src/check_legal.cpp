@@ -375,7 +375,7 @@ void circuit::power_line_check(ofstream& log) {
     cell* theCell = &cells[i];
     if(theCell->isFixed == true) continue;
 
-    if(theCell->height / rowHeight == 1 || theCell->height / rowHeight == 3)
+     if(theCell->height / rowHeight == 1 || theCell->height / rowHeight == 3)
       continue;
 
     // should removed later

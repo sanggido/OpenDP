@@ -20,8 +20,6 @@ void rect::print() {
 
 macro::macro()
   : isMulti(false),
-    width(0.0),
-    height(0.0),
     edgetypeLeft(0),
     edgetypeRight(0) {
 }
@@ -29,7 +27,6 @@ macro::macro()
 void macro::print() {
   cout << "|=== BEGIN MACRO ===|" << endl;
   cout << "name:                " << db_master->getConstName() << endl;
-  cout << "[width,height]:      " << width << ", " << height << endl;
   cout << "|=== BEGIN MACRO ===|" << endl;
 }
 
@@ -106,8 +103,6 @@ circuit::circuit()
     max_cell_height(1),
     rowHeight(0.0f)
 {
-
-  macros.reserve(128);
   rows.reserve(4096);
   sub_regions.reserve(100);
 

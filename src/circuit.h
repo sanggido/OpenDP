@@ -93,8 +93,6 @@ struct rect {
 struct macro {
   dbMaster *db_master;
   bool isMulti;       /* single row = false , multi row = true */
-  double width;       /* in microns */
-  double height;      /* in microns */
   int edgetypeLeft;   // 1 or 2
   int edgetypeRight;  // 1 or 2
 

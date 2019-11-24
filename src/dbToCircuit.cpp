@@ -34,8 +34,8 @@ static bool SortByRowCoordinate(const row& lhs,
 				const row& rhs);
 // Row Generation Function
 static vector<opendp::row> GetNewRow(const circuit* ckt);
-static std::pair<double, double> 
-GetOrientSize( double w, double h, dbOrientType orient );
+static bool
+swapWidthHeight(dbOrientType orient );
 
 void
 circuit::db_to_circuit()
@@ -85,9 +85,6 @@ circuit::make_macros(dbLib *db_lib)
     db_master_map[db_master] = &macro;
 
     macro.db_master = db_master;
-
-    macro.width = dbuToMicrons(db_master->getWidth());
-    macro.height = dbuToMicrons(db_master->getHeight());
 
     make_macro_obstructions(db_master, macro);
     macro_define_top_power(&macro);
@@ -257,12 +254,12 @@ circuit::make_cells()
       macro *macro = miter->second;
       cell.cell_macro = macro;
    
-      dbOrientType orient = db_inst->getOrient();
-      pair<double, double> orientSize 
-	= GetOrientSize( macro->width, macro->height, orient);
-
-      cell.width = orientSize.first * static_cast<double> (DEFdist2Microns);
-      cell.height = orientSize.second * static_cast<double> (DEFdist2Microns);
+      double width = master->getWidth();
+      double height = master->getHeight();
+      if (swapWidthHeight(db_inst->getOrient()))
+	std::swap(width, height);
+      cell.width = width;
+      cell.height = height;
 
       cell.isDummy = false;
       cell.isFixed = (db_inst->getPlacementStatus() == dbPlacementStatus::FIRM);
@@ -284,20 +281,19 @@ circuit::make_cells()
   }
 }
 
-// orient coordinate shift 
-static std::pair<double, double> 
-GetOrientSize( double w, double h, dbOrientType orient ) {
+static bool
+swapWidthHeight(dbOrientType orient ) {
   switch(orient) {
   case dbOrientType::R90:
   case dbOrientType::MXR90:
   case dbOrientType::R270:
   case dbOrientType::MYR90:
-    return std::make_pair(h, w);
+    return true;
   case dbOrientType::R0:
   case dbOrientType::R180:
   case dbOrientType::MY:
   case dbOrientType::MX:
-    return std::make_pair(w, h); 
+    return false;
   }
 }
 

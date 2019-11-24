@@ -161,13 +161,13 @@ void circuit::calc_design_area_stats() {
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
     macro* theMacro = theCell->cell_macro;
+    dbMaster *master = theMacro->db_master;
     if(!theCell->isFixed && 
-        theMacro->isMulti && 
-       theMacro->db_master->getType() == dbMasterType::CORE) {
-      if(max_cell_height <
-         round(theMacro->height * DEFdist2Microns / rowHeight))
-        max_cell_height =
-	  round(theMacro->height * DEFdist2Microns / rowHeight);
+       theMacro->isMulti &&
+       master->getType() == dbMasterType::CORE) {
+      double height_row = round(master->getHeight() / rowHeight);
+      if(max_cell_height < height_row)
+        max_cell_height = height_row;
     }
   }
 
@@ -186,7 +186,7 @@ void circuit::report_area_stats() {
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
     macro* theMacro = theCell->cell_macro;
-    if(theMacro->isMulti == true) {
+    if(theMacro->isMulti) {
       multi_num++;
     }
   }
