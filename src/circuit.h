@@ -81,6 +81,7 @@ using odb::dbMaster;
 using odb::dbMPin;
 using odb::dbRow;
 using odb::dbInst;
+using odb::dbMTerm;
 
 enum power { VDD, VSS };
 
@@ -94,12 +95,8 @@ struct rect {
 
 struct site {
   dbSite *db_site;
-  std::string name;
   double width;                /* in microns */
   double height;               /* in microns */
-  
-  /* equivalent to class, I/O pad or CORE */
-  std::string type;                 
   
   /* {X | Y | R90} */
   std::vector< std::string > symmetries; 
@@ -109,20 +106,8 @@ struct site {
   void print();
 };
 
-struct macro_pin {
-  dbMPin *db_mpin;
-  std::string direction;
-
-  std::vector< rect > port;
-
-  macro_pin();
-};
-
 struct macro {
   dbMaster *db_master;
-  std::string name;
-  std::string type;        /* equivalent to class, I/O pad or CORE */
-  bool isFlop;        /* clocked element or not */
   bool isMulti;       /* single row = false , multi row = true */
   double xOrig;       /* in microns */
   double yOrig;       /* in microns */
@@ -131,8 +116,6 @@ struct macro {
   int edgetypeLeft;   // 1 or 2
   int edgetypeRight;  // 1 or 2
   std::vector< unsigned > sites;
-
-  OPENDP_HASH_MAP< std::string, macro_pin > pins;
 
   std::vector< rect > obses; /* keyword OBS for non-rectangular shapes in micros */
   power top_power;      // VDD = 0  VSS = 1 enum
@@ -304,9 +287,9 @@ class circuit {
   void db_to_circuit();
   void make_sites(dbLib *db_lib);
   void make_macros(dbLib *db_lib);
-  void make_macro_pins(dbMaster *db_master,
-		       struct macro &macro);
+
   void macro_define_top_power(macro* myMacro);
+  int find_ymax(dbMTerm *term);
   void make_macro_obstructions(dbMaster *db_master,
 			       struct macro &macro);
   void make_rows();

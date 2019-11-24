@@ -167,10 +167,9 @@ void row::print() {
 
 void site::print() {
   cout << "|=== BEGIN SITE ===|" << endl;
-  cout << "name:               " << name << endl;
+  cout << "name:               " << db_site->getConstName() << endl;
   cout << "width:              " << width << endl;
   cout << "height:             " << height << endl;
-  cout << "type:               " << type << endl;
   for(vector< string >::iterator it = symmetries.begin();
       it != symmetries.end(); ++it)
     cout << "symmetries:         " << *it << endl;

@@ -20,45 +20,30 @@ void rect::print() {
 
   
 site::site() 
-  : name(""), width(0.0), height(0.0), type("") {};
+  : width(0.0), height(0.0) {};
 
 site::site(const site& s)
-  : name(s.name),
-    width(s.width),
+  : width(s.width),
     height(s.height),
-    type(s.type),
     symmetries(s.symmetries) {};
   
-macro_pin::macro_pin() : direction("") {};
-
 macro::macro()
-  : name(""),
-    type(""),
-    isFlop(false),
-    isMulti(false),
+  : isMulti(false),
     xOrig(0.0),
     yOrig(0.0),
     width(0.0),
     height(0.0),
     edgetypeLeft(0),
     edgetypeRight(0) {
-#ifdef USE_GOOGLE_HASH
-  pins.set_empty_key(INITSTR);
-#endif
 }
 
 void macro::print() {
   cout << "|=== BEGIN MACRO ===|" << endl;
-  cout << "name:                " << name << endl;
-  cout << "type:                " << type << endl;
+  cout << "name:                " << db_master->getConstName() << endl;
   cout << "(xOrig,yOrig):       " << xOrig << ", " << yOrig << endl;
   cout << "[width,height]:      " << width << ", " << height << endl;
   for(unsigned i = 0; i < sites.size(); ++i) {
     cout << "sites[" << i << "]: " << sites[i] << endl;
-  }
-  for(OPENDP_HASH_MAP< string, macro_pin >::iterator it = pins.begin();
-      it != pins.end(); it++) {
-    cout << "pins: " << (*it).first << endl;
   }
   cout << "|=== BEGIN MACRO ===|" << endl;
 }

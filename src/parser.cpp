@@ -41,6 +41,8 @@
 
 #define _DEBUG
 
+using odb::dbMasterType;
+
 using opendp::circuit;
 using opendp::cell;
 using opendp::row;
@@ -168,7 +170,7 @@ void circuit::calc_design_area_stats() {
     macro* theMacro = &macros[theCell->type];
     if(theCell->isFixed == false && 
         theMacro->isMulti == true && 
-        theMacro->type == "CORE") {
+       theMacro->db_master->getType() == dbMasterType::CORE) {
       if(max_cell_height <
          static_cast< int >(theMacro->height * DEFdist2Microns / rowHeight +
                             0.5))

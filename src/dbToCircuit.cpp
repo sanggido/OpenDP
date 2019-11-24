@@ -23,6 +23,11 @@ using odb::adsRect;
 using odb::dbOrientType;
 using odb::dbPlacementStatus;
 using odb::dbOrientType;
+using odb::dbMaster;
+using odb::dbMTerm;
+using odb::dbMPin;
+using odb::dbSigType;
+using odb::dbBox;
 
 // Row Sort Function
 static bool SortByRowCoordinate(const row& lhs,
@@ -81,10 +86,8 @@ circuit::make_sites(dbLib *db_lib)
     db_site_map[db_site] = &site;
     site.db_site = db_site;
 
-    site.name = db_site->getConstName();
     site.width = dbuToMicrons(db_site->getWidth());
     site.height = dbuToMicrons(db_site->getHeight());
-    site.type = db_site->getClass().getString();
     if (db_site->getSymmetryX())
       site.symmetries.push_back("X");
     if (db_site->getSymmetryY())
@@ -105,8 +108,6 @@ circuit::make_macros(dbLib *db_lib)
     db_master_map[db_master] = &macro;
 
     macro.db_master = db_master;
-    macro.name = db_master->getConstName();
-    macro.type = db_master->getType().getString();
 
     int x, y;
     db_master->getOrigin(x, y);
@@ -119,33 +120,8 @@ circuit::make_macros(dbLib *db_lib)
     int site_idx = site - &sites[0];
     macro.sites.push_back(site_idx);
 
-    make_macro_pins(db_master, macro);
     make_macro_obstructions(db_master, macro);
     macro_define_top_power(&macro);
-  }
-}
-
-void
-circuit::make_macro_pins(dbMaster *db_master,
-			 struct macro &macro)
-{
-  for (auto db_mterm : db_master->getMTerms()) {
-    for (auto db_mpin : db_mterm->getMPins()) {
-      string pinName = db_mterm->getConstName();
-      macro_pin &pin = macro.pins[pinName];
-
-      pin.db_mpin = db_mpin;
-      pin.direction = db_mterm->getIoType().getString();
-      for (auto db_box : db_mpin->getGeometry()) {
-	rect tmpRect;
-	tmpRect.xLL = db_box->xMin();
-	tmpRect.yLL = db_box->yMin();
-	tmpRect.xUR = db_box->xMax();
-	tmpRect.yUR = db_box->yMax();
-	pin.port.push_back(tmpRect);
-      }
-      
-    }
   }
 }
 
@@ -165,72 +141,41 @@ circuit::make_macro_obstructions(dbMaster *db_master,
 
 // - - - - - - - define multi row cell & define top power - - - - - - - - //
 void circuit::macro_define_top_power(macro* myMacro) {
+  dbMaster *master = myMacro->db_master;
 
-  bool isVddFound = false, isVssFound = false;
-  string vdd_str, vss_str;
-
-  auto pinPtr = myMacro->pins.find("vdd");
-  if(pinPtr != myMacro->pins.end()) {
-    vdd_str = "vdd";
-    isVddFound = true;
-  }
-  else if( pinPtr != myMacro->pins.find("VDD") ) {
-    vdd_str = "VDD";
-    isVddFound = true;
+  dbMTerm *power = nullptr;
+  dbMTerm *gnd = nullptr;
+  for (dbMTerm *mterm : master->getMTerms()) {
+    dbSigType sig_type = mterm->getSigType();
+    if (sig_type == dbSigType::POWER)
+      power = mterm;
+    else if (sig_type == dbSigType::GROUND)
+      gnd = mterm;
   }
 
-  pinPtr = myMacro->pins.find("vss");
-  if( pinPtr != myMacro->pins.end()) {
-    vss_str = "vss";
-    isVssFound = true;
+  int power_y_max = power ? find_ymax(power) : 0;
+  int gnd_y_max = gnd ? find_ymax(gnd) : 0;
+  if (power_y_max > gnd_y_max)
+    myMacro->top_power = VDD;
+  else
+    myMacro->top_power = VSS;
+
+  if (power && gnd) {
+    if (power->getMPins().size() > 1
+	|| gnd->getMPins().size() > 1)
+      myMacro->isMulti = true;
   }
-  else if( pinPtr != myMacro->pins.find("VSS") ) {
-    vss_str = "VSS";
-    isVssFound = true;
+}
+
+int
+circuit::find_ymax(dbMTerm *mterm)
+{
+  int ymax = 0;
+  for (dbMPin *mpin : mterm->getMPins()) {
+    for (dbBox *box : mpin->getGeometry())
+      ymax = max(ymax, box->yMax());
   }
-
-
-  if( isVddFound || isVssFound ) {
-    double max_vdd = 0;
-    double max_vss = 0;
-
-    macro_pin* pin_vdd = NULL;
-    if( isVddFound ) {
-      pin_vdd = &myMacro->pins.at(vdd_str);
-      for(int i = 0; i < pin_vdd->port.size(); i++) {
-        if(pin_vdd->port[i].yUR > max_vdd) {
-          max_vdd = pin_vdd->port[i].yUR;
-        } 
-      }
-    }
-   
-    macro_pin* pin_vss = NULL;
-    if( isVssFound ) {
-      pin_vss = &myMacro->pins.at(vss_str);
-      for(int j = 0; j < pin_vss->port.size(); j++) {
-        if(pin_vss->port[j].yUR > max_vss) {
-          max_vss = pin_vss->port[j].yUR;
-        }
-      }
-    }
-
-    if(max_vdd > max_vss)
-      myMacro->top_power = VDD;
-    else
-      myMacro->top_power = VSS;
-
-    if(pin_vdd && pin_vss) {
-      if (pin_vdd->port.size() + pin_vss->port.size() > 2) {
-	// This fails when a polygon is converted into muliple rects.
-	//        myMacro->isMulti = true;
-      } 
-      else if(pin_vdd->port.size() + pin_vss->port.size() < 2) {
-        cerr << "macro:: power num error, vdd + vss => "
-           << (pin_vdd->port.size() + pin_vss->port.size()) << endl;
-        exit(1);
-      }
-    }
-  }
+  return ymax;
 }
 
 void
