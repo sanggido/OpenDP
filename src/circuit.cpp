@@ -37,9 +37,8 @@ void macro::print() {
 }
 
 cell::cell()
-      : name(""),
-        type(UINT_MAX),
-        id(UINT_MAX),
+      : id(UINT_MAX),
+	cell_macro(nullptr),
         x_coord(0),
         y_coord(0),
         init_x_coord(0),

@@ -136,7 +136,7 @@ void circuit::local_density_check(double unit, double target_Ut) {
   /* (b) add utilization by fixed/movable objects */
   for(vector< cell >::iterator theCell = cells.begin(); theCell != cells.end();
       ++theCell) {
-    if(macros[theCell->type].obses.size() <= 1) {
+    if(theCell->cell_macro->obses.size() <= 1) {
       int lcol = max((int)floor((theCell->x_coord - lx) / gridUnit), 0);
       int rcol =
           min((int)floor((theCell->x_coord + theCell->width - lx) / gridUnit),
@@ -170,8 +170,8 @@ void circuit::local_density_check(double unit, double target_Ut) {
     // non-rectangular shapes
     else {
       for(vector< rect >::iterator theRect =
-              macros[theCell->type].obses.begin();
-          theRect != macros[theCell->type].obses.end(); ++theRect) {
+              theCell->cell_macro->obses.begin();
+          theRect != theCell->cell_macro->obses.end(); ++theRect) {
         int lcol =
             max((int)floor((theCell->x_coord +
                             (unsigned)(theRect->xLL *
@@ -267,7 +267,7 @@ void circuit::row_check(ofstream& log) {
     cell* theCell = &cells[i];
     if(theCell->isFixed == true) continue;
     if((int)theCell->y_coord % (int)rowHeight != 0) {
-      log << " row_check fail ==> " << theCell->name
+      log << " row_check fail ==> " << theCell->db_inst->getConstName()
           << "  y_coord : " << theCell->y_coord << endl;
       valid = false;
       count++;
@@ -289,7 +289,7 @@ void circuit::site_check(ofstream& log) {
     cell* theCell = &cells[i];
     if(theCell->isFixed == true) continue;
     if((int)theCell->x_coord % (int)wsite != 0) {
-      log << " site_check fail ==> " << theCell->name
+      log << " site_check fail ==> " << theCell->db_inst->getConstName()
           << "  x_coord : " << theCell->x_coord << endl;
       valid = false;
       count++;
@@ -312,10 +312,11 @@ void circuit::edge_check(ofstream& log) {
     for(int j = 0; j < rows[i].numSites; j++) {
       cell* grid_cell = grid[i][j].linked_cell;
       if(grid[i][j].isValid == false) continue;
-      if(grid_cell != NULL && grid_cell->name != "FIXED_DUMMY") {
+      if(grid_cell != NULL
+	 && !grid_cell->isDummy) {
 #ifdef DEBUG
         cout << "grid util : " << grid[i][j].util << endl;
-        cout << "cell name : " << grid[i][j].linked_cell->name << endl;
+        cout << "cell name : " << grid[i][j].linked_cell->db_inst->getConstName() << endl;
 #endif
         if(cell_list.size() == 0) {
           cell_list.push_back(grid[i][j].linked_cell);
@@ -337,8 +338,8 @@ void circuit::edge_check(ofstream& log) {
       cout << " Right cell : " << cell_list[k + 1]->name << endl;
 #endif
       if(cell_list.size() < 2) continue;
-      macro* left_macro = &macros[cell_list[k]->type];
-      macro* right_macro = &macros[cell_list[k + 1]->type];
+      macro* left_macro = cell_list[k]->cell_macro;
+      macro* right_macro = cell_list[k + 1]->cell_macro;
       if(left_macro->edgetypeRight == 0 || right_macro->edgetypeLeft == 0)
         continue;
       // The following statement cannot be executed anymore because the
@@ -352,8 +353,8 @@ void circuit::edge_check(ofstream& log) {
       int cell_dist = cell_list[k + 1]->x_coord - cell_list[k]->x_coord -
                       cell_list[k]->width;
       if(cell_dist < space) {
-        log << " edge_check fail ==> " << cell_list[k]->name << " >> "
-            << cell_dist << "(" << space << ") << " << cell_list[k + 1]->name
+        log << " edge_check fail ==> " << cell_list[k]->db_inst->getConstName() << " >> "
+            << cell_dist << "(" << space << ") << " << cell_list[k + 1]->db_inst->getConstName()
             << endl;
         count++;
       }
@@ -380,12 +381,12 @@ void circuit::power_line_check(ofstream& log) {
     // should removed later
     if(theCell->inGroup == false) continue;
 
-    macro* theMacro = &macros[theCell->type];
+    macro* theMacro = theCell->cell_macro;
     int y_size = (int)floor(theCell->height / rowHeight + 0.5);
     int y_pos = (int)floor(theCell->y_coord / rowHeight + 0.5);
     if(y_size % 2 == 0) {
       if(theMacro->top_power == rows[y_pos].top_power) {
-        log << " power_check fail ( even height ) ==> " << theCell->name
+        log << " power_check fail ( even height ) ==> " << theCell->db_inst->getConstName()
             << endl;
         valid = false;
         count++;
@@ -394,7 +395,7 @@ void circuit::power_line_check(ofstream& log) {
     else {
       if(theMacro->top_power == rows[y_pos].top_power) {
         if(theCell->db_inst->getOrient() != dbOrientType::R0) {
-          log << " power_check fail ( Should be N ) ==> " << theCell->name
+          log << " power_check fail ( Should be N ) ==> " << theCell->db_inst->getConstName()
               << endl;
           valid = false;
           count++;
@@ -402,7 +403,7 @@ void circuit::power_line_check(ofstream& log) {
       }
       else {
         if(theCell->db_inst->getOrient() != dbOrientType::MX) {
-          log << " power_check fail ( Should be FS ) ==> " << theCell->name
+          log << " power_check fail ( Should be FS ) ==> " << theCell->db_inst->getConstName()
               << endl;
           valid = false;
           count++;
@@ -424,7 +425,7 @@ void circuit::placed_check(ofstream& log) {
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
     if(theCell->isPlaced == false) {
-      log << " placed_check fail ==> " << theCell->name << endl;
+      log << " placed_check fail ==> " << theCell->db_inst->getConstName() << endl;
       valid = false;
       count++;
     }
@@ -497,8 +498,8 @@ void circuit::overlap_check(ofstream& log) {
           grid_2[j][k].util = 1.0;
         }
         else {
-          log << "overlap_check ==> FAIL!! ( cell " << theCell->name
-              << " is overlap with " << grid_2[j][k].linked_cell->name << " ) "
+          log << "overlap_check ==> FAIL!! ( cell " << theCell->db_inst->getConstName()
+              << " is overlap with " << grid_2[j][k].linked_cell->db_inst->getConstName() << " ) "
               << " ( " 
               << IntConvert(k*wsite + core.xLL) << ", " 
               << IntConvert(j*rowHeight + core.yLL) << " )" 

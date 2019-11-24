@@ -113,15 +113,15 @@ struct macro {
 
 struct cell {
   dbInst *db_inst;
-  std::string name;
   unsigned id;
-  unsigned type;                  /* index to some predefined macro */
+  macro *cell_macro;
   int x_coord, y_coord;           /* (in DBU) */
   int init_x_coord, init_y_coord; /* (in DBU) */
   int x_pos, y_pos;               /* (in DBU) */
   double width, height;           /* (in DBU) */
   bool isFixed;                   /* fixed cell or not */
   bool isPlaced;
+  bool isDummy;
   bool inGroup;
   bool hold;
   unsigned region;

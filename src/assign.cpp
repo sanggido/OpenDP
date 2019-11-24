@@ -59,7 +59,7 @@ void circuit::fixed_cell_assign() {
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
     if(theCell->isFixed == true) {
-      macro* theMacro = &macros[theCell->type];
+      macro* theMacro = theCell->cell_macro;
 
       int y_start = (int)floor(theCell->y_coord / rowHeight);
       int y_end = (int)ceil((theCell->y_coord + theCell->height) / rowHeight);
@@ -258,7 +258,7 @@ void circuit::y_align() {
 
 void circuit::cell_y_align(cell* theCell) {
   int cell_y_size = (int)ceil(theCell->height / rowHeight);
-  macro* theMacro = &macros[theCell->type];
+  macro* theMacro = theCell->cell_macro;
   pair< bool, pixel* > myPixel =
       diamond_search(theCell, theCell->init_x_coord, theCell->init_y_coord);
   theCell->y_pos = myPixel.second->y_pos;
@@ -374,7 +374,7 @@ void circuit::group_pixel_assign() {
 void circuit::erase_pixel(cell* theCell) {
   if(theCell->isFixed == true || theCell->isPlaced == false) return;
 
-  macro* theMacro = &macros[theCell->type];
+  macro* theMacro = theCell->cell_macro;
   int x_step = (int)ceil(theCell->width / wsite);
   int y_step = (int)ceil(theCell->height / rowHeight);
 
@@ -398,7 +398,7 @@ void circuit::erase_pixel(cell* theCell) {
 
 bool circuit::paint_pixel(cell* theCell, int x_pos, int y_pos) {
   assert(theCell->isPlaced == false);
-  macro* theMacro = &macros[theCell->type];
+  macro* theMacro = theCell->cell_macro;
   int x_step = round(theCell->width / wsite);
   int y_step = round(theCell->height / rowHeight);
 
@@ -422,7 +422,7 @@ bool circuit::paint_pixel(cell* theCell, int x_pos, int y_pos) {
       if(grid[i][j].linked_cell != NULL) {
         cerr << " Can't paint grid [" << i << "][" << j << "] !!!" << endl;
         cerr << " group name : " << groups[grid[i][j].group].name << endl;
-        cerr << " Cell name : " << grid[i][j].linked_cell->name
+        cerr << " Cell name : " << grid[i][j].linked_cell->db_inst->getConstName()
              << " already occupied grid" << endl;
         exit(2);
         return false;

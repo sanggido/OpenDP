@@ -256,13 +256,11 @@ circuit::make_cells()
     cell.db_inst = db_inst;
     db_inst_map[db_inst] = &cell;
 
-    cell.name = db_inst->getConstName();
     dbMaster *master = db_inst->getMaster();
     auto miter = db_master_map.find(master);
     if (miter != db_master_map.end()) {
       macro *macro = miter->second;
-      int macro_idx = macro - &macros[0];
-      cell.type = macro_idx;
+      cell.cell_macro = macro;
    
       dbOrientType orient = db_inst->getOrient();
       pair<double, double> orientSize 
@@ -271,6 +269,7 @@ circuit::make_cells()
       cell.width = orientSize.first * static_cast<double> (DEFdist2Microns);
       cell.height = orientSize.second * static_cast<double> (DEFdist2Microns);
 
+      cell.isDummy = false;
       cell.isFixed = (db_inst->getPlacementStatus() == dbPlacementStatus::FIRM);
   
       // Shift by core.xLL and core.yLL

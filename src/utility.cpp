@@ -537,7 +537,7 @@ bool circuit::check_inside(cell* theCell, rect* theRect, string mode) {
 pair< bool, pair< int, int > > circuit::bin_search(int x_pos, cell* theCell,
                                                    int x, int y) {
   pair< int, int > pos;
-  macro* theMacro = &macros[theCell->type];
+  macro* theMacro = theCell->cell_macro;
 
   // EDGETYPE 1 - 1 : 400, 1 - 2 : 400, 2 - 2 : 0
   int edge_left = 0;
@@ -835,7 +835,7 @@ bool circuit::shift_move(cell* theCell, int x, int y) {
   // place target cell
   if(map_move(theCell, x, y) == false) {
     cout << " can't insert center cell !! " << endl;
-    cout << " cell_name : " << theCell->name << endl;
+    cout << " cell_name : " << theCell->db_inst->getConstName() << endl;
     return false;
   }
 
@@ -998,7 +998,7 @@ double circuit::dist_benefit(cell* theCell, int x_coord, int y_coord) {
 bool circuit::swap_cell(cell* cellA, cell* cellB) {
   if(cellA == cellB)
     return false;
-  else if(cellA->type != cellB->type)
+  else if(cellA->cell_macro != cellB->cell_macro)
     return false;
   else if(cellA->isFixed == true || cellB->isFixed == true)
     return false;

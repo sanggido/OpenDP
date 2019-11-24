@@ -217,18 +217,16 @@ void circuit::non_group_cell_placement(string mode) {
 
   for(int i = 0; i < cell_list.size(); i++) {
     cell* theCell = cell_list[i];
-    macro* theMacro = &macros[theCell->type];
+    macro* theMacro = theCell->cell_macro;
     if(theMacro->isMulti == true)
       if(map_move(theCell, mode) == false) shift_move(theCell, mode);
   }
   for(int i = 0; i < cell_list.size(); i++) {
     cell* theCell = cell_list[i];
-    macro* theMacro = &macros[theCell->type];
+    macro* theMacro = theCell->cell_macro;
     if(theMacro->isMulti == false)
       if(map_move(theCell, mode) == false) shift_move(theCell, mode);
   }
-
-  return;
 }
 
 void circuit::group_cell_placement(string mode) {
@@ -255,7 +253,7 @@ void circuit::group_cell_placement(string mode, string mode2) {
       cell* theCell = cell_list[j];
       if(theCell->isFixed || theCell->isPlaced) continue;
       assert(theCell->inGroup == true);
-      macro* theMacro = &macros[theCell->type];
+      macro* theMacro = theCell->cell_macro;
       if(theMacro->isMulti == true) {
         multi_pass = map_move(theCell, mode);
         if(multi_pass == false) {
@@ -273,7 +271,7 @@ void circuit::group_cell_placement(string mode, string mode2) {
         cell* theCell = cell_list[j];
         if(theCell->isFixed || theCell->isPlaced) continue;
         assert(theCell->inGroup == true);
-        macro* theMacro = &macros[theCell->type];
+        macro* theMacro = theCell->cell_macro;
         if(theMacro->isMulti == false) {
           single_pass = map_move(theCell, mode);
           if(single_pass == false) {
@@ -354,7 +352,7 @@ void circuit::brick_placement_1(group* theGroup) {
     bool valid = map_move(theCell, x_tar, y_tar);
     if(valid == false) {
       cout << "== WARNING !! ==" << endl;
-      cout << " Can't place single ( brick place 1 ) " << theCell->name << endl;
+      cout << " Can't place single ( brick place 1 ) " << theCell->db_inst->getConstName() << endl;
     }
   }
   return;
@@ -406,7 +404,7 @@ void circuit::brick_placement_2(group* theGroup) {
     bool valid = map_move(theCell, x_tar, y_tar);
     if(valid == false) {
       cout << "== WARNING !! ==" << endl;
-      cout << " Can't place single ( brick place 2 ) " << theCell->name << endl;
+      cout << " Can't place single ( brick place 2 ) " << theCell->db_inst->getConstName() << endl;
     }
   }
 
