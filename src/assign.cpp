@@ -137,7 +137,7 @@ void circuit::group_cell_region_assign() {
       unsigned region_backup = UINT_MAX;
       for(int k = 0; k < theGroup->regions.size(); k++) {
         rect* theRect = &theGroup->regions[k];
-        if(check_inside(theCell, theRect, "init_coord") == true)
+        if(check_inside(theCell, theRect, "init_coord"))
           theCell->region = k;
         int temp_dist = dist_for_rect(theCell, theRect, "init_coord");
         if(temp_dist < dist) {
@@ -285,8 +285,8 @@ void circuit::group_pixel_assign_2() {
           // cout << "rect : " << theRect.xLL << " " << theRect.yLL << " -- " <<
           // theRect.xUR << " " << theRect.yUR << endl;
           // cout << "grid[" << i << "][" << j << "]";
-          if(check_inside(theGrid, theGroup->regions[l]) == false &&
-             check_overlap(theGrid, theGroup->regions[l]) == true) {
+          if(!check_inside(theGrid, theGroup->regions[l]) &&
+             check_overlap(theGrid, theGroup->regions[l])) {
             grid[i][j].util = 0.0;
             grid[i][j].linked_cell = &dummy_cell;
             grid[i][j].isValid = false;
