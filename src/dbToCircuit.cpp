@@ -245,7 +245,6 @@ circuit::make_cells()
       cell.width = width;
       cell.height = height;
 
-      cell.isDummy = false;
       cell.isFixed = (db_inst->getPlacementStatus() == dbPlacementStatus::FIRM);
   
       // Shift by core.xLL and core.yLL

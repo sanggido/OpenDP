@@ -76,7 +76,6 @@ void circuit::InitOpendpAfterParse() {
   calc_design_area_stats();
 
   // dummy cell generation
-  dummy_cell.isDummy = true;
   dummy_cell.isFixed = true;
   dummy_cell.isPlaced = true;
 

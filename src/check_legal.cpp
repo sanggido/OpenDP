@@ -290,7 +290,7 @@ void circuit::edge_check(ofstream& log) {
       cell* grid_cell = grid[i][j].linked_cell;
       if(grid[i][j].isValid == false) continue;
       if(grid_cell != NULL
-	 && !grid_cell->isDummy) {
+	 && grid_cell != &dummy_cell) {
 #ifdef DEBUG
         cout << "grid util : " << grid[i][j].util << endl;
         cout << "cell name : " << grid[i][j].linked_cell->db_inst->getConstName() << endl;

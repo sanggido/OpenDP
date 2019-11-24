@@ -111,7 +111,6 @@ struct cell {
   double width, height;           /* (in DBU) */
   bool isFixed;                   /* fixed cell or not */
   bool isPlaced;
-  bool isDummy;
   bool inGroup;
   bool hold;
   unsigned region;
