@@ -85,23 +85,7 @@ circuit::make_macros(dbLib *db_lib)
     db_master_map[db_master] = &macro;
 
     macro.db_master = db_master;
-
-    make_macro_obstructions(db_master, macro);
     macro_define_top_power(&macro);
-  }
-}
-
-void
-circuit::make_macro_obstructions(dbMaster *db_master,
-				 struct macro &macro)
-{
-  for (auto db_box : db_master->getObstructions()) {
-    rect tmpRect;
-    tmpRect.xLL = db_box->xMin();
-    tmpRect.yLL = db_box->yMin();
-    tmpRect.xUR = db_box->xMax();
-    tmpRect.yUR = db_box->yMax();
-    macro.obses.push_back(tmpRect);
   }
 }
 

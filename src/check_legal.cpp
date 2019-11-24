@@ -38,11 +38,7 @@
 #include "circuit.h"
 #define _DEBUG
 
-using opendp::circuit;
-using opendp::cell;
-using opendp::row;
-using opendp::pixel;
-using opendp::rect;
+namespace opendp {
 
 using std::max;
 using std::min;
@@ -54,6 +50,8 @@ using std::ofstream;
 using std::vector;
 using std::make_pair;
 using std::to_string;
+
+using odb::adsRect;
 
 bool circuit::check_legality() {
   ofstream log("../logdir/check_legality.log");
@@ -136,7 +134,8 @@ void circuit::local_density_check(double unit, double target_Ut) {
   /* (b) add utilization by fixed/movable objects */
   for(vector< cell >::iterator theCell = cells.begin(); theCell != cells.end();
       ++theCell) {
-    if(theCell->cell_macro->obses.size() <= 1) {
+    auto obstructions  = theCell->cell_macro->db_master->getObstructions();
+    if(obstructions.size() <= 1) {
       int lcol = max((int)floor((theCell->x_coord - lx) / gridUnit), 0);
       int rcol =
           min((int)floor((theCell->x_coord + theCell->width - lx) / gridUnit),
@@ -169,35 +168,25 @@ void circuit::local_density_check(double unit, double target_Ut) {
     }
     // non-rectangular shapes
     else {
-      for(vector< rect >::iterator theRect =
-              theCell->cell_macro->obses.begin();
-          theRect != theCell->cell_macro->obses.end(); ++theRect) {
-        int lcol =
-            max((int)floor((theCell->x_coord +
-                            (unsigned)(theRect->xLL *
-                                       static_cast< double >(DEFdist2Microns)) -
-                            lx) /
+      for (auto box : obstructions) {
+        // change to core coordinates
+	adsRect rect1;
+	box->getBox(rect1);
+	rect1.moveDelta(-core.xLL, -core.yLL);
+	int lcol =
+            max((int)floor((theCell->x_coord + rect1.xMin() - lx) /
                            gridUnit),
                 0);
         int rcol =
-            min((int)floor((theCell->x_coord +
-                            (unsigned)(theRect->xUR *
-                                       static_cast< double >(DEFdist2Microns)) -
-                            lx) /
+            min((int)floor((theCell->x_coord + rect1.xMax() - lx) /
                            gridUnit),
                 x_gridNum - 1);
         int brow =
-            max((int)floor((theCell->y_coord +
-                            (unsigned)(theRect->yLL *
-                                       static_cast< double >(DEFdist2Microns)) -
-                            by) /
+            max((int)floor((theCell->y_coord + rect1.yMin() - by) /
                            gridUnit),
                 0);
         int trow =
-            min((int)floor((theCell->y_coord +
-                            (unsigned)(theRect->yUR *
-                                       static_cast< double >(DEFdist2Microns)) -
-                            by) /
+            min((int)floor((theCell->y_coord + rect1.yMax() - by) /
                            gridUnit),
                 y_gridNum - 1);
 
@@ -206,26 +195,14 @@ void circuit::local_density_check(double unit, double target_Ut) {
             unsigned binId = j * x_gridNum + k;
 
             /* get intersection */
-            double lx =
-                max(bins[binId].lx,
-                    (double)theCell->x_coord +
-                        (unsigned)(theRect->xLL *
-                                   static_cast< double >(DEFdist2Microns)));
-            double hx =
-                min(bins[binId].hx,
-                    (double)theCell->x_coord +
-                        (unsigned)(theRect->xUR *
-                                   static_cast< double >(DEFdist2Microns)));
-            double ly =
-                max(bins[binId].ly,
-                    (double)theCell->y_coord +
-                        (unsigned)(theRect->yLL *
-                                   static_cast< double >(DEFdist2Microns)));
-            double hy =
-                min(bins[binId].hy,
-                    (double)theCell->y_coord +
-                        (unsigned)(theRect->yUR *
-                                   static_cast< double >(DEFdist2Microns)));
+            double lx = max(bins[binId].lx,
+			    (double)theCell->x_coord + rect1.xMin());
+            double hx = min(bins[binId].hx,
+			    (double)theCell->x_coord + rect1.xMax());
+            double ly = max(bins[binId].ly,
+			    (double)theCell->y_coord + rect1.yMin());
+            double hy = min(bins[binId].hy,
+			    (double)theCell->y_coord + rect1.yMax());
 
             if((hx - lx) > 1.0e-5 && (hy - ly) > 1.0e-5) {
               double common_area = (hx - lx) * (hy - ly);
@@ -509,9 +486,10 @@ void circuit::overlap_check(ofstream& log) {
       }
     }
   }
-  if(valid == false)
-    cout << " overlap_check ==>> FAIL " << endl;
-  else
+  if(valid)
     cout << " overlap_check ==>> PASS " << endl;
-  return;
+  else
+    cout << " overlap_check ==>> FAIL " << endl;
 }
+
+} // namespace

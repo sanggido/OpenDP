@@ -95,8 +95,6 @@ struct macro {
   bool isMulti;       /* single row = false , multi row = true */
   int edgetypeLeft;   // 1 or 2
   int edgetypeRight;  // 1 or 2
-
-  std::vector< rect > obses; /* keyword OBS for non-rectangular shapes in micros */
   power top_power;      // VDD = 0  VSS = 1 enum
 
   macro();
@@ -265,8 +263,6 @@ class circuit {
 
   void macro_define_top_power(macro* myMacro);
   int find_ymax(dbMTerm *term);
-  void make_macro_obstructions(dbMaster *db_master,
-			       struct macro &macro);
   void make_rows();
   void make_core_rows();
   void make_cells();
