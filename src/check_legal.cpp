@@ -393,7 +393,7 @@ void circuit::power_line_check(ofstream& log) {
     }
     else {
       if(theMacro->top_power == rows[y_pos].top_power) {
-        if(theCell->cellorient != "N") {
+        if(theCell->db_inst->getOrient() != dbOrientType::R0) {
           log << " power_check fail ( Should be N ) ==> " << theCell->name
               << endl;
           valid = false;
@@ -401,7 +401,7 @@ void circuit::power_line_check(ofstream& log) {
         }
       }
       else {
-        if(theCell->cellorient != "FS") {
+        if(theCell->db_inst->getOrient() != dbOrientType::MX) {
           log << " power_check fail ( Should be FS ) ==> " << theCell->name
               << endl;
           valid = false;

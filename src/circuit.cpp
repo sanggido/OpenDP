@@ -65,7 +65,6 @@ cell::cell()
         inGroup(false),
         hold(false),
         region(UINT_MAX),
-        cellorient(""),
         group(""),
         dense_factor(0.0),
         dense_factor_count(0),
@@ -75,7 +74,6 @@ cell::cell()
     ports.set_empty_key(INITSTR);
 #endif
 }
-
 
 pixel::pixel()
   : name(""),
@@ -161,10 +159,9 @@ circuit::update_db_inst_locations()
     struct cell* cell = &cells[i];
     int x = IntConvert(cell->x_coord + core.xLL);
     int y = IntConvert(cell->y_coord + core.yLL);
-    string orientStr = cell->cellorient;
     dbInst *db_inst = cell->db_inst;
     db_inst->setOrigin(x, y);
-    db_inst->setOrient(odb::dbOrientType(orientStr.c_str()));
+    // Orientation is already set.
   }
 }
 

@@ -251,7 +251,7 @@ static vector<opendp::row> GetNewRow(const circuit* ckt) {
   int rowCntY = IntConvert((ckt->core.yUR - ckt->core.yLL)/ckt->rowHeight);
 
   unsigned siteIdx = ckt->prevrows[0].site;
-  string curOrient = ckt->prevrows[0].siteorient;
+  dbOrientType curOrient = ckt->prevrows[0].siteorient;
 
   for(int i=0; i<rowCntY; i++) {
     opendp::row myRow;
@@ -266,8 +266,8 @@ static vector<opendp::row> GetNewRow(const circuit* ckt) {
     myRow.siteorient = curOrient;
     retRow.push_back(myRow);
 
-    // curOrient is flipping. e.g. N -> FS -> N -> FS -> ...
-    curOrient = (curOrient == "N")? "FS" : "N";
+    // curOrient is flipping. e.g. R0 -> MX -> R0 -> MX -> ...
+    curOrient = (curOrient == dbOrientType::R0)? dbOrientType::MX : dbOrientType::R0;
   }
   return retRow;
 }
@@ -314,7 +314,6 @@ circuit::make_cells()
 	cell.y_coord = y - core.yLL;
 	cell.isPlaced = true;
       }
-      cell.cellorient = orient.getString();
     }
   }
 }

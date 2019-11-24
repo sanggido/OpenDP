@@ -142,7 +142,6 @@ void cell::print() {
   cout << "|=== BEGIN CELL ===|" << endl;
   cout << "name:               " << name << endl;
   cout << "type:               " << type << endl;
-  cout << "orient:             " << cellorient << endl;
   cout << "isFixed?            " << (isFixed ? "true" : "false") << endl;
   for(OPENDP_HASH_MAP< string, unsigned >::iterator it = ports.begin();
       it != ports.end(); it++)

@@ -266,13 +266,11 @@ void circuit::cell_y_align(cell* theCell) {
   if( max_cell_height > 1 ) {
     if(cell_y_size % 2 == 1 &&
         rows[myPixel.second->y_pos].top_power != theMacro->top_power)
-      theCell->cellorient = "FS";
+      theCell->db_inst->setOrient(dbOrientType::MX);
   }
   else {
-    theCell->cellorient = rows[myPixel.second->y_pos].siteorient;
+    theCell->db_inst->setOrient(rows[myPixel.second->y_pos].siteorient);
   }
-
-  return;
 }
 
 void circuit::group_pixel_assign_2() {
@@ -439,13 +437,13 @@ bool circuit::paint_pixel(cell* theCell, int x_pos, int y_pos) {
   if( max_cell_height > 1) {
     if(  y_step % 2 == 1) {
       if(rows[y_pos].top_power != theMacro->top_power)
-        theCell->cellorient = "FS";
+        theCell->db_inst->setOrient(dbOrientType::MX);
       else
-        theCell->cellorient = "N";
+        theCell->db_inst->setOrient(dbOrientType::R0);
     }
   }
   else {
-    theCell->cellorient = rows[y_pos].siteorient;
+    theCell->db_inst->setOrient(rows[y_pos].siteorient);
   }
   return true;
 }

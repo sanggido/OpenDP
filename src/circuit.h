@@ -82,6 +82,7 @@ using odb::dbMPin;
 using odb::dbRow;
 using odb::dbInst;
 using odb::dbMTerm;
+using odb::dbOrientType;
 
 enum power { VDD, VSS };
 
@@ -139,7 +140,6 @@ struct cell {
   bool hold;
   unsigned region;
   OPENDP_HASH_MAP< std::string, unsigned > ports; /* <port name, index to the pin> */
-  std::string cellorient;
   std::string group;
 
   double dense_factor;
@@ -174,7 +174,7 @@ struct row {
   int stepX; /* (in DBU) */
   int stepY; /* (in DBU) */
   int numSites;
-  std::string siteorient;
+  dbOrientType siteorient;
   power top_power;
 
   std::vector< cell* > cell_list;
