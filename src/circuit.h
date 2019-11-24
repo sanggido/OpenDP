@@ -279,6 +279,7 @@ class circuit {
   bool read_constraints(const std::string& input);
   void copy_init_to_final();
   void calc_design_area_stats();
+  void report_area_stats();
 
   void InitOpendpAfterParse();
 

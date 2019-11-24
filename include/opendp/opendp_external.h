@@ -17,7 +17,7 @@ public:
   void read_constraints(std::string constraint_file);
   void legalize_place();
   bool check_legality();
-  void report_evaluation();
+  void report_area_stats();
 
   double get_utilization();
   double get_sum_displacement();
@@ -28,7 +28,6 @@ public:
 
 private:
   circuit ckt;
-  bool is_evaluated;
 
   friend void ord::initOpendp(ord::OpenRoad *);
 };

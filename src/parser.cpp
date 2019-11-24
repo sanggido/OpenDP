@@ -158,6 +158,30 @@ void circuit::calc_design_area_stats() {
     designArea += theRow->stepX * theRow->numSites
       * theRow->db_row->getSite()->getHeight();
 
+  for(int i = 0; i < cells.size(); i++) {
+    cell* theCell = &cells[i];
+    macro* theMacro = theCell->cell_macro;
+    if(!theCell->isFixed && 
+        theMacro->isMulti && 
+       theMacro->db_master->getType() == dbMasterType::CORE) {
+      if(max_cell_height <
+         round(theMacro->height * DEFdist2Microns / rowHeight))
+        max_cell_height =
+	  round(theMacro->height * DEFdist2Microns / rowHeight);
+    }
+  }
+
+  design_util = total_mArea / (designArea - total_fArea);
+
+  // design_utilization error handling.
+  if( design_util >= 1.001 ) {
+    cout << "ERROR:  Utilization exceeds 100%. (" 
+      << fixed << setprecision(2) << design_util * 100.00  << "%)! ";
+    exit(1); 
+  }
+}
+
+void circuit::report_area_stats() {
   unsigned multi_num = 0;
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
@@ -167,25 +191,9 @@ void circuit::calc_design_area_stats() {
     }
   }
 
-  for(int i = 0; i < cells.size(); i++) {
-    cell* theCell = &cells[i];
-    macro* theMacro = theCell->cell_macro;
-    if(theCell->isFixed == false && 
-        theMacro->isMulti == true && 
-       theMacro->db_master->getType() == dbMasterType::CORE) {
-      if(max_cell_height <
-         static_cast< int >(theMacro->height * DEFdist2Microns / rowHeight +
-                            0.5))
-        max_cell_height = static_cast< int >(
-            theMacro->height * DEFdist2Microns / rowHeight + 0.5);
-    }
-  }
-
-  design_util = total_mArea / (designArea - total_fArea);
-
   cout << "-------------------- DESIGN ANALYSIS ------------------------------"
        << endl;
-  cout << "  total cells              : " << cells.size() << endl;
+  cout << "  total cells              : " << block->getInsts().size() << endl;
   cout << "  multi cells              : " << multi_num << endl;
   cout << "  fixed cells              : " << num_fixed_nodes << endl;
   cout << "  total nets               : " << block->getNets().size() << endl;
@@ -204,16 +212,6 @@ void circuit::calc_design_area_stats() {
     cout << "  group num                : " << groups.size() << endl;
   cout << "-------------------------------------------------------------------"
        << endl;
-
-  // 
-  // design_utilization error handling.
-  //
-  if( design_util >= 1.001 ) {
-    cout << "ERROR:  Utilization exceeds 100%. (" 
-      << fixed << setprecision(2) << design_util * 100.00  << "%)! ";
-    cout << "        Please double check your input files!" << endl;
-    exit(1); 
-  }
 }
 
 bool circuit::read_constraints(const string& input) {

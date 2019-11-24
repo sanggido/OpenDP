@@ -16,7 +16,8 @@ proc legalize_placement { args } {
   if { [db_has_rows] } {
     set odp [get_opendp]
     $odp legalize_place
-    $odp report_evaluation
+    $odp check_legality
+    $odp report_area_stats
   } else {
     puts "Error: no rows defined in design. Use initialize_floorplan to add rows."
   }
