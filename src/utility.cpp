@@ -267,44 +267,43 @@ double circuit::calc_density_factor(double unit) {
   }
 
   /* (b) add utilization by fixed/movable objects */
-  for(vector< cell >::iterator theCell = cells.begin(); theCell != cells.end();
-      ++theCell) {
-    int lcol = max((int)floor((theCell->init_x_coord - lx) / gridUnit), 0);
+  for (cell &theCell : cells) {
+    int lcol = max((int)floor((theCell.init_x_coord - lx) / gridUnit), 0);
     int rcol = min(
-        (int)floor((theCell->init_x_coord + theCell->width - lx) / gridUnit),
+        (int)floor((theCell.init_x_coord + theCell.width - lx) / gridUnit),
         x_gridNum - 1);
-    int brow = max((int)floor((theCell->init_y_coord - by) / gridUnit), 0);
+    int brow = max((int)floor((theCell.init_y_coord - by) / gridUnit), 0);
     int trow = min(
-        (int)floor((theCell->init_y_coord + theCell->height - by) / gridUnit),
+        (int)floor((theCell.init_y_coord + theCell.height - by) / gridUnit),
         y_gridNum - 1);
 
     for(int j = brow; j <= trow; j++) {
       for(int k = lcol; k <= rcol; k++) {
         unsigned binId = j * x_gridNum + k;
 
-        if(theCell->inGroup())
+        if(theCell.inGroup())
           bins[binId].density_limit = max(
-              bins[binId].density_limit, theCell->cell_group->util);
+              bins[binId].density_limit, theCell.cell_group->util);
 
         /* get intersection */
-        double lx = max(bins[binId].lx, (double)theCell->init_x_coord);
+        double lx = max(bins[binId].lx, (double)theCell.init_x_coord);
         double hx =
-            min(bins[binId].hx, (double)theCell->init_x_coord + theCell->width);
-        double ly = max(bins[binId].ly, (double)theCell->init_y_coord);
+            min(bins[binId].hx, (double)theCell.init_x_coord + theCell.width);
+        double ly = max(bins[binId].ly, (double)theCell.init_y_coord);
         double hy = min(bins[binId].hy,
-                        (double)theCell->init_y_coord + theCell->height);
+                        (double)theCell.init_y_coord + theCell.height);
         double x_center =
-            (double)theCell->init_x_coord + (double)theCell->width / 2;
+            (double)theCell.init_x_coord + (double)theCell.width / 2;
         double y_center =
-            (double)theCell->init_y_coord + (double)theCell->height / 2;
+            (double)theCell.init_y_coord + (double)theCell.height / 2;
 
         if(bins[binId].lx <= x_center && x_center < bins[binId].hx)
           if(bins[binId].ly < y_center && y_center < bins[binId].hy)
-            theCell->binId = binId;
+            theCell.binId = binId;
 
         if((hx - lx) > 1.0e-5 && (hy - ly) > 1.0e-5) {
           double common_area = (hx - lx) * (hy - ly);
-          if(theCell->isFixed)
+          if(isFixed(&theCell))
             bins[binId].f_util += common_area;
           else
             bins[binId].m_util += common_area;
@@ -974,7 +973,7 @@ vector< cell* > circuit::get_cells_from_boundary(rect* theRect) {
   for(int i = y_start; i < y_end; i++) {
     for(int j = x_start; j < x_end; j++) {
       if(grid[i][j].linked_cell != NULL) {
-        if(grid[i][j].linked_cell->isFixed == false)
+        if(!isFixed(grid[i][j].linked_cell))
           cell_list[grid[i][j].linked_cell->id] = grid[i][j].linked_cell;
       }
     }
@@ -1000,7 +999,7 @@ bool circuit::swap_cell(cell* cellA, cell* cellB) {
     return false;
   else if(cellA->cell_macro != cellB->cell_macro)
     return false;
-  else if(cellA->isFixed == true || cellB->isFixed == true)
+  else if(isFixed(cellA) || isFixed(cellB))
     return false;
 
   double benefit = dist_benefit(cellA, cellB->x_coord, cellB->y_coord) +

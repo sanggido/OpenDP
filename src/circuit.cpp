@@ -6,6 +6,8 @@ using std::string;
 
 namespace opendp {
 
+using odb::dbPlacementStatus;
+
 rect::rect()
   : xLL(std::numeric_limits< double >::max()),
     yLL(std::numeric_limits< double >::max()),
@@ -41,7 +43,6 @@ cell::cell()
         y_pos(INT_MAX),
         width(0.0),
         height(0.0),
-        isFixed(false),
         isPlaced(false),
         hold(false),
         region(UINT_MAX),
@@ -53,6 +54,13 @@ cell::cell()
 #ifdef USE_GOOGLE_HASH
     ports.set_empty_key(INITSTR);
 #endif
+}
+
+bool
+circuit::isFixed(cell *cell1)
+{
+  return cell1 == &dummy_cell
+    || cell1->db_inst->getPlacementStatus() == dbPlacementStatus::FIRM;
 }
 
 pixel::pixel()

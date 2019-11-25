@@ -141,7 +141,6 @@ void cell::print() {
   cout << "|=== BEGIN CELL ===|" << endl;
   cout << "name:               " << db_inst->getConstName() << endl;
   cout << "type:               " << cell_macro->db_master->getConstName() << endl;
-  cout << "isFixed?            " << (isFixed ? "true" : "false") << endl;
   cout << "(init_x,  init_y):  " << init_x_coord << ", " << init_y_coord
        << endl;
   cout << "(x_coord,y_coord):  " << x_coord << ", " << y_coord << endl;

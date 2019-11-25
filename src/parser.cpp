@@ -76,7 +76,6 @@ void circuit::InitOpendpAfterParse() {
   calc_design_area_stats();
 
   // dummy cell generation
-  dummy_cell.isFixed = true;
   dummy_cell.isPlaced = true;
 
   // calc row / site offset
@@ -139,10 +138,9 @@ void circuit::calc_design_area_stats() {
   //
   // It would make far more sense to use microns for reporting than DBUs. -cherry
   total_mArea = total_fArea = 0.0;
-  for(vector< cell >::iterator theCell = cells.begin(); theCell != cells.end();
-      ++theCell) {
-    double cell_area = theCell->width * theCell->height;
-    if(theCell->isFixed) {
+  for(cell theCell : cells) {
+    double cell_area = theCell.width * theCell.height;
+    if(isFixed(&theCell)) {
       total_fArea += cell_area;
       num_fixed_nodes++;
     }
@@ -159,7 +157,7 @@ void circuit::calc_design_area_stats() {
     cell* theCell = &cells[i];
     macro* theMacro = theCell->cell_macro;
     dbMaster *master = theMacro->db_master;
-    if(!theCell->isFixed && 
+    if(!isFixed(theCell) && 
        theMacro->isMulti &&
        master->getType() == dbMasterType::CORE) {
       double height_row = round(master->getHeight() / rowHeight);

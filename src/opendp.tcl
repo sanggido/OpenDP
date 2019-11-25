@@ -13,7 +13,7 @@ proc legalize_placement { args } {
       puts "Warning: cannot read $constraints_file"
     }
   }
-  if { [db_has_rows] } {
+  if { [ord::db_has_rows] } {
     set odp [get_opendp]
     $odp legalize_place
     $odp check_legality

@@ -245,8 +245,6 @@ circuit::make_cells()
       cell.width = width;
       cell.height = height;
 
-      cell.isFixed = (db_inst->getPlacementStatus() == dbPlacementStatus::FIRM);
-  
       // Shift by core.xLL and core.yLL
       int x, y;
       db_inst->getLocation(x, y);
@@ -254,7 +252,7 @@ circuit::make_cells()
       cell.init_y_coord = std::max(0.0, y - core.yLL);
 
       // fixed cells
-      if( cell.isFixed ) {
+      if( isFixed(&cell) ) {
 	// Shift by core.xLL and core.yLL
 	cell.x_coord = x - core.xLL;
 	cell.y_coord = y - core.yLL;

@@ -179,7 +179,7 @@ void circuit::group_cell_pre_placement() {
     group* theGroup = &groups[i];
     for(int j = 0; j < theGroup->siblings.size(); j++) {
       cell* theCell = theGroup->siblings[j];
-      if(theCell->isFixed == true || theCell->isPlaced == true) continue;
+      if(isFixed(theCell) || theCell->isPlaced) continue;
       int dist = INT_MAX;
       bool inGroup = false;
       rect* target;
@@ -209,7 +209,7 @@ void circuit::non_group_cell_placement(string mode) {
 
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
-    if(theCell->isFixed || theCell->inGroup() || theCell->isPlaced) continue;
+    if(isFixed(theCell) || theCell->inGroup() || theCell->isPlaced) continue;
 
     cell_list.push_back(theCell);
   }
@@ -243,7 +243,7 @@ void circuit::group_cell_placement(string mode, string mode2) {
     cell_list.reserve(cells.size());
     for(int j = 0; j < theGroup->siblings.size(); j++) {
       cell* theCell = theGroup->siblings[j];
-      if(theCell->isFixed || theCell->isPlaced) continue;
+      if(isFixed(theCell) || theCell->isPlaced) continue;
       cell_list.push_back(theCell);
     }
     sort(cell_list.begin(), cell_list.end(), SortUpOrder);
@@ -251,7 +251,7 @@ void circuit::group_cell_placement(string mode, string mode2) {
     // place multi-deck cells on each group region
     for(int j = 0; j < cell_list.size(); j++) {
       cell* theCell = cell_list[j];
-      if(theCell->isFixed || theCell->isPlaced) continue;
+      if(isFixed(theCell) || theCell->isPlaced) continue;
       assert(theCell->inGroup());
       macro* theMacro = theCell->cell_macro;
       if(theMacro->isMulti) {
@@ -269,7 +269,7 @@ void circuit::group_cell_placement(string mode, string mode2) {
       // place single-deck cells on each group region
       for(int j = 0; j < cell_list.size(); j++) {
         cell* theCell = cell_list[j];
-        if(theCell->isFixed || theCell->isPlaced) continue;
+        if(isFixed(theCell) || theCell->isPlaced) continue;
         assert(theCell->inGroup());
         macro* theMacro = theCell->cell_macro;
         if(!theMacro->isMulti) {
@@ -475,7 +475,7 @@ int circuit::non_group_refine() {
 
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
-    if(theCell->isFixed || theCell->hold || theCell->inGroup()) continue;
+    if(isFixed(theCell) || theCell->hold || theCell->inGroup()) continue;
     sort_by_disp.push_back(make_pair(disp(theCell), theCell));
   }
   sort(sort_by_disp.begin(), sort_by_disp.end(),

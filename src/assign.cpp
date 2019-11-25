@@ -54,7 +54,7 @@ using std::round;
 void circuit::fixed_cell_assign() {
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
-    if(theCell->isFixed == true) {
+    if(isFixed(theCell)) {
       macro* theMacro = theCell->cell_macro;
 
       int y_start = (int)floor(theCell->y_coord / rowHeight);
@@ -162,7 +162,7 @@ void circuit::non_group_cell_region_assign() {
 
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
-    if(theCell->isFixed == true) {
+    if(isFixed(theCell)) {
       fixed_cell_count++;
       continue;
     }
@@ -193,7 +193,7 @@ void circuit::non_group_cell_region_assign() {
 
     for(int k = 0; k < cells.size(); k++) {
       cell* theCell = &cells[k];
-      if(theCell->isFixed || theCell->inGroup()) continue;
+      if(isFixed(theCell) || theCell->inGroup()) continue;
       if(theCell->init_x_coord >= j * x_step &&
          theCell->init_x_coord < (j + 1) * x_step) {
 #ifdef DEBUG2
@@ -245,7 +245,7 @@ void circuit::non_group_cell_region_assign() {
 void circuit::y_align() {
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
-    if(theCell->isFixed || theCell->isPlaced || theCell->hold) continue;
+    if(isFixed(theCell) || theCell->isPlaced || theCell->hold) continue;
 
     cell_y_align(theCell);
   }
@@ -368,7 +368,7 @@ void circuit::group_pixel_assign() {
   return;
 }
 void circuit::erase_pixel(cell* theCell) {
-  if(theCell->isFixed == true || theCell->isPlaced == false) return;
+  if(isFixed(theCell) || !theCell->isPlaced) return;
 
   macro* theMacro = theCell->cell_macro;
   int x_step = (int)ceil(theCell->width / wsite);

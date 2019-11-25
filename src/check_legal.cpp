@@ -132,17 +132,16 @@ void circuit::local_density_check(double unit, double target_Ut) {
   }
 
   /* (b) add utilization by fixed/movable objects */
-  for(vector< cell >::iterator theCell = cells.begin(); theCell != cells.end();
-      ++theCell) {
-    auto obstructions  = theCell->cell_macro->db_master->getObstructions();
+  for (cell theCell : cells) {
+    auto obstructions  = theCell.cell_macro->db_master->getObstructions();
     if(obstructions.size() <= 1) {
-      int lcol = max((int)floor((theCell->x_coord - lx) / gridUnit), 0);
+      int lcol = max((int)floor((theCell.x_coord - lx) / gridUnit), 0);
       int rcol =
-          min((int)floor((theCell->x_coord + theCell->width - lx) / gridUnit),
+          min((int)floor((theCell.x_coord + theCell.width - lx) / gridUnit),
               x_gridNum - 1);
-      int brow = max((int)floor((theCell->y_coord - by) / gridUnit), 0);
+      int brow = max((int)floor((theCell.y_coord - by) / gridUnit), 0);
       int trow =
-          min((int)floor((theCell->y_coord + theCell->height - by) / gridUnit),
+          min((int)floor((theCell.y_coord + theCell.height - by) / gridUnit),
               y_gridNum - 1);
 
       for(int j = brow; j <= trow; j++)
@@ -150,16 +149,16 @@ void circuit::local_density_check(double unit, double target_Ut) {
           unsigned binId = j * x_gridNum + k;
 
           /* get intersection */
-          double lx = max(bins[binId].lx, (double)theCell->x_coord);
+          double lx = max(bins[binId].lx, (double)theCell.x_coord);
           double hx =
-              min(bins[binId].hx, (double)theCell->x_coord + theCell->width);
-          double ly = max(bins[binId].ly, (double)theCell->y_coord);
+              min(bins[binId].hx, (double)theCell.x_coord + theCell.width);
+          double ly = max(bins[binId].ly, (double)theCell.y_coord);
           double hy =
-              min(bins[binId].hy, (double)theCell->y_coord + theCell->height);
+              min(bins[binId].hy, (double)theCell.y_coord + theCell.height);
 
           if((hx - lx) > 1.0e-5 && (hy - ly) > 1.0e-5) {
             double common_area = (hx - lx) * (hy - ly);
-            if(theCell->isFixed)
+            if(isFixed(&theCell))
               bins[binId].f_util += common_area;
             else
               bins[binId].m_util += common_area;
@@ -174,19 +173,19 @@ void circuit::local_density_check(double unit, double target_Ut) {
 	box->getBox(rect1);
 	rect1.moveDelta(-core.xLL, -core.yLL);
 	int lcol =
-            max((int)floor((theCell->x_coord + rect1.xMin() - lx) /
+            max((int)floor((theCell.x_coord + rect1.xMin() - lx) /
                            gridUnit),
                 0);
         int rcol =
-            min((int)floor((theCell->x_coord + rect1.xMax() - lx) /
+            min((int)floor((theCell.x_coord + rect1.xMax() - lx) /
                            gridUnit),
                 x_gridNum - 1);
         int brow =
-            max((int)floor((theCell->y_coord + rect1.yMin() - by) /
+            max((int)floor((theCell.y_coord + rect1.yMin() - by) /
                            gridUnit),
                 0);
         int trow =
-            min((int)floor((theCell->y_coord + rect1.yMax() - by) /
+            min((int)floor((theCell.y_coord + rect1.yMax() - by) /
                            gridUnit),
                 y_gridNum - 1);
 
@@ -196,17 +195,17 @@ void circuit::local_density_check(double unit, double target_Ut) {
 
             /* get intersection */
             double lx = max(bins[binId].lx,
-			    (double)theCell->x_coord + rect1.xMin());
+			    (double)theCell.x_coord + rect1.xMin());
             double hx = min(bins[binId].hx,
-			    (double)theCell->x_coord + rect1.xMax());
+			    (double)theCell.x_coord + rect1.xMax());
             double ly = max(bins[binId].ly,
-			    (double)theCell->y_coord + rect1.yMin());
+			    (double)theCell.y_coord + rect1.yMin());
             double hy = min(bins[binId].hy,
-			    (double)theCell->y_coord + rect1.yMax());
+			    (double)theCell.y_coord + rect1.yMax());
 
             if((hx - lx) > 1.0e-5 && (hy - ly) > 1.0e-5) {
               double common_area = (hx - lx) * (hy - ly);
-              if(theCell->isFixed)
+              if(isFixed(&theCell))
                 bins[binId].f_util += common_area;
               else
                 bins[binId].m_util += common_area;
@@ -242,7 +241,7 @@ void circuit::row_check(ofstream& log) {
   int count = 0;
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
-    if(theCell->isFixed == true) continue;
+    if(isFixed(theCell)) continue;
     if((int)theCell->y_coord % (int)rowHeight != 0) {
       log << " row_check fail ==> " << theCell->db_inst->getConstName()
           << "  y_coord : " << theCell->y_coord << endl;
@@ -264,7 +263,7 @@ void circuit::site_check(ofstream& log) {
   int count = 0;
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
-    if(theCell->isFixed == true) continue;
+    if(isFixed(theCell)) continue;
     if((int)theCell->x_coord % (int)wsite != 0) {
       log << " site_check fail ==> " << theCell->db_inst->getConstName()
           << "  x_coord : " << theCell->x_coord << endl;
@@ -350,7 +349,7 @@ void circuit::power_line_check(ofstream& log) {
   int count = 0;
   for(int i = 0; i < cells.size(); i++) {
     cell* theCell = &cells[i];
-    if(theCell->isFixed == true) continue;
+    if(isFixed(theCell)) continue;
 
      if(theCell->height / rowHeight == 1 || theCell->height / rowHeight == 3)
       continue;
@@ -448,7 +447,7 @@ void circuit::overlap_check(ofstream& log) {
     int y_ur = y_pos + y_step;
 
     // Fixed Cell can be out of Current DIEAREA settings.
-    if( theCell->isFixed ) {
+    if( isFixed(theCell) ) {
       x_pos = max(0, x_pos); 
       y_pos = max(0, y_pos);
       x_ur = min(x_ur, IntConvert(die.xUR / wsite));

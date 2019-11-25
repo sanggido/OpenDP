@@ -111,7 +111,6 @@ struct cell {
   int init_x_coord, init_y_coord; /* (in DBU) */
   int x_pos, y_pos;               /* (in DBU) */
   double width, height;           /* (in DBU) */
-  bool isFixed;                   /* fixed cell or not */
   bool isPlaced;
   bool inGroup() { return cell_group != nullptr; }
   bool hold;
@@ -267,6 +266,7 @@ class circuit {
   void make_cells();
   double dbuToMicrons(int dbu) { return dbu / double(DEFdist2Microns); }
   void update_db_inst_locations();
+  bool isFixed(cell *cell1);                  /* fixed cell or not */
 
   /* read files for legalizer - parser.cpp */
   bool read_constraints(const std::string& input);
